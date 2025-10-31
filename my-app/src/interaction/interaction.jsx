@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getUser, sendLLMData, toLLM } from '../../services/apiService';
+import { getUser, sendLLMData, calltoLLM } from '../../services/apiService';
 
 
 export function Interaction(){
@@ -17,6 +17,8 @@ export function Interaction(){
         async function fetchUser() {
             try {
                 const data = await getUser(userId);
+                console.log(data.userName);
+                console.log(data.roomCode);
                 setUser(data);
             } catch (err) {
                 console.error("Failed to fetch user:", err);
@@ -34,30 +36,35 @@ export function Interaction(){
 
     async function handleSubmit(e){
         e.preventDefault();
-    if (!user || !prompt.trim()) return;
+        console.log(user);
 
-    const userMsg = { sender: "user", text: prompt };
-    setMessages((prev) => [...prev, userMsg]);
-    setPrompt("");
+        if (!user.userName || !prompt.trim()) return;
 
-    try {
-      const response = await toLLM(user.name, prompt);
-      console.log(`prompt: ${prompt}`);
-      console.log(`LLM response: ${JSON.stringify(response.response)}`);
-      const llmMsg = { sender: "llm", text: response.response || "(no response)" };
-      setMessages((prev) => [...prev, llmMsg]);
+        const userMsg = { sender: "user", text: prompt };
+        setMessages((prev) => [...prev, userMsg]);
+        setPrompt("");
 
-      // Optional: log the exchange to your backend
-      const success = await sendLLMData(user.name, prompt, response.response);
-      console.log(`Data send to backend ${success.message}`);
-    } catch (err) {
-      console.error("Error:", err);s
-      setError(err.message || "Something went wrong.");
-    }
+        try {
+            //const response = await calltoLLM(user.userName, prompt); NOT OFFICIALLY SET UP YET
+            const response = {"response": "okay"};
+            console.log(`prompt: ${prompt}`);
+            console.log(`LLM response: ${JSON.stringify(response.response)}`);
+            const llmMsg = { sender: "llm", text: response.response || "(no response)" };
+            setMessages((prev) => [...prev, llmMsg]);
+
+            // Optional: log the exchange to your backend
+            // const success = await sendLLMData(user.name, prompt, response.response); ALSO NOT SET UP YET
+            console.log(`Data sent to backend `); //${success.message}
+        } catch (err) {
+            console.error("Error:", err);
+            setError(err.message || "Something went wrong.");
+         }
     }
 
     const handleKeyDown = (e) => {
+        console.log("Key pressed:", e.key);
         if(e.key === "Enter"){
+            e.preventDefault();
             handleSubmit(e);
         }
     }
@@ -65,7 +72,7 @@ export function Interaction(){
     return (
         <>
         <div className="welcome-center">
-            {user ? <h2>Welcome, {user.name}!</h2> : <p>Loading...</p>}
+            {user ? <h2>Welcome, {user.userName}!</h2> : <p>Loading...</p>}
         </div>
 
         <div className="room-top-right">
@@ -73,7 +80,6 @@ export function Interaction(){
         </div>
         <div className="chat-container">
         <div className="chat-box" id="chat-box" ref={chatBoxRef}>
-            {/* <!-- messages will appear here --> */}
             {
                 messages.map((msg, i) => (
                     <div
@@ -83,7 +89,7 @@ export function Interaction(){
               }`}
             >
               {msg.sender === "user"
-                ? `${user?.name || "User"}: ${msg.text}`
+                ? `${user?.userName || "User"}: ${msg.text}`
                 : `LLM: ${msg.text}`}
             </div>
                 ))

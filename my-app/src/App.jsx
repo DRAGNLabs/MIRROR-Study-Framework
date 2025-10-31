@@ -19,7 +19,9 @@ function Home() {
         console.log("You need both a name and a roomcode!");
         return;
       }
-      const userId = await loginUser(name, roomCode);
+      const user = await loginUser(name, roomCode);
+      const userId = user.id;
+      console.log(userId);
       console.log(`${name} logged in!`);
       navigate("/interaction", { state: { userId } }); //change this to LLM page when added
     } catch (error) {

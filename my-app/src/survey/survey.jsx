@@ -16,22 +16,8 @@ export function Survey() {
     const navigate = useNavigate();
     const inputRef = useRef();
 
-    async function handleClick(updated){
-    try {
-        const result = await sendSurvey(user.name, updated);
-        console.log(result.message);
-        console.log(JSON.stringify(result.d)); //so it doesnt print out as objects 
-        setFirst("");
-        setSecond("");
-        setThird("");
-        navigate("/exit");
         
-    } catch (error) {
-      setError(error.message);
-    }  
-    };
 
-    //gets the user from service to access roomnumber and name sets the useState setUser as that user.
     useEffect(() => {
         async function fetchUser() {
             try {
@@ -60,12 +46,28 @@ export function Survey() {
         }
     };
 
+        async function handleClick(updated){
+        console.log(user);
+
+        if (!updated) return;
+
+
+        try {
+            const response = await sendSurvey(userId, user.userName, updated); 
+
+
+        } catch (err) {
+            console.error("Error:", err);
+            setError(err.message || "Something went wrong.");
+         }
+    }
+
 
     return (
         //survey using dumby questions and dumby data that will be sent.
         <div className="survey-container">
             {user ? (
-                <p>{user.name} please complete the following survey of your experience from room {user.roomCode}!</p> 
+                <p>{user.userName} please complete the following survey of your experience from room {user.roomCode}!</p> 
             ) : ( <p>User info is loading...</p> )}
             <p>do you like tacos?</p>
             <input 
