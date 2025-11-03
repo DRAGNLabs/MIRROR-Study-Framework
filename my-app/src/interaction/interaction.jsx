@@ -1,3 +1,5 @@
+/*This page is where the users will interact with the llm*/
+
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getUser, sendLLMData, calltoLLM } from '../../services/apiService';
@@ -46,7 +48,7 @@ export function Interaction(){
 
         try {
             //const response = await calltoLLM(user.userName, prompt); NOT OFFICIALLY SET UP YET
-            const response = {"response": "okay"};
+            const response = {"response": "okay"}; // hardcoded for now until line above is implemented
             console.log(`prompt: ${prompt}`);
             console.log(`LLM response: ${JSON.stringify(response.response)}`);
             const llmMsg = { sender: "llm", text: response.response || "(no response)" };

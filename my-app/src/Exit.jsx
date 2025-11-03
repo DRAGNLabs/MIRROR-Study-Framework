@@ -1,3 +1,5 @@
+/** This is just a closing page so the user will know they can exit */
+
 export function Exit(){
     return (
         <div className="survey-container">

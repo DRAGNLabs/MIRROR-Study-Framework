@@ -1,3 +1,5 @@
+/* This is the home page where users will login to the room using a given roomCode*/
+
 import { BrowserRouter as Router, Link, Routes, Route, useNavigate } from 'react-router-dom';
 import Survey from "./survey/survey";
 import { useState } from "react";
@@ -12,7 +14,9 @@ function Home() {
   const [roomCode, setRoomCode] = useState("");
   const [error, setError] = useState("");
 
-
+/** After the user hits submit it'll double check if it has a roomCode and a userName,
+ *  then it will pass that information to the database and carry the userId to the next page
+ */
   async function handleClick(){
     try {
       if (!name || !roomCode){
@@ -23,13 +27,14 @@ function Home() {
       const userId = user.id;
       console.log(userId);
       console.log(`${name} logged in!`);
-      navigate("/interaction", { state: { userId } }); //change this to LLM page when added
+      navigate("/interaction", { state: { userId } }); 
     } catch (error) {
       setError(error.message);
     }
       
   };
 
+  /** This allows the enter button to be hit and send it to the function above to login */
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
