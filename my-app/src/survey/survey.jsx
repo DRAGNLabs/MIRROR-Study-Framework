@@ -1,3 +1,5 @@
+/** This page is where the user will take the survey */
+
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getUser } from '../../services/apiService';
@@ -12,16 +14,14 @@ export function Survey() {
     const [first, setFirst] = useState("");
     const [second, setSecond] = useState("");
     const [third, setThird] = useState("");
-    const [error, setError] = useState("");
+    const [ error, setError] = useState("");
     const navigate = useNavigate();
     const inputRef = useRef();
 
-        
 
     useEffect(() => {
         async function fetchUser() {
             try {
-                
             const data = await getUser(userId);
             setUser(data);
             } catch (err) {
@@ -53,7 +53,11 @@ export function Survey() {
 
 
         try {
+            console.log(userId);
+            console.log(user.userName);
+            console.log(updated);
             const response = await sendSurvey(userId, user.userName, updated); 
+            navigate("/exit");
 
 
         } catch (err) {
@@ -83,7 +87,7 @@ export function Survey() {
             <p>do you prefer crunchy or soft tacos?</p>
             <input 
             type="text"
-            value={second} //idk if i can set the value to the same name
+            value={second}
             ref={inputRef}
             onChange={(e) => setSecond(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -96,13 +100,12 @@ export function Survey() {
             type="text"
             value={third} //idk if i can set the value to the same name
             ref={inputRef}
-            onChange={(e) => setThird(e.target.value)}
+            onChange={(e) => setThird(e.target.value)} 
             onKeyDown={handleKeyDown}
             placeholder="absolutely!"
             required
             />
 
-            {/* i dont want to move on until every box is submitted */}
             <div className="button-group"> 
                 <button
                     onClick={() => {
