@@ -7,7 +7,7 @@ import db from "../db.js";
 router.post("/:id", (req, res) => {
   const { id } = req.params;
   const { userName, surveyData } = req.body;
-  db.run('INSERT INTO surveys (id, userName, data) VALUES (?, ?, ?)', [
+  db.run('INSERT INTO survey (id, userName, data) VALUES (?, ?, ?)', [
     id, 
     userName,
     JSON.stringify(surveyData)
@@ -26,7 +26,7 @@ router.post("/:id", (req, res) => {
 })
 
 
-//returns all the data in the survey table
+//returns all the data in the survey table, hasnt been tested
 router.get("/", (req, res) => {
   db.all("SELECT * FROM survey", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });

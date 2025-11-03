@@ -4,7 +4,7 @@ import db from "../db.js";
 const router = express.Router();
 
 
-//get all user
+//get all users, hasnt been tested
 router.get("/", (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows)=> {
         if (err) return res.status(500).json({ error: err.message });
