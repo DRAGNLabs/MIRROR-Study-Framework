@@ -19,8 +19,8 @@ export function Interaction(){
         async function fetchUser() {
             try {
                 const data = await getUser(userId);
-                console.log(data.userName);
-                console.log(data.roomCode);
+                // console.log(data.userName);
+                // console.log(data.roomCode);
                 setUser(data);
             } catch (err) {
                 console.error("Failed to fetch user:", err);
@@ -38,7 +38,6 @@ export function Interaction(){
 
     async function handleSubmit(e){
         e.preventDefault();
-        console.log(user);
 
         if (!user.userName || !prompt.trim()) return;
 
@@ -64,7 +63,6 @@ export function Interaction(){
     }
 
     const handleKeyDown = (e) => {
-        console.log("Key pressed:", e.key);
         if(e.key === "Enter"){
             e.preventDefault();
             handleSubmit(e);

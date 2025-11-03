@@ -25,7 +25,6 @@ function Home() {
       }
       const user = await loginUser(name, roomCode);
       const userId = user.id;
-      console.log(userId);
       console.log(`${name} logged in!`);
       navigate("/interaction", { state: { userId } }); 
     } catch (error) {
