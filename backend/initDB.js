@@ -11,7 +11,7 @@ db.serialize(() => {
   `);
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS surveys (
+    CREATE TABLE IF NOT EXISTS survey (
       id INTEGER NOT NULL PRIMARY KEY,
       userName TEXT NOT NULL,
       data TEXT NOT NULL
