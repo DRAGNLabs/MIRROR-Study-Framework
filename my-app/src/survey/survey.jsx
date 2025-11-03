@@ -47,7 +47,7 @@ export function Survey() {
     };
 
         async function handleClick(updated){
-        console.log(user);
+        // console.log(user);
 
         if (!updated) return;
 
@@ -113,7 +113,7 @@ export function Survey() {
                     if (first && second && third) {
                         setAnswer((prevAnswers) => {
                             const updated = [...prevAnswers, { first, second, third }]; // build the new array
-                            handleClick(updated); // do something with it immediately
+                            //handleClick(updated); // do something with it immediately
                             return updated; // give React the new array to store
                             }); // Move on to next page
                     } else {
