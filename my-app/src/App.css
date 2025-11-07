@@ -1,0 +1,353 @@
+/* === Global chill light theme === */
+.header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 1000;
+}
+
+/* === Page Layout Positions === */
+.page-layout {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* --- Centered Welcome Message --- */
+.welcome-center {
+  position: absolute;
+  top: 5rem;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+/* Room Code - Top Right */
+.room-top-right {
+  position: fixed;
+  top: 2rem; /* below the nav bar */
+  right: 0rem;
+  /* background: rgba(255, 255, 255, 0.8); */
+  padding: 0.5rem 1rem;
+  /* border-radius: 10px; */
+  /* box-shadow: 0 3px 8px rgba(103, 184, 214, 0.3); */
+  font-weight: 500;
+  color: #2d3a40;
+}
+
+
+
+body {
+  margin: 0;
+  height: 100vh;
+  background: linear-gradient(180deg, #e3f2f9 0%, #c9e9f6 50%, #b4dce9 100%);
+  color: #333;
+  font-family: "Poppins", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+}
+.home-container {
+  display: flex;               /* use flexbox */
+  justify-content: center;     /* center horizontally */
+  align-items: center;         /* center vertically */
+  min-height: 100vh;           /* fill viewport height */
+  width: 100%;                 /* full width */
+  text-align: center;
+}
+
+.login-container, .survey-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* vertical centering */
+  align-items: center;       /* horizontal centering */
+  min-height: 100vh;         /* full viewport height */
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.85); /* subtle light card */
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(103, 184, 214, 0.3);
+  max-width: 400px;          /* prevent too wide */
+  margin: 0 auto;            /* center horizontally */
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* === Center content without a box === */
+#root {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+
+
+
+
+button.inactive {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: auto; /* still clickable */
+}
+
+
+/* === Typography === */
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: #2d3a40;
+}
+
+/* === Buttons === */
+button,
+a.button {
+  background: linear-gradient(135deg, #9ad1e3, #67b8d6);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 4px 12px rgba(103, 184, 214, 0.4);
+}
+
+button:hover,
+a.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(103, 184, 214, 0.6);
+  background: linear-gradient(135deg, #a2d9ed, #7acbe0);
+}
+
+button:active,
+a.button:active {
+  transform: translateY(1px);
+  box-shadow: 0 3px 8px rgba(103, 184, 214, 0.3);
+}
+
+/* === Inputs === */
+input {
+  background: #fefefe;
+  color: #333;
+  border: 2px solid #c7e4ee;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin: 0.5rem 0 1rem;
+  width: 100%;
+  max-width: 250px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(200, 230, 240, 0.3);
+}
+
+input:focus {
+  outline: none;
+  border-color: #86cce2;
+  box-shadow: 0 0 10px rgba(134, 204, 226, 0.6);
+}
+
+/* === Link styling === */
+/* === Link styling === */
+nav {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  display: flex;      /* make links and button horizontal */
+  gap: 0.5rem;        /* space between items */
+}
+
+nav a {
+  background: linear-gradient(135deg, #9ad1e3, #67b8d6);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 9px rgba(103, 184, 214, 0.35);
+}
+
+nav a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(103, 184, 214, 0.5);
+  background: linear-gradient(135deg, #a8dff0, #7bc7de);
+}
+
+/* === Subtle fade-in === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.next-bottom-left {
+  position: fixed;
+  top: 45rem; /*move this go down to a greater value to go down */
+  right: 8rem; /*move this smaller to get it more right*/
+}
+
+/* === Chat Container === */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 1000px;
+  height: 600px;
+  position: relative;
+  top: 7rem; /* pushes just the chatbox down */
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(103, 184, 214, 0.3);
+  animation: fadeIn 0.8s ease forwards;
+  overflow: hidden;
+  font-family: "Poppins", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* === Chat Messages Area === */
+.chat-box {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: linear-gradient(180deg, #e3f2f9 0%, #c9e9f6 50%, #b4dce9 100%);
+  border-bottom: 2px solid #c7e4ee;
+}
+
+/* === Message Bubbles === */
+.message {
+  max-width: 70%;
+  padding: 0.7rem 1rem;
+  border-radius: 14px;
+  word-wrap: break-word;
+  box-shadow: 0 3px 6px rgba(103, 184, 214, 0.25);
+  animation: fadeIn 0.3s ease;
+  font-size: 0.95rem;
+}
+
+/* --- User Messages (Right side) --- */
+.message.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #9ad1e3, #67b8d6);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+/* --- Bot Messages (Left side) --- */
+.message.bot {
+  align-self: flex-start;
+  background: #ffffff;
+  color: #2d3a40;
+  border-bottom-left-radius: 4px;
+  border: 1px solid #c7e4ee;
+}
+
+#chat-form {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end; /* ensures textarea grows upward naturally */
+  border-top: 2px solid #c7e4ee;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem;
+}
+
+#chat-input {
+  width: 80%;
+  min-height: 2.5rem;  
+  max-height: 8rem; /* optional: limit how tall it can grow */
+  resize: none;     /* prevent manual resize corner */
+  overflow-y: auto; /* show scrollbar when needed */
+  
+  border: 2px solid #c7e4ee;
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  background: #fefefe;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(200, 230, 240, 0.3);
+  transition: all 0.3s ease;
+  line-height: 1.4;
+}
+
+#chat-input:focus {
+  outline: none;
+  border-color: #86cce2;
+  box-shadow: 0 0 10px rgba(134, 204, 226, 0.6);
+}
+
+#chat-input::placeholder {
+  color: #888; /* soft gray for subtlety */
+  font-family: "Poppins", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+
+/* === Send Button === */
+#chat-form button {
+  margin-left: 0.5rem;
+  background: linear-gradient(135deg, #9ad1e3, #67b8d6);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(103, 184, 214, 0.4);
+  transition: all 0.3s ease;
+}
+
+#chat-form button:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #a2d9ed, #7acbe0);
+  box-shadow: 0 6px 18px rgba(103, 184, 214, 0.6);
+}
+
+#chat-form button:active {
+  transform: translateY(1px);
+  box-shadow: 0 3px 8px rgba(103, 184, 214, 0.3);
+}
+
+/* === Admin Container (No Background Panel) === */
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  
+  align-items: center;      
+  min-height: 100vh;
+  width: 100%;
+  text-align: center;
+}
+
+/* === Button Row (Side-by-Side) === */
+.admin-buttons {
+  display: flex;
+  flex-direction: row;  /* force horizontal */
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;             /* spacing between buttons */
+  margin-top: 1.5rem;
+  flex-wrap: nowrap;     /* prevent stacking */
+}
+
+/* Optional: prevent buttons from stretching */
+.admin-buttons button,
+.admin-buttons a.button {
+  width: auto !important;   /* overrides any global width */
+}
