@@ -24,6 +24,13 @@ db.serialize(() => {
       prompts TEXT NOT NULL, 
       responses TEXT NOT NULL
     )
+  `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS rooms (
+      roomCode INTEGER NOT NULL PRIMARY KEY, 
+      count INTEGER NOT NULL,
+      users TEXT NOT NULL
+    )
   `)
 
 

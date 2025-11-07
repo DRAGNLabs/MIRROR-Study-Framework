@@ -323,3 +323,31 @@ nav a:hover {
   transform: translateY(1px);
   box-shadow: 0 3px 8px rgba(103, 184, 214, 0.3);
 }
+
+/* === Admin Container (No Background Panel) === */
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  
+  align-items: center;      
+  min-height: 100vh;
+  width: 100%;
+  text-align: center;
+}
+
+/* === Button Row (Side-by-Side) === */
+.admin-buttons {
+  display: flex;
+  flex-direction: row;  /* force horizontal */
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;             /* spacing between buttons */
+  margin-top: 1.5rem;
+  flex-wrap: nowrap;     /* prevent stacking */
+}
+
+/* Optional: prevent buttons from stretching */
+.admin-buttons button,
+.admin-buttons a.button {
+  width: auto !important;   /* overrides any global width */
+}

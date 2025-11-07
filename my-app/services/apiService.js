@@ -62,4 +62,15 @@ export async function sendLLMData(userId, prompt, response){
   return res.json();
 }
 
+export async function createRoom(roomCode, count){
+  const res = await fetch(`${API_BASE}/rooms/create`, {
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' },
+    body: {roomCode: roomCode, count: count}
+  })
+  if(!res.ok) throw new Error("Error creating room.");
+
+  return res.json();
+}
+
 
