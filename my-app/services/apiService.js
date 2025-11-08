@@ -62,14 +62,20 @@ export async function sendLLMData(userId, prompt, response){
   return res.json();
 }
 
-export async function createRoom(roomCode, count){
+export async function sendCreatedRoom(roomCode, count, games){
   const res = await fetch(`${API_BASE}/rooms/create`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: {roomCode: roomCode, count: count}
+    body: JSON.stringify({roomCode: roomCode, count: Number(count), gamesSelected: games, users: "[]"}),
   })
   if(!res.ok) throw new Error("Error creating room.");
 
+  return res.json();
+}
+
+export async function getCreatedRooms(){
+  const res = await fetch(`${API_BASE}/rooms`);
+  if (!res.ok) throw new Error("Error fetching the surveys from the database.");
   return res.json();
 }
 
