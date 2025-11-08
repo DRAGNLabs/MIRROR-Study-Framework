@@ -29,6 +29,7 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS rooms (
       roomCode INTEGER NOT NULL PRIMARY KEY, 
       count INTEGER NOT NULL,
+      gamesSelected TEXT NOT NULL,
       users TEXT NOT NULL
     )
   `)
