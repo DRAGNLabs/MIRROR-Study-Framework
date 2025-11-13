@@ -4,13 +4,16 @@
 **Diagram showing the workflow of the website**
 
 ## To start website
-Make sure you have Node.js installed and npm to check if you have these installed already run
+Make sure you have npm and Node.js Version 18.0.0 or higher installed. To check if you have the right versions installed run:
 ```
 node -v
 npm -v
 ```
 
-(Not sure if anything else needs to be installed for this project like Lint, Lacy you fill this in)
+Use this website to install or update [Node.js](https://nodejs.org/en)
+
+<insert instructions for installing and updating node.js and npm for windows, mac, and linux>
+
 
 To start the front end you'll navigate to the `/my-app` directory and then run
 ```
