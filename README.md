@@ -9,7 +9,7 @@ node -v
 npm -v
 ```
 
-If Node.js is not installed or your verison is <20, download and install the latest LST version from the [Node.js website](https://nodejs.org/en). 
+If Node.js is not installed or your verison is <20, download and install the latest LTS version from the [Node.js website](https://nodejs.org/en). 
 
 After installation rerun the commands above to confirm Node.js and npm are installed and up to date.
 
