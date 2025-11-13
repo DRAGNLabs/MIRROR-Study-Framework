@@ -1,31 +1,40 @@
 # MIRROR-Study-Framework
-=======
 [![Preview of PDF](Workflow-preview.png)](Workflow.pdf)
-**Diagram showing the workflow of the website**
+**Workflow for website**
 
-## To start website
-Make sure you have npm and Node.js Version 18.0.0 or higher installed. To check if you have the right versions installed run:
+## Install Node.js 
+Make sure you have Node.js Version 20 or higher installed - npm comes with Node automatically. To check if you have the right versions installed run:
 ```
 node -v
 npm -v
 ```
 
-Use this website to install or update [Node.js](https://nodejs.org/en)
+If Node.js is not installed or your verison is <20, download and install the latest LST version from the [Node.js website](https://nodejs.org/en). 
 
-<insert instructions for installing and updating node.js and npm for windows, mac, and linux>
+After installation rerun the commands above to confirm Node.js and npm are installed and up to date.
 
-
-To start the front end you'll navigate to the `/my-app` directory and then run
+## To start website
+### Clone the Repository
 ```
+https://github.com/DRAGNLabs/MIRROR-Study-Framework.git
+cd MIRROR-Study-Framework
+```
+
+### Start the Backend
+```
+cd backend
+npm install
+npm start
+```
+This should successfully start the backend on port 3001
+
+### Start the Frontend
+Open a new terminal and navigate to the github repository
+```
+cd my-app
 npm install
 npm run dev
 ```
 
-This should successfully start the front-end on http://localhost:5173/
-
-To start the back end you'll navigate to the `\backend` directory and then run
-```
-npm install
-npm run
-```
+This should successfully start the frontend at http://localhost:5173/
 
