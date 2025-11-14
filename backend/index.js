@@ -27,12 +27,14 @@ const io = new Server(httpServer, {
 });
 
 const rooms = {};
-
+const socketUserMap = {}
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
     
     socket.on("join-room", ({ roomCode, user }) => {
         socket.join(roomCode);
+
+        socketUserMap[socket.id] = { roomCode, user };
 
         if(!rooms[roomCode]) rooms[roomCode] = [];
 
@@ -54,7 +56,41 @@ io.on("connection", (socket) => {
         socket.to(roomCode).emit("receive-message", message);
     });
 
+    // socket.on("leave-room", ({ roomCode, userId }) => {
+    //     if (!rooms[roomCode]) return;
+
+    //     // remove user
+    //     rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
+
+    //     // if not enough users left
+    //     if (rooms[roomCode].length < 3) {
+    //         io.to(roomCode).emit("force-return-to-waiting-room");
+    //     }
+
+    //     io.to(roomCode).emit("room-users", rooms[roomCode])
+
+    //     socket.leave(roomCode);
+    // });
+
     socket.on("disconnect", () => {
+        // const data = socketUserMap[socket.id]
+        // if (!data) return;
+
+        // const { roomCode, user } = data
+        // rooms[roomCode] = rooms[roomCode].filter((u) => u.id !== user.id);
+
+        // // // Broadcast updated user list
+        // io.to(roomCode).emit("room-users", rooms[roomCode]);
+
+        // // If not enough users left, send them back to waiting
+        // if (rooms[roomCode].length < 3) {
+        //     io.to(roomCode).emit("force-return-to-waiting-room");
+        // }
+
+        // // Broadcast updated user list
+
+        // // Clean up mapping
+        // delete socketUserMap[socket.id];
         console.log("User disconnected:", socket.id)
     });
 });

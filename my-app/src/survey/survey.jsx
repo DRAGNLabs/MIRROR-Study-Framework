@@ -22,10 +22,10 @@ export function Survey() {
     useEffect(() => {
         async function fetchUser() {
             try {
-            const data = await getUser(userId);
-            setUser(data);
+                const data = await getUser(userId);
+                setUser(data);
             } catch (err) {
-            console.error("Failed to fetch user:", err);
+                console.error("Failed to fetch user:", err);
             }
         }
         fetchUser();
@@ -41,12 +41,12 @@ export function Survey() {
             setAnswer(updated);
             handleClick(updated);
             } else {
-            alert("Please fill in both answers before submitting!");
+                alert("Please fill in both answers before submitting!");
             }
         }
     };
 
-        async function handleClick(updated){
+    async function handleClick(updated){
         // console.log(user);
 
         if (!updated) return;
@@ -99,7 +99,7 @@ export function Survey() {
             <input 
             type="text"
             value={third} //idk if i can set the value to the same name
-            ref={inputRef}
+            ref={inputRef} // GPT says you shouldn't use same ref for all 3 inputs
             onChange={(e) => setThird(e.target.value)} 
             onKeyDown={handleKeyDown}
             placeholder="absolutely!"
@@ -110,15 +110,15 @@ export function Survey() {
                 <button
                     onClick={() => {
                     // Only add to answers once both fields are filled
-                    if (first && second && third) {
-                        setAnswer((prevAnswers) => {
-                            const updated = [...prevAnswers, { first, second, third }]; // build the new array
-                            //handleClick(updated); // do something with it immediately
-                            return updated; // give React the new array to store
+                        if (first && second && third) {
+                            setAnswer((prevAnswers) => {
+                                const updated = [...prevAnswers, { first, second, third }]; // build the new array
+                                handleClick(updated); // do something with it immediately
+                                return updated; // give React the new array to store
                             }); // Move on to next page
-                    } else {
-                        alert("Please fill in both answers before submitting!");
-                    }
+                        } else {
+                            alert("Please fill in both answers before submitting!");
+                        }
                     }}
                 >
                     Submit

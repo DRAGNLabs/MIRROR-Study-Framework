@@ -1,6 +1,6 @@
 /* This is the home page where users will login to the room using a given roomCode*/
 
-import { BrowserRouter as Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Survey from "./survey/survey";
 import { useState } from "react";
 import './App.css';

@@ -15,6 +15,7 @@ export default function WaitingRoom() {
     socket.emit("join-room", { roomCode, user });
 
     socket.on("room-users", (userList) => {
+      // console.log(userList);
       setUsers(userList);
     });
 
@@ -27,6 +28,19 @@ export default function WaitingRoom() {
       socket.off("start-chat");
     };
   }, []);
+
+  // useEffect(() => {
+  //   const handleUnload = () => {
+  //       socket.emit("leave-room", { roomCode, userId });
+  //   };
+
+  //   window.addEventListener("beforeunload", handleUnload);
+
+  //   return () => {
+  //       socket.emit("leave-room", { roomCode, userId });
+  //       window.removeEventListener("beforeunload", handleUnload);
+  //   };
+  // }, []);
 
   function onStart() {
     navigate("/interaction", {

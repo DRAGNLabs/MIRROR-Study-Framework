@@ -16,6 +16,7 @@ export function Interaction(){
     const { id: userId, userName, roomCode } = currentUser;
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
+    const [users, setUsers] = useState([]);
 
     useEffect(() => {
         async function fetchUser() {
@@ -35,17 +36,56 @@ export function Interaction(){
             setMessages((prev) => [...prev, msg]);
         });
 
+        // socket.on("room-users", (userList) => {
+        // // console.log(userList);
+        //     setUsers(userList);
+        // });
+
         return () => {
             socket.off("receive-message");
+            //socket.off("room-users")
         };
     }, []);
 
     useEffect(() => {
-    if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-    }
-  }, [messages]);
+        if (chatBoxRef.current) {
+        chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+        }
+    }, [messages]);
 
+    // useEffect(() => {
+    //     const handleUnload = () => {
+    //         socket.emit("leave-room", { roomCode, userId });
+    //     };
+
+    //     window.addEventListener("beforeunload", handleUnload);
+
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode, userId });
+    //         window.removeEventListener("beforeunload", handleUnload);
+    //     };
+    // }, []);
+
+    // useEffect(() => {
+    //     console.log("Here");
+    //     socket.on("force-return-to-waiting-room", () => {
+    //         navigate("/waiting", { state: { user } });
+    //     });
+
+    //     return () => socket.off("force-return-to-waiting-room");
+    // }, []);
+
+    // useEffect(() => {
+    //     if (users.length < 3) {
+    //         setTimeout(() => backToWait(), 800);
+    //     }
+    // }, [users]);
+
+    //   function backToWait() {
+    //     navigate("/waiting", {
+    //         state: { currentUser }
+    //     });
+    // }
 
     const handleSubmit = async(e) => {
         e.preventDefault();
