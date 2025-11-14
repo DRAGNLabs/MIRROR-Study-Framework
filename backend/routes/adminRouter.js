@@ -24,7 +24,6 @@ router.post("/create", (req, res) => {
   )
 })
 
-//returns all the data in the rooms table, hasnt been tested
 router.get("/", (req, res) => {
   db.all("SELECT * FROM rooms", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
