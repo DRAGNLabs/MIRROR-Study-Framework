@@ -1,6 +1,6 @@
 /* This is the home page where users will login to the room using a given roomCode*/
 
-import { BrowserRouter as Router, Link, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Survey from "./survey/survey";
 import { useState } from "react";
 import './App.css';
@@ -74,14 +74,19 @@ function Home() {
 
 
 export default function App() {
+  const location = useLocation();
+  const hideHomeOn = ["/interaction", "/waiting", "/survey"];
+  const shouldHideHome = hideHomeOn.includes(location.pathname)
 
   return (
     
-    <Router>
+    <>
       <header>
+        {!shouldHideHome && (
         <nav>
           <Link to="/">Home</Link>
         </nav>
+        )}
       </header>
 
       <Routes>
@@ -93,7 +98,7 @@ export default function App() {
         <Route path="/waiting" element={<WaitingRoom />} />
         {/* add a route to llm page when its added */}
       </Routes>
-    </Router>
+    </>
     
   );
 };

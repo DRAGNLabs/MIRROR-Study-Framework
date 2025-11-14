@@ -31,12 +31,15 @@ const rooms = {};
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
     
-    socket.on("join-room", ({ roomCode, userName }) => {
+    socket.on("join-room", ({ roomCode, user }) => {
         socket.join(roomCode);
 
         if(!rooms[roomCode]) rooms[roomCode] = [];
-        if (!rooms[roomCode].includes(userName)) {
-            rooms[roomCode].push(userName)
+
+        const alreadyInRoom = rooms[roomCode].some((u) => u.id === user.id);
+
+        if (!alreadyInRoom) {
+            rooms[roomCode].push(user)
         }
 
         // send updated user list

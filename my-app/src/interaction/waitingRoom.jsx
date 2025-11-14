@@ -12,7 +12,7 @@ export default function WaitingRoom() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    socket.emit("join-room", { roomCode, userName });
+    socket.emit("join-room", { roomCode, user });
 
     socket.on("room-users", (userList) => {
       setUsers(userList);
@@ -47,7 +47,7 @@ export default function WaitingRoom() {
 
       <ul className="no-bullets">
         {users.map((u, idx) => (
-          <li key={idx}>{u}</li>
+          <li key={idx}>{u.userName}</li>
         ))}
       </ul>
 
