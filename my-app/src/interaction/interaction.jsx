@@ -46,8 +46,8 @@ export function Interaction(){
         setPrompt("");
 
         try {
-            //const response = await calltoLLM(user.userName, prompt); NOT OFFICIALLY SET UP YET
-            const response = {"response": "okay"}; // hardcoded for now until line above is implemented
+            const response = await callLLM(userPrompt); 
+            //const response = {"response": "okay"}; // hardcoded for now until line above is implemented
             console.log(`prompt: ${prompt}`);
             console.log(`LLM response: ${JSON.stringify(response.response)}`);
             const llmMsg = { sender: "llm", text: response.response || "(no response)" };

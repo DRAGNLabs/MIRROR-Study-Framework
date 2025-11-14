@@ -351,3 +351,192 @@ nav a:hover {
 .admin-buttons a.button {
   width: auto !important;   /* overrides any global width */
 }
+
+/* Full screen center layout */
+.admin-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;      /* vertically center */
+  justify-content: center;  /* horizontally center */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0f172a; /* dark slate */
+  color: #e5e7eb;
+}
+
+/* Center box with buttons */
+.admin-buttons {
+  display: flex;
+  width: 70vw;
+  align-items: center;      /* center horizontally */
+  justify-content: center;  /* center vertically */
+  gap: 1rem;
+  background: #020617;
+  padding: 3rem 4rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+}
+
+/* Buttons styling */
+.admin-buttons button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+}
+
+.admin-buttons button:first-of-type {
+  background:  #7bc7de; /* green */
+  color: #fee2e2;
+}
+
+.admin-buttons button:last-of-type {
+  background:  #7bc7de; /* red */
+  color: #fee2e2;
+}
+
+.admin-buttons button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.35);
+}
+
+/* When the room info appears */
+.room-info {
+  margin-top: 2rem;
+  background: #020617;
+  padding: 1.5rem 1.75rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
+  min-width: 280px;
+  max-width: 360px;
+}
+
+/* Container for each checkbox + text */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;         /* ✅ reduce this gap (default was 1rem or more) */
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap; /* keeps text from wrapping below the checkbox */
+}
+
+/* Checkbox itself */
+.checkbox-label input[type="checkbox"] {
+  width: 18px;         /* smaller than before */
+  height: 18px;
+  accent-color: #6366f1;
+  cursor: pointer;
+  margin: 0;           /* ✅ removes extra default spacing */
+  transform: none;     /* removes any scaling if you had it */
+}
+
+.text-input {
+  width: 60px;       /* small enough for 2 digits */
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  text-align: center; /* centers the number visually */
+}
+
+/* Make the label + input inline */
+.label-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* optional – center horizontally in the card */
+  gap: 0.4rem;             /* small spacing between text and input */
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #e5e7eb;
+}
+
+/* Smaller input box */
+.text-input.small {
+  width: 40px;          /* 👈 perfect for 2 digits */
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.4rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.text-input.small:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.5);
+  outline: none;
+}
+
+.games-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem; /* space between label and checkboxes */
+  margin-top: 0.75rem;
+}
+
+/* Title on the left */
+.games-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #e5e7eb;
+}
+
+/* Checkbox column on the right */
+.games-options-vertical {
+  display: flex;
+  flex-direction: column;  /* 👈 stack vertically */
+  gap: 0.5rem;             /* spacing between each checkbox */
+}
+
+.room-display {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  border-radius: 12px;
+  text-align: left;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  width: 100%;        /* grid will handle exact width */
+}
+
+.room-display button {
+    margin-top: 15px;
+    width: 100%;
+}
+
+.rooms-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.admin-top {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.rooms-grid {
+  width: 80vw;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.rooms-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2.5rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+

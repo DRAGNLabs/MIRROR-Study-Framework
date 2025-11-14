@@ -62,15 +62,58 @@ export async function sendLLMData(userId, prompt, response){
   return res.json();
 }
 
-export async function createRoom(roomCode, count){
+export async function sendCreatedRoom(roomCode, count, games){
   const res = await fetch(`${API_BASE}/rooms/create`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: {roomCode: roomCode, count: count}
+    body: JSON.stringify({roomCode: roomCode, count: Number(count), gamesSelected: games, users: "[]"}),
   })
   if(!res.ok) throw new Error("Error creating room.");
 
   return res.json();
+}
+
+export async function getCreatedRooms(){
+  const res = await fetch(`${API_BASE}/rooms`);
+  if (!res.ok) throw new Error("Error fetching the surveys from the database.");
+  return res.json();
+}
+
+export async function closeARoom(roomCode){
+  const res = await fetch(`${API_BASE}/rooms/delete/${roomCode}`, {
+    method: "DELETE"
+  });
+  if (!res.ok) throw new Error("Error fetching the surveys from the database.");
+  return res.json();
+}
+// All functions below have not been tested. For LLM functionality.
+export async function callLLM(userPrompts){ //res should be whatever i say in llm.js but idk yet
+  const res = await fetch(`${API_BASE}/llm-response`, 
+    {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({userPrompts: userPrompts})
+  
+    }
+  );
+  if (!res.ok) throw new Error("Error fetching the surveys from the database.");
+  return res.json();
+}
+
+export async function submitPrompt(roomCode, userId, userName, prompt){
+  const res = await fetch(`${API_BASE}/llm-response/user-prompts`, {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({roomCode: roomCode, userData: {userId, userName, prompt}})
+  })
+  if (!res.ok) throw new Error("Error fetching the surveys from the database.");
+  return res.json(); //response should be an okay sign and the number of users in userData
+
+}
+
+export async function getRoomPrompts(){ //need to change when this endpoint is set up
+  const res = await fetch(`${API_BASE}/llm-response/get`);
+  return res.json()
 }
 
 
