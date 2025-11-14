@@ -8,6 +8,7 @@ import { loginUser } from '../services/apiService';
 import Interaction from "./interaction/interaction";
 import Exit from "./exit"
 import Admin from "./Admin"
+import WaitingRoom from './interaction/waitingRoom';
 
 function Home() {
   const [name, setName] = useState("");
@@ -27,7 +28,7 @@ function Home() {
       const user = await loginUser(name, roomCode);
       const userId = user.id;
       console.log(`${name} logged in!`);
-      navigate("/interaction", { state: { userId } }); 
+      navigate("/waiting", { state: { user } }); 
     } catch (error) {
       setError(error.message);
     }
@@ -89,6 +90,7 @@ export default function App() {
         <Route path="/interaction" element={<Interaction />} /> 
         <Route path="/exit" element={<Exit />}/>
         <Route path="/admin" element={<Admin />}/>
+        <Route path="/waiting" element={<WaitingRoom />} />
         {/* add a route to llm page when its added */}
       </Routes>
     </Router>
