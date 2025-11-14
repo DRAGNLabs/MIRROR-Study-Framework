@@ -28,7 +28,20 @@ router.post("/create", (req, res) => {
 router.get("/", (req, res) => {
   db.all("SELECT * FROM rooms", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ tables: rows });
+    res.json(rows);
+  });
+});
+
+
+//deletes a room based off of roomCode
+router.delete("/delete/:roomCode", (req,res) => {
+  const roomCode = req.params.roomCode;
+  db.run("DELETE FROM rooms WHERE roomCode = ?", [roomCode], function(err){
+    if (err) {
+      console.error("Error deleting room:", err);
+      return res.status(500).json({ success: false, message: "Error deleting room." });
+    }
+    res.json({ success: true, deleted: this.changes }); // this.changes says how many rows were deleted
   });
 });
 

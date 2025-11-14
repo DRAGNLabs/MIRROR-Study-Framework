@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { getCreatedRooms, sendCreatedRoom } from "../services/apiService";
+import { useState, useRef, useEffect } from "react";
+import { getCreatedRooms, sendCreatedRoom, closeARoom } from "../services/apiService";
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -9,7 +9,20 @@ export function Admin() {
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
     const [ error, setError] = useState("");
+    const [ rooms, setRooms ] = useState([]);
+    const [deletingRoom, setDeletingRoom] = useState(null);
 
+
+    async function init(){
+        const rooms = await getCreatedRooms();
+        setRooms(rooms);
+    }
+
+    useEffect(() => { 
+        init();
+    }, []);
+
+    
     async function createRoom() { //changes the page to customize the room
         const newRoomCode = generateRoomCode();
         setNewRoomCode(newRoomCode);
@@ -21,7 +34,8 @@ export function Admin() {
         try {
             const response = await sendCreatedRoom(newRoomCode, count, selectedGames);
             const rooms = await getCreatedRooms();
-            console.log(rooms.tables);
+            console.log(rooms);
+            setRooms(rooms);
             setStart(true);
             setRoomCreated(false);
         } catch (error){
@@ -32,7 +46,17 @@ export function Admin() {
 
     }
 
-    async function closeRoom() {
+    async function closeRoom(roomCode) {
+        try {
+            setDeletingRoom(roomCode);
+            const response = await closeARoom(roomCode);
+            setRooms(prev => prev.filter(r => r.roomCode !== roomCode));           
+            
+
+        } catch (error) {
+            console.error("Error:", error);
+            setError(error.message || "Something went wrong.");
+        }
         setRoomCreated(false);
         setSelectedGames([]);
         setStart(true);
@@ -54,22 +78,36 @@ export function Admin() {
     }
 
     return (
-        <div className="admin-container">
-            {start && (
-                <div className="admin-buttons">
-                    <button onClick={createRoom}>Create Room</button>
+    <div className="admin-container">
 
+        <div className="admin-top">
+            <button onClick={createRoom}>Create Room</button>
+        </div>
+
+        {start && rooms && (
+            <div className="rooms-grid">
+                <h1>Created rooms:</h1>
+
+                <div className="rooms-container">
+                    {rooms.map(room => (
+                        <div className="room-display" key={room.roomCode}>
+                            <p>Room Code: {room.roomCode}</p>
+                            <p>Users per room: {room.count}</p>
+                            <p>Selected Games: {JSON.parse(room.gamesSelected).join(", ")}</p>
+                            <p>Users in room: {JSON.parse(room.users).length}</p>
+                            <button onClick={() => closeRoom(room.roomCode)}>Close Room</button>
+                        </div>
+                    ))}
                 </div>
-            )}
-            
-            {roomCreated && (
-                <div className="room-info">
-                    
-                    <p className="label"><strong>Generated Room Code: </strong> {newRoomCode}</p>
+            </div>
+        )}
 
-                    {/* You can put the actual room code here later */}
+        {roomCreated && (
+            <div className="room-info">
+                <p className="label"><strong>Generated Room Code: </strong> {newRoomCode}</p>
 
-                    <p className="label-inline"><strong>Users allowed in room: </strong>
+                <p className="label-inline">
+                    <strong>Users allowed in room: </strong>
                     <input
                         className="text-input small"
                         type="number"
@@ -79,49 +117,40 @@ export function Admin() {
                         placeholder="3"
                         required
                     />
-                    </p>
-                    <div className="games-section">
+                </p>
+
+                <div className="games-section">
                     <p className="games-label"><strong>Select games:</strong></p>
                     <div className="games-options">
                         <label className="checkbox-label">
-                            <input
-                                type="checkbox"
-                                checked={selectedGames.includes("One")}
-                                onChange={() => toggleGame("One")}
-                            />
+                            <input type="checkbox" checked={selectedGames.includes("1")}
+                                onChange={() => toggleGame("1")} />
                             <span>One</span>
                         </label>
 
                         <label className="checkbox-label">
-                            <input
-                                type="checkbox"
-                                checked={selectedGames.includes("Two")}
-                                onChange={() => toggleGame("Two")}
-                            />
+                            <input type="checkbox" checked={selectedGames.includes("2")}
+                                onChange={() => toggleGame("2")} />
                             <span>Two</span>
                         </label>
 
                         <label className="checkbox-label">
-                            <input
-                                type="checkbox"
-                                checked={selectedGames.includes("Three")}
-                                onChange={() => toggleGame("Three")}
-                            />
+                            <input type="checkbox" checked={selectedGames.includes("3")}
+                                onChange={() => toggleGame("3")} />
                             <span>Three</span>
                         </label>
                     </div>
-                    </div>
-
-                    <p className="selected-display">
-                        Selected: {selectedGames.join(", ") || "None"}
-                    </p>
-                    <button onClick={buildRoom}>Save Room</button>
                 </div>
 
-            )}
+                <p className="selected-display">
+                    Selected: {selectedGames.join(", ") || "None"}
+                </p>
 
-        </div>
-    );
+                <button onClick={buildRoom}>Save Room</button>
+            </div>
+        )}
+
+    </div>
+)
 }
-
 export default Admin;
