@@ -22,6 +22,13 @@ export async function getUser(userId) {
   return response.json();
 }
 
+export async function getUsersRoom(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
+  if (!response.ok) throw new Error("Can't get room.");
+
+  return response.json();
+}
+
 export async function sendSurvey(userId, userName, data) {
   const response = await fetch(`${API_BASE}/survey/${userId}`, {
     method: 'POST', 

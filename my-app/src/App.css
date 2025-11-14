@@ -25,6 +25,12 @@
   text-align: center;
 }
 
+.no-bullets {
+  list-style-type: none; /* Removes the bullets */
+  padding: 0; /* Removes default padding */
+  margin: 0; /* Removes default margin */
+}
+
 /* Room Code - Top Right */
 .room-top-right {
   position: fixed;
@@ -72,6 +78,23 @@ body {
   max-width: 400px;          /* prevent too wide */
   margin: 0 auto;            /* center horizontally */
   animation: fadeIn 0.8s ease forwards;
+}
+
+.waiting-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* vertical centering */
+  align-items: center;       /* horizontal centering */
+  min-height: 50vh;         /* full viewport height */
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.85); /* subtle light card */
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(103, 184, 214, 0.3);
+  max-width: 400px;          /* prevent too wide */
+  margin: 0 auto;            /* center horizontally */
+  animation: fadeIn 0.8s ease forwards; 
 }
 
 /* === Center content without a box === */
@@ -204,8 +227,8 @@ nav a:hover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 1000px;
-  height: 600px;
+  width: 95%;
+  min-height: 70vh;
   position: relative;
   top: 7rem; /* pushes just the chatbox down */
   margin: 0 auto;
@@ -216,6 +239,7 @@ nav a:hover {
   overflow: hidden;
   font-family: "Poppins", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
+
 
 /* === Chat Messages Area === */
 .chat-box {

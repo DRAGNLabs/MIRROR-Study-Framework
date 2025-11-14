@@ -1,6 +1,6 @@
 /* This is the home page where users will login to the room using a given roomCode*/
 
-import { BrowserRouter as Router, Link, Routes, Route, useNavigate } from 'react-router-dom';
+import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Survey from "./survey/survey";
 import { useState } from "react";
 import './App.css';
@@ -8,6 +8,7 @@ import { loginUser } from '../services/apiService';
 import Interaction from "./interaction/interaction";
 import Exit from "./exit"
 import Admin from "./Admin"
+import WaitingRoom from './interaction/waitingRoom';
 
 function Home() {
   const [name, setName] = useState("");
@@ -27,7 +28,7 @@ function Home() {
       const user = await loginUser(name, roomCode);
       const userId = user.id;
       console.log(`${name} logged in!`);
-      navigate("/interaction", { state: { userId } }); 
+      navigate("/waiting", { state: { user } }); 
     } catch (error) {
       setError(error.message);
     }
@@ -73,14 +74,19 @@ function Home() {
 
 
 export default function App() {
+  const location = useLocation();
+  const hideHomeOn = ["/interaction", "/waiting", "/survey"];
+  const shouldHideHome = hideHomeOn.includes(location.pathname)
 
   return (
     
-    <Router>
+    <>
       <header>
+        {!shouldHideHome && (
         <nav>
           <Link to="/">Home</Link>
         </nav>
+        )}
       </header>
 
       <Routes>
@@ -89,9 +95,10 @@ export default function App() {
         <Route path="/interaction" element={<Interaction />} /> 
         <Route path="/exit" element={<Exit />}/>
         <Route path="/admin" element={<Admin />}/>
+        <Route path="/waiting" element={<WaitingRoom />} />
         {/* add a route to llm page when its added */}
       </Routes>
-    </Router>
+    </>
     
   );
 };
