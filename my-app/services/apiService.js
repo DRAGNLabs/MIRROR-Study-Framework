@@ -86,7 +86,7 @@ export async function closeARoom(roomCode){
   if (!res.ok) throw new Error("Error fetching the surveys from the database.");
   return res.json();
 }
-
+// All functions below have not been tested. For LLM functionality.
 export async function callLLM(userPrompts){ //res should be whatever i say in llm.js but idk yet
   const res = await fetch(`${API_BASE}/llm-response`, 
     {
