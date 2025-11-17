@@ -31,6 +31,22 @@ router.get("/", (req, res) => {
   });
 });
 
+router.post("/valid", (req, res) => { //return false if found in database because its already taken and not valid
+  const roomCode = req.body.roomCode;
+  db.get("SELECT * FROM rooms WHERE roomCode = ?", [roomCode], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: "Error validating room in database"});
+    }
+    if(row){
+      return res.json(false);
+    }
+
+    return res.json(true);
+
+  });
+
+})
+
 
 //deletes a room based off of roomCode
 router.delete("/delete/:roomCode", (req,res) => {
@@ -43,6 +59,8 @@ router.delete("/delete/:roomCode", (req,res) => {
     res.json({ success: true, deleted: this.changes }); // this.changes says how many rows were deleted
   });
 });
+
+
 
 
 

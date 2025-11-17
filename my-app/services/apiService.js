@@ -86,6 +86,16 @@ export async function getCreatedRooms(){
   return res.json();
 }
 
+export async function validRoomCode(roomCode){
+  const res = await fetch(`${API_BASE}/rooms/valid`,{
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({roomCode: roomCode})
+  })
+  if(!res.ok) throw new Error("Error validating room.");
+  return res.json();
+}
+
 export async function closeARoom(roomCode){
   const res = await fetch(`${API_BASE}/rooms/delete/${roomCode}`, {
     method: "DELETE"
