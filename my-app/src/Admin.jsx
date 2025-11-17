@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { getCreatedRooms, sendCreatedRoom, closeARoom } from "../services/apiService";
+import { getCreatedRooms, sendCreatedRoom, closeARoom, validRoomCode } from "../services/apiService";
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -65,7 +65,14 @@ export function Admin() {
     function generateRoomCode() { // Generates a random number between 100000 and 999999
   
         //ensure this generated roomCode has not already been used
-        return Math.floor(100000 + Math.random() * 900000);
+        while (true){
+            const roomCode = Math.floor(100000 + Math.random() * 900000);
+            if(validRoomCode(roomCode)){
+                console.log(roomCode);
+                return roomCode
+            }
+        }
+
     }
 
 
