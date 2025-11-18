@@ -38,7 +38,12 @@ io.on("connection", (socket) => {
 
         if(!rooms[roomCode]) rooms[roomCode] = [];
 
-        const alreadyInRoom = rooms[roomCode].some((u) => u.id === user.id);
+        const alreadyInRoom = rooms[roomCode].some((u) => u.userId === user.userId); // make sure this line is working?
+        
+        // if(!rooms[roomCode]) rooms[roomCode] = [];
+        // if (!rooms[roomCode].includes(userName)) {
+        //     rooms[roomCode].push(userName)
+        // }
 
         if (!alreadyInRoom) {
             rooms[roomCode].push(user)
@@ -53,7 +58,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("send-message", ({ roomCode, message }) => {
-        socket.to(roomCode).emit("receive-message", message);
+        socket.to(roomCode).emit("receive-message", message); 
     });
 
     // socket.on("leave-room", ({ roomCode, userId }) => {

@@ -7,7 +7,7 @@ export async function loginUser(name, roomCode) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({userName: name, roomCode: roomCode })
   });
-
+  
   if (!response.ok) {
     throw new Error('Login failed');
   }

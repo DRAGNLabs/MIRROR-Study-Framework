@@ -12,8 +12,8 @@ export function Interaction(){
     const [prompt, setPrompt] = useState("");
     const [messages, setMessages] = useState([]); 
     // const { userId, name, roomCode } = location.state || {};
-    const { user: currentUser } = location.state
-    const { id: userId, userName, roomCode } = currentUser;
+    const { user: currentUser } = location.state // fix naming on this?
+    const { userId, userName, roomCode } = currentUser;
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
     const [users, setUsers] = useState([]);
@@ -21,6 +21,7 @@ export function Interaction(){
     useEffect(() => {
         async function fetchUser() {
             try {
+                console.log(currentUser)
                 const data = await getUser(userId); // do we need this if I am passing user into state in here?
 
                 setUser({...data, userName, roomCode});
@@ -32,8 +33,9 @@ export function Interaction(){
     }, []);
 
     useEffect(() => {
-        socket.on("receive-message", (msg) => {
-            setMessages((prev) => [...prev, msg]);
+        socket.on("receive-message", (message) => {
+            console.log("Received new message from index.js ", message)
+            setMessages((prev) => [...prev, message]);
         });
 
         // socket.on("room-users", (userList) => {
@@ -49,10 +51,11 @@ export function Interaction(){
 
     useEffect(() => {
         if (chatBoxRef.current) {
-        chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
         }
     }, [messages]);
 
+    // leave-room, before unload
     // useEffect(() => {
     //     const handleUnload = () => {
     //         socket.emit("leave-room", { roomCode, userId });
@@ -66,6 +69,7 @@ export function Interaction(){
     //     };
     // }, []);
 
+    // forces-return-to-waiting-room
     // useEffect(() => {
     //     console.log("Here");
     //     socket.on("force-return-to-waiting-room", () => {
@@ -81,7 +85,8 @@ export function Interaction(){
     //     }
     // }, [users]);
 
-    //   function backToWait() {
+    // IMPORTANT: when going back to wait it struggles to get userId, I changed it so it just destructs roomCode
+    // function backToWait() {
     //     navigate("/waiting", {
     //         state: { currentUser }
     //     });
@@ -94,7 +99,7 @@ export function Interaction(){
 
         const userMsg = { sender: "user", text: prompt, userName: user.userName };
         setMessages((prev) => [...prev, userMsg]);
-
+        console.log("user message in interaction.jsx (sending to index.js) ", userMsg)
         socket.emit("send-message", { roomCode: user.roomCode, message: userMsg });
 
         setPrompt("");

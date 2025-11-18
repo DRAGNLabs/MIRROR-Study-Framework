@@ -3,7 +3,7 @@ const router = express.Router();
 import db from "../db.js"; 
 import { respondToUser } from "../llm.js";
 
-router.post("/:id", (req, res) =>{
+router.post("/:userId", (req, res) =>{
     db.run()
 
 })

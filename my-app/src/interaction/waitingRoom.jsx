@@ -7,15 +7,16 @@ export default function WaitingRoom() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = location.state
-  const { id: userId, userName, roomCode } = user;
+  const roomCode  = user.roomCode;
 
   const [users, setUsers] = useState([]);
+
+  console.log("user in waitingRoom.jsx ", user);
 
   useEffect(() => {
     socket.emit("join-room", { roomCode, user });
 
     socket.on("room-users", (userList) => {
-      // console.log(userList);
       setUsers(userList);
     });
 
@@ -29,6 +30,7 @@ export default function WaitingRoom() {
     };
   }, []);
 
+  // leave-room and beforeunload
   // useEffect(() => {
   //   const handleUnload = () => {
   //       socket.emit("leave-room", { roomCode, userId });

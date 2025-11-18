@@ -4,11 +4,11 @@ import db from "../db.js";
 
 
 //posts a survey associated with a users id
-router.post("/:id", (req, res) => {
-  const { id } = req.params;
+router.post("/:userId", (req, res) => {
+  const { userId } = req.params;
   const { userName, surveyData } = req.body;
-  db.run('INSERT INTO survey (id, userName, data) VALUES (?, ?, ?)', [
-    id, 
+  db.run('INSERT INTO survey (userId, userName, data) VALUES (?, ?, ?)', [
+    userId, 
     userName,
     JSON.stringify(surveyData)
   ], 
