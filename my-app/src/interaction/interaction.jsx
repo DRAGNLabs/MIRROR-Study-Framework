@@ -19,16 +19,11 @@ export function Interaction(){
     const { userId, userName, roomCode } = user;
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
-    const [users, setUsers] = useState([]);
 
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
-        });
-
-        socket.on("room-users", (userList) => {
-            setUsers(userList);
         });
 
         socket.on("force-return-to-waiting-room", () => {

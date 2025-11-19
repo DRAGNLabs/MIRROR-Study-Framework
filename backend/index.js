@@ -62,7 +62,6 @@ io.on("connection", (socket) => {
 
     socket.on("leave-room", ({ roomCode, userId }) => {
         if (!roomCode || !rooms[roomCode]) return;
-        if (!rooms[roomCode]) return;
 
         rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
         io.to(roomCode).emit("room-users", rooms[roomCode]);
