@@ -27,24 +27,22 @@ const io = new Server(httpServer, {
 });
 
 const rooms = {};
-const socketUserMap = {}
+const socketUserMap = {};
+const roomState = {};
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
     
     socket.on("join-room", ({ roomCode, user }) => {
-        socket.join(roomCode);
+        if (!roomCode || !user) {
+            console.warn("join-room missing roomCode or user", roomCode, user);
+            return;
+        }
 
+        socket.join(roomCode);
         socketUserMap[socket.id] = { roomCode, user };
 
         if(!rooms[roomCode]) rooms[roomCode] = [];
-
         const alreadyInRoom = rooms[roomCode].some((u) => u.userId === user.userId); // make sure this line is working?
-        
-        // if(!rooms[roomCode]) rooms[roomCode] = [];
-        // if (!rooms[roomCode].includes(userName)) {
-        //     rooms[roomCode].push(userName)
-        // }
-
         if (!alreadyInRoom) {
             rooms[roomCode].push(user)
         }
@@ -52,50 +50,60 @@ io.on("connection", (socket) => {
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode])
 
-        if (rooms[roomCode].length >= 3) {
+        if (!roomState[roomCode] && rooms[roomCode].length >= 3) {
+            roomState[roomCode] = true;
             io.to(roomCode).emit("start-chat");
         }
     });
 
     socket.on("send-message", ({ roomCode, message }) => {
-        socket.to(roomCode).emit("receive-message", message); 
+        if (!roomCode || ! message) return;
+        io.to(roomCode).emit("receive-message", message); 
     });
 
-    // socket.on("leave-room", ({ roomCode, userId }) => {
-    //     if (!rooms[roomCode]) return;
+    // START OF NEW CODE
+    socket.on("leave-room", ({ roomCode, userId }) => {
+        if (!roomCode || !rooms[roomCode]) return;
+        if (!rooms[roomCode]) return;
 
-    //     // remove user
-    //     rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
+        // remove user
+        rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
+        io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-    //     // if not enough users left
-    //     if (rooms[roomCode].length < 3) {
-    //         io.to(roomCode).emit("force-return-to-waiting-room");
-    //     }
+        // if not enough users left
+        if (roomState[roomCode] && rooms[roomCode].length < 3) {
+            roomState[roomCode] = false;
+            io.to(roomCode).emit("force-return-to-waiting-room");
+        }
 
-    //     io.to(roomCode).emit("room-users", rooms[roomCode])
+        // io.to(roomCode).emit("room-users", rooms[roomCode])
 
-    //     socket.leave(roomCode);
-    // });
+        socket.leave(roomCode);
+    });
+    // END OF NEW CODE
 
     socket.on("disconnect", () => {
-        // const data = socketUserMap[socket.id]
-        // if (!data) return;
+        // START OF NEW CODE
+        const data = socketUserMap[socket.id]
+        if (!data)  return;
 
-        // const { roomCode, user } = data
-        // rooms[roomCode] = rooms[roomCode].filter((u) => u.id !== user.id);
-
-        // // // Broadcast updated user list
-        // io.to(roomCode).emit("room-users", rooms[roomCode]);
-
-        // // If not enough users left, send them back to waiting
-        // if (rooms[roomCode].length < 3) {
-        //     io.to(roomCode).emit("force-return-to-waiting-room");
-        // }
+        const { roomCode, user } = data
+        rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
 
         // // Broadcast updated user list
+        io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-        // // Clean up mapping
-        // delete socketUserMap[socket.id];
+        // If not enough users left, send them back to waiting
+        if (roomState[roomCode] && rooms[roomCode].length < 3) {
+            roomState[roomCode] = false;
+            io.to(roomCode).emit("force-return-to-waiting-room");
+        }
+
+        // Broadcast updated user list
+
+        // Clean up mapping
+        delete socketUserMap[socket.id];
+        // END OF NEW CODE
         console.log("User disconnected:", socket.id)
     });
 });

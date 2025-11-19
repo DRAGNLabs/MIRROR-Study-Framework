@@ -7,8 +7,15 @@ export default function WaitingRoom() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = location.state
-  const roomCode  = user.roomCode;
 
+  if (!user) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
+  const { userId, userName, roomCode } = user;
+  // const roomCode  = user.roomCode;
+  // const userId = user.userId;
   const [users, setUsers] = useState([]);
 
   console.log("user in waitingRoom.jsx ", user);
@@ -20,17 +27,29 @@ export default function WaitingRoom() {
       setUsers(userList);
     });
 
-    socket.on("start-chat", () => {
-      onStart();
-    });
+    const onStart = () => {
+      navigate("/interaction", { state: { user }});
+    }
+    socket.on("start-chat", onStart);
+
+    const handleUnload = () => {
+      socket.emit("leave-room", { roomCode, userId });
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+    // socket.on("start-chat", () => {
+    //   onStart();
+    // });
 
     return () => {
+      window.removeEventListener("beforeunload", handleUnload);
       socket.off("room-users");
       socket.off("start-chat");
     };
-  }, []);
+  }, [roomCode]);
 
   // leave-room and beforeunload
+  // NEW CODE
   // useEffect(() => {
   //   const handleUnload = () => {
   //       socket.emit("leave-room", { roomCode, userId });
@@ -39,22 +58,32 @@ export default function WaitingRoom() {
   //   window.addEventListener("beforeunload", handleUnload);
 
   //   return () => {
-  //       socket.emit("leave-room", { roomCode, userId });
+  //       // socket.emit("leave-room", { roomCode, userId });
   //       window.removeEventListener("beforeunload", handleUnload);
   //   };
   // }, []);
 
-  function onStart() {
-    navigate("/interaction", {
-      state: { user }
-    });
-  }
+  // END OF NEW CODE
 
+  // function onStart() {
+  //   navigate("/interaction", {
+  //     state: { user }
+  //   });
+  // }
   useEffect(() => {
-    if (users.length >= 3) {
-      setTimeout(() => onStart(), 800);
+    if (users.length === 3) {
+      // small delay for UX
+      setTimeout(() => {
+        navigate("/interaction", { state: { user } });
+      }, 400);
     }
   }, [users]);
+
+  // useEffect(() => {
+  //   if (users.length >= 3) {
+  //     setTimeout(() => onStart(), 800);
+  //   }
+  // }, [users]);
 
   return (
     <div className="waiting-container">

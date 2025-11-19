@@ -6,31 +6,31 @@ import { getUser, sendLLMData, calltoLLM, getUsersRoom } from '../../services/ap
 import { socket } from '../socket';
 
 export function Interaction(){
-    const [user, setUser] = useState(null);
+    //const [user, setUser] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
     const [prompt, setPrompt] = useState("");
     const [messages, setMessages] = useState([]); 
     // const { userId, name, roomCode } = location.state || {};
-    const { user: currentUser } = location.state // fix naming on this?
-    const { userId, userName, roomCode } = currentUser;
+    const { user } = location.state // fix naming on this?
+    const { userId, userName, roomCode } = user;
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
     const [users, setUsers] = useState([]);
 
-    useEffect(() => {
-        async function fetchUser() {
-            try {
-                console.log(currentUser)
-                const data = await getUser(userId); // do we need this if I am passing user into state in here?
+    // useEffect(() => {
+    //     async function fetchUser() {
+    //         try {
+    //             console.log(currentUser)
+    //             const data = await getUser(userId); // do we need this if I am passing user into state in here?
 
-                setUser({...data, userName, roomCode});
-            } catch (err) {
-                console.error("Failed to fetch user:", err);
-            }
-        }
-        fetchUser();
-    }, []);
+    //             setUser({...data, userName, roomCode});
+    //         } catch (err) {
+    //             console.error("Failed to fetch user:", err);
+    //         }
+    //     }
+    //     fetchUser();
+    // }, []);
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
@@ -38,14 +38,21 @@ export function Interaction(){
             setMessages((prev) => [...prev, message]);
         });
 
-        // socket.on("room-users", (userList) => {
-        // // console.log(userList);
-        //     setUsers(userList);
-        // });
+        // NEW CODE
+        socket.on("room-users", (userList) => {
+        // console.log(userList);
+            setUsers(userList);
+        });
+        // END OF NEW CODE
+
+        socket.on("force-return-to-waiting-room", () => {
+            navigate("/waiting", { state: { user } });
+        });
 
         return () => {
             socket.off("receive-message");
-            //socket.off("room-users")
+            socket.off("room-users") // NEW LINE OF CODE
+            socket.off("force-return-to-waiting-room")
         };
     }, []);
 
@@ -56,6 +63,7 @@ export function Interaction(){
     }, [messages]);
 
     // leave-room, before unload
+    // NEW CODE START
     // useEffect(() => {
     //     const handleUnload = () => {
     //         socket.emit("leave-room", { roomCode, userId });
@@ -64,7 +72,7 @@ export function Interaction(){
     //     window.addEventListener("beforeunload", handleUnload);
 
     //     return () => {
-    //         socket.emit("leave-room", { roomCode, userId });
+    //         // socket.emit("leave-room", { roomCode, userId });
     //         window.removeEventListener("beforeunload", handleUnload);
     //     };
     // }, []);
@@ -85,12 +93,13 @@ export function Interaction(){
     //     }
     // }, [users]);
 
-    // IMPORTANT: when going back to wait it struggles to get userId, I changed it so it just destructs roomCode
+    // // IMPORTANT: when going back to wait it struggles to get userId, I changed it so it just destructs roomCode
     // function backToWait() {
     //     navigate("/waiting", {
-    //         state: { currentUser }
+    //         state: { user }
     //     });
     // }
+    // END OF NEW CODE
 
     const handleSubmit = async(e) => {
         e.preventDefault();
