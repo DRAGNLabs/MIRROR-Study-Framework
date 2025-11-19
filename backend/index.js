@@ -58,7 +58,7 @@ io.on("connection", (socket) => {
 
     socket.on("send-message", ({ roomCode, message }) => {
         if (!roomCode || ! message) return;
-        io.to(roomCode).emit("receive-message", message); 
+        socket.to(roomCode).emit("receive-message", message); 
     });
 
     // START OF NEW CODE
