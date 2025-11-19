@@ -45,3 +45,6 @@ backend/.env
 # === Misc ===
 *.bak
 *.tmp
+
+# === Databse ===
+/backend/mydatabase.db
