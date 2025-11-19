@@ -26,7 +26,7 @@ function Home() {
         return;
       }
       const user = await loginUser(name, roomCode);
-      const userId = user.id;
+      const userId = user.userId; // not using this variable rn
       console.log(`${name} logged in!`);
       navigate("/waiting", { state: { user } }); 
     } catch (error) {

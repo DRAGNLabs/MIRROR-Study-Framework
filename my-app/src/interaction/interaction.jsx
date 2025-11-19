@@ -6,86 +6,42 @@ import { getUser, sendLLMData, calltoLLM, getUsersRoom } from '../../services/ap
 import { socket } from '../socket';
 
 export function Interaction(){
-    const [user, setUser] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
     const [prompt, setPrompt] = useState("");
     const [messages, setMessages] = useState([]); 
-    // const { userId, name, roomCode } = location.state || {};
-    const { user: currentUser } = location.state
-    const { id: userId, userName, roomCode } = currentUser;
+    const { user } = location.state
+    if (!user) { 
+        navigate("/", { replace: true });
+        return null;
+    }
+
+    const { userId, userName, roomCode } = user;
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
-    const [users, setUsers] = useState([]);
+
 
     useEffect(() => {
-        async function fetchUser() {
-            try {
-                const data = await getUser(userId); // do we need this if I am passing user into state in here?
-
-                setUser({...data, userName, roomCode});
-            } catch (err) {
-                console.error("Failed to fetch user:", err);
-            }
-        }
-        fetchUser();
-    }, []);
-
-    useEffect(() => {
-        socket.on("receive-message", (msg) => {
-            setMessages((prev) => [...prev, msg]);
+        socket.on("receive-message", (message) => {
+            setMessages((prev) => [...prev, message]);
         });
 
-        // socket.on("room-users", (userList) => {
-        // // console.log(userList);
-        //     setUsers(userList);
-        // });
+        socket.on("force-return-to-waiting-room", () => {
+            navigate("/waiting", { state: { user } });
+        });
 
         return () => {
             socket.off("receive-message");
-            //socket.off("room-users")
+            socket.off("room-users") 
+            socket.off("force-return-to-waiting-room")
         };
     }, []);
 
     useEffect(() => {
         if (chatBoxRef.current) {
-        chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
         }
     }, [messages]);
-
-    // useEffect(() => {
-    //     const handleUnload = () => {
-    //         socket.emit("leave-room", { roomCode, userId });
-    //     };
-
-    //     window.addEventListener("beforeunload", handleUnload);
-
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode, userId });
-    //         window.removeEventListener("beforeunload", handleUnload);
-    //     };
-    // }, []);
-
-    // useEffect(() => {
-    //     console.log("Here");
-    //     socket.on("force-return-to-waiting-room", () => {
-    //         navigate("/waiting", { state: { user } });
-    //     });
-
-    //     return () => socket.off("force-return-to-waiting-room");
-    // }, []);
-
-    // useEffect(() => {
-    //     if (users.length < 3) {
-    //         setTimeout(() => backToWait(), 800);
-    //     }
-    // }, [users]);
-
-    //   function backToWait() {
-    //     navigate("/waiting", {
-    //         state: { currentUser }
-    //     });
-    // }
 
     const handleSubmit = async(e) => {
         e.preventDefault();
@@ -94,7 +50,6 @@ export function Interaction(){
 
         const userMsg = { sender: "user", text: prompt, userName: user.userName };
         setMessages((prev) => [...prev, userMsg]);
-
         socket.emit("send-message", { roomCode: user.roomCode, message: userMsg });
 
         setPrompt("");

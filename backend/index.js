@@ -15,10 +15,8 @@ dotenv.config();
 
 const app = express();
 
-//create HTTP server wrapper (required for Socket.IO)
 const httpServer = createServer(app);
 
-// Socket.IO server
 const io = new Server(httpServer, {
     cors: {
         origin: 'http://localhost:5173', // hardcoded for now, probably will have to update this later
@@ -27,19 +25,23 @@ const io = new Server(httpServer, {
 });
 
 const rooms = {};
-const socketUserMap = {}
+const socketUserMap = {};
+const roomState = {};
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
     
     socket.on("join-room", ({ roomCode, user }) => {
-        socket.join(roomCode);
+        if (!roomCode || !user) {
+            console.warn("join-room missing roomCode or user", roomCode, user);
+            return;
+        }
 
+        // add user to room
+        socket.join(roomCode);
         socketUserMap[socket.id] = { roomCode, user };
 
         if(!rooms[roomCode]) rooms[roomCode] = [];
-
-        const alreadyInRoom = rooms[roomCode].some((u) => u.id === user.id);
-
+        const alreadyInRoom = rooms[roomCode].some((u) => u.userId === user.userId);
         if (!alreadyInRoom) {
             rooms[roomCode].push(user)
         }
@@ -47,50 +49,50 @@ io.on("connection", (socket) => {
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode])
 
-        if (rooms[roomCode].length >= 3) {
+        if (!roomState[roomCode] && rooms[roomCode].length >= 3) {
+            roomState[roomCode] = true;
             io.to(roomCode).emit("start-chat");
         }
     });
 
     socket.on("send-message", ({ roomCode, message }) => {
-        socket.to(roomCode).emit("receive-message", message);
+        if (!roomCode || ! message) return;
+        socket.to(roomCode).emit("receive-message", message); 
     });
 
-    // socket.on("leave-room", ({ roomCode, userId }) => {
-    //     if (!rooms[roomCode]) return;
+    socket.on("leave-room", ({ roomCode, userId }) => {
+        if (!roomCode || !rooms[roomCode]) return;
 
-    //     // remove user
-    //     rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
+        rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
+        io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-    //     // if not enough users left
-    //     if (rooms[roomCode].length < 3) {
-    //         io.to(roomCode).emit("force-return-to-waiting-room");
-    //     }
+        // if not enough users send back to waiting room
+        if (roomState[roomCode] && rooms[roomCode].length < 3) {
+            roomState[roomCode] = false;
+            io.to(roomCode).emit("force-return-to-waiting-room");
+        }
 
-    //     io.to(roomCode).emit("room-users", rooms[roomCode])
-
-    //     socket.leave(roomCode);
-    // });
+        socket.leave(roomCode);
+    });
 
     socket.on("disconnect", () => {
-        // const data = socketUserMap[socket.id]
-        // if (!data) return;
+        const data = socketUserMap[socket.id]
+        if (!data)  return;
 
-        // const { roomCode, user } = data
-        // rooms[roomCode] = rooms[roomCode].filter((u) => u.id !== user.id);
+        const { roomCode, user } = data
+        rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
 
-        // // // Broadcast updated user list
-        // io.to(roomCode).emit("room-users", rooms[roomCode]);
+        // sends updated users list
+        io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-        // // If not enough users left, send them back to waiting
-        // if (rooms[roomCode].length < 3) {
-        //     io.to(roomCode).emit("force-return-to-waiting-room");
-        // }
+        // If not enough users send back to waiting room
+        if (roomState[roomCode] && rooms[roomCode].length < 3) {
+            roomState[roomCode] = false;
+            io.to(roomCode).emit("force-return-to-waiting-room");
+        }
 
-        // // Broadcast updated user list
-
-        // // Clean up mapping
-        // delete socketUserMap[socket.id];
+        // Clean up mapping
+        delete socketUserMap[socket.id];
         console.log("User disconnected:", socket.id)
     });
 });
@@ -108,7 +110,6 @@ app.use("/api/rooms", adminRouter);
 
 const PORT = process.env.PORT || 3001;
 
-//app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 httpServer.listen(PORT, () => 
     console.log(`🚀 Server running on port ${PORT}`)
 );

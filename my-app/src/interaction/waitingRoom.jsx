@@ -7,52 +7,49 @@ export default function WaitingRoom() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = location.state
-  const { id: userId, userName, roomCode } = user;
-
+  // if user not passed into state sends back to home page, not sure if this is the best way to handle this or if passing info in state is really that inconsistent
+  if (!user) {
+    console.log("User not passed through state")
+    navigate("/", { replace: true });
+    return null;
+  }
+  const { userId, userName, roomCode } = user;
   const [users, setUsers] = useState([]);
+
 
   useEffect(() => {
     socket.emit("join-room", { roomCode, user });
 
     socket.on("room-users", (userList) => {
-      // console.log(userList);
       setUsers(userList);
     });
 
-    socket.on("start-chat", () => {
-      onStart();
-    });
+    const onStart = () => {
+      navigate("/interaction", { state: { user }});
+    }
+    socket.on("start-chat", onStart);
+
+    const handleUnload = () => {
+      socket.emit("leave-room", { roomCode, userId });
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
 
     return () => {
+      window.removeEventListener("beforeunload", handleUnload);
       socket.off("room-users");
       socket.off("start-chat");
     };
-  }, []);
-
-  // useEffect(() => {
-  //   const handleUnload = () => {
-  //       socket.emit("leave-room", { roomCode, userId });
-  //   };
-
-  //   window.addEventListener("beforeunload", handleUnload);
-
-  //   return () => {
-  //       socket.emit("leave-room", { roomCode, userId });
-  //       window.removeEventListener("beforeunload", handleUnload);
-  //   };
-  // }, []);
-
-  function onStart() {
-    navigate("/interaction", {
-      state: { user }
-    });
-  }
+  }, [roomCode]);
 
   useEffect(() => {
-    if (users.length >= 3) {
-      setTimeout(() => onStart(), 800);
+    if (users.length === 3) {
+      setTimeout(() => {
+        navigate("/interaction", { state: { user } });
+      }, 400);
     }
   }, [users]);
+
 
   return (
     <div className="waiting-container">

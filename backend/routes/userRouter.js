@@ -20,7 +20,7 @@ router.post("/", (req, res) => {
     function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.status(201).json({
-            id: this.lastID,
+            userId: this.lastID,
             userName,
             roomCode
         });
@@ -30,9 +30,9 @@ router.post("/", (req, res) => {
 })
 
 //get one user
-router.get("/:id", (req, res) => {
-    const id = req.params.id;
-    db.get("SELECT * FROM users WHERE id = ?", [id], (err, row) => {
+router.get("/:userId", (req, res) => {
+    const userId = req.params.userId;
+    db.get("SELECT * FROM users WHERE userId = ?", [userId], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ message: "User not found" });
 
