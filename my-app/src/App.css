@@ -724,9 +724,12 @@ nav a:hover {
   background: #0f172a; /* same as admin */
   padding: 20px;
   display: flex;
-  justify-content: left;
+  justify-content: right;
 }
 
+.admin-next-bottom-left button {
+  margin-right: 30px;
+}
 
 .admin-message-container {
   min-height: 100vh;

@@ -28,13 +28,13 @@ const rooms = {};
 const socketUserMap = {};
 const roomState = {};
 io.on("connection", (socket) => {
-   // console.log("User connected:", socket.id);
+   console.log("User connected:", socket.id);
     
     socket.on("join-room", ({ roomCode, isAdmin, user }) => {
-        // if (!roomCode || !user) {
-        //     console.warn("join-room missing roomCode or user", roomCode, user);
-        //     return;
-        // }
+        if (!roomCode) {
+            console.warn("join-room missing roomCode", roomCode, user);
+            return;
+        }
 
         // add user to room
         if(!rooms[roomCode]) rooms[roomCode] = [];
@@ -42,7 +42,6 @@ io.on("connection", (socket) => {
         if (!isAdmin) {
             socketUserMap[socket.id] = { roomCode, user }; // should I track admin here?
 
-            //if(!rooms[roomCode]) rooms[roomCode] = [];
             const alreadyInRoom = rooms[roomCode].some((u) => u.userId === user.userId);
             if (!alreadyInRoom) {
                 rooms[roomCode].push(user)
@@ -52,22 +51,17 @@ io.on("connection", (socket) => {
             // send updated user list
             io.to(roomCode).emit("room-users", rooms[roomCode])
 
-        // if (!roomState[roomCode] && rooms[roomCode].length >= 3) { // this should be changed
-        //         roomState[roomCode] = true;
-        //         io.to(roomCode).emit("start-chat");
-        // }
        console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode)
     });
 
     socket.on("startGame", ({roomCode}) => {
-        console.log("In startGame socket in index.js");
-
-        const clients = io.sockets.adapter.rooms.get(roomCode);
-        console.log("Clients in room:", clients);  // <---- ADD THIS
-
         roomState[roomCode] = true;
         io.to(roomCode).emit("start-chat");
     });
+
+    socket.on("startSurvey", ({roomCode}) => {
+        io.to(roomCode).emit("startUserSurvey");
+    })
 
     socket.on("send-message", ({ roomCode, message }) => {
         if (!roomCode || ! message) return;

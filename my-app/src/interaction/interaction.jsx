@@ -31,6 +31,10 @@ export function Interaction(){
             navigate("/waiting", { state: { user } });
         });
 
+        socket.on("startUserSurvey", () => {
+            navigate("/survey", { state: { user }});
+        });
+
         return () => {
             socket.off("receive-message");
             socket.off("room-users") 
@@ -126,11 +130,11 @@ export function Interaction(){
         <button type="submit">Send</button>
         </form>
         </div>
-        <div className="next-bottom-left">
+        {/* <div className="next-bottom-left">
             <button onClick={() => navigate("/survey", { state: { userId } })}>
             Next</button>
            
-        </div>
+        </div> */}
 
         </>
     )

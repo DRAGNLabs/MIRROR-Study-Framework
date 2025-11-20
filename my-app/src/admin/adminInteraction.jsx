@@ -39,6 +39,10 @@ export default function AdminInteraction(){
         }
     }, [messages]);
 
+    function toSurvey() {
+        socket.emit("startSurvey", { roomCode });
+    }
+
 
     return (
         <>
@@ -65,9 +69,7 @@ export default function AdminInteraction(){
 
         </div>
             <div className="admin-next-bottom-left">
-                <button onClick={() => navigate("/survey", { state: { userId } })}>
-                Next</button>
-            
+                <button onClick={toSurvey}>Next</button>
             </div>
         </div>
      </>

@@ -32,9 +32,6 @@ export default function RoomManagement() {
   
     }, []);
 
-    // only allow this button to be clicked if 3 or more users have joined
-    // code should prevent users from joining over the limit
-    // use websocket when admin clicks this to direct users to ineractions page
     function start() {
         console.log("In start function!");
         socket.emit("startGame", { roomCode });
@@ -46,7 +43,7 @@ export default function RoomManagement() {
         <div className="admin-container">
         <h1>Room Management</h1>
         <h2>Room Code: {room.roomCode}</h2>
-                        <p>https://localhost:5173</p> 
+                <p>https://localhost:5173</p> 
              <img
                 src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://dragn.ai"
                 alt="QR Code"
@@ -61,8 +58,7 @@ export default function RoomManagement() {
                     </ul>
                 </div>
 
-            {/* <p>{users.length < 3 ? "Waiting for more users..." : "Starting..."}</p> */}
-            <button onClick={start}>Start</button>
+            <button onClick={start} disabled={users.length < 3}>Start</button>
         </div>
     )
 }
