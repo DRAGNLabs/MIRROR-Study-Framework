@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getUser, sendLLMData, calltoLLM, getUsersRoom } from '../../services/apiService';
 import { socket } from '../socket';
 
 export default function AdminInteraction(){
@@ -11,11 +10,14 @@ export default function AdminInteraction(){
     const [prompt, setPrompt] = useState("");
     const [messages, setMessages] = useState([]); 
     const { room } = location.state
-
+    if (!room) {
+        console.log("Room not passed through state to adminInteraction room")
+        navigate("/admin", { replace: true });
+        return null;
+    }
     const roomCode = String(room.roomCode); // to make sure sockets are connecting between user and admin
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
-
 
     useEffect(() => {
         socket.on("receive-message", (message) => {

@@ -65,9 +65,13 @@ export function Admin() {
     }
 
     async function startRoom(roomCode) {
-        const room = await getRoom(roomCode); //naming it room for now, might be better to do currentRoom?
-        console.log("Room ", room);
-        navigate("/admin/roomManagement", { state: { room }});
+        try {
+            const room = await getRoom(roomCode); //naming it room for now, might be better to do currentRoom?
+            navigate("/admin/roomManagement", { state: { room }});
+        } catch(error) {
+            console.error("Error:", error);
+            setError(error.message || "Something went wrong.");
+        }
     }
 
     function generateRoomCode() { // Generates a random number between 100000 and 999999

@@ -12,6 +12,7 @@ export function Interaction(){
     const [messages, setMessages] = useState([]); 
     const { user } = location.state
     if (!user) { 
+        console.log("User not passed through state to interactions")
         navigate("/", { replace: true });
         return null;
     }
@@ -32,7 +33,7 @@ export function Interaction(){
         });
 
         socket.on("startUserSurvey", () => {
-            navigate("/survey", { state: { user }});
+            navigate("/survey", { state: { userId }});
         });
 
         return () => {

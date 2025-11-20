@@ -1,23 +1,32 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket"; 
+import { getRoom } from "../../services/apiService";
 
-/*
-Some Notes:
-if user leaves room during game then it should redirect admin to this page (use websockets for this)
-websockets are needed to update users list on admin page
-Also needed when push start to send users to interactions page
-after admin pushes start it should take admin to a new page? but idk what
-This page should display link to website, QR code to website, and roomCode --> right now have dummy website and QR code
 
-*/
 export default function RoomManagement() {
     const location = useLocation();
     const { room } = location.state;
+    if (!room) {
+        console.log("Room not passed through state to roomManagement room")
+        navigate("/admin", { replace: true });
+        return null;
+    }
     const roomCode = String(room.roomCode);
     const [users, setUsers] = useState([]);
     const navigate = useNavigate();
     const isAdmin = true;
+
+    // FOR LATER: might consider having this function instead of just sending room through state if room is changing a lot but it is not needed now
+    // async function retrieveRoom() { 
+    //     try {
+    //         const response = await getRoom(roomCode);
+    //     } catch (error){
+    //         console.error("Error:", error);
+    //         setError(error.message || "Something went wrong.");
+    //     }
+
+    // }
 
     useEffect(() => {
         socket.emit("join-room", { roomCode, isAdmin});
