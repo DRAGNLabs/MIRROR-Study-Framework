@@ -5,8 +5,8 @@ import { getCreatedRooms, sendCreatedRoom, closeARoom, validRoomCode, getRoom } 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
     const [start, setStart] = useState(true);
-    const [count, setCount] = useState(0);
-    const [selectedGames, setSelectedGames] = useState([]);
+    const [count, setCount] = useState(3);
+    const [selectedGame, setSelectedGame] = useState(null);
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
     const [ error, setError] = useState("");
@@ -34,7 +34,7 @@ export function Admin() {
 
     async function buildRoom() { //sends the room into the backend
         try {
-            const response = await sendCreatedRoom(newRoomCode, count, selectedGames);
+            const response = await sendCreatedRoom(newRoomCode, count, selectedGame);
             const rooms = await getCreatedRooms();
             console.log(rooms);
             setRooms(rooms);
@@ -60,14 +60,14 @@ export function Admin() {
             setError(error.message || "Something went wrong.");
         }
         setRoomCreated(false);
-        setSelectedGames([]);
+        setSelectedGame(null);
         setStart(true);
     }
 
     async function startRoom(roomCode) {
         const room = await getRoom(roomCode); //naming it room for now, might be better to do currentRoom?
         console.log("Room ", room);
-        navigate("/roomManagement", { state: { room }});
+        navigate("/admin/roomManagement", { state: { room }});
     }
 
     function generateRoomCode() { // Generates a random number between 100000 and 999999
@@ -84,13 +84,6 @@ export function Admin() {
     }
 
 
-    function toggleGame(gameName) {
-        setSelectedGames(prev =>
-            prev.includes(gameName)
-                ? prev.filter(g => g !== gameName)
-                : [...prev, gameName]
-        );
-    }
 
     return (
     <div className="admin-container">
@@ -108,8 +101,8 @@ export function Admin() {
                         <div className="room-display" key={room.roomCode}>
                             <p>Room Code: {room.roomCode}</p>
                             <p>Users per room: {room.count}</p>
-                            <p>Selected Games: {JSON.parse(room.gamesSelected).join(", ")}</p>
-                            <p>Users in room: {JSON.parse(room.users).length}</p>
+                            <p>Selected Game: {room.gamesSelected}</p>
+                            {/* <p>Users in room: {JSON.parse(room.users).length}</p> */}
                             <button onClick={() => startRoom(room.roomCode)}>Start Room</button>
                             <button onClick={() => closeRoom(room.roomCode)}>Close Room</button>
                         </div>
@@ -127,6 +120,7 @@ export function Admin() {
                     <input
                         className="text-input small"
                         type="number"
+                        min={3}
                         value={count}
                         ref={inputRef}
                         onChange={(e) => setCount(e.target.value)}
@@ -136,33 +130,51 @@ export function Admin() {
                 </p>
 
                 <div className="games-section">
-                    <p className="games-label"><strong>Select games:</strong></p>
+                    <p className="games-label"><strong>Select game:</strong></p>
+
                     <div className="games-options">
-                        <label className="checkbox-label">
-                            <input type="checkbox" checked={selectedGames.includes("1")}
-                                onChange={() => toggleGame("1")} />
+
+                        <label className="custom-radio">
+                            <input
+                                type="radio"
+                                name="game"
+                                value="1"
+                                checked={selectedGame === 1}
+                                onChange={() => setSelectedGame(1)}
+                            />
+                            <span className="radio-mark"></span>
                             <span>One</span>
                         </label>
 
-                        <label className="checkbox-label">
-                            <input type="checkbox" checked={selectedGames.includes("2")}
-                                onChange={() => toggleGame("2")} />
+                        <label className="custom-radio">
+                            <input
+                                type="radio"
+                                name="game"
+                                value="2"
+                                checked={selectedGame === 2}
+                                onChange={() => setSelectedGame(2)}
+                            />
+                            <span className="radio-mark"></span>
                             <span>Two</span>
                         </label>
 
-                        <label className="checkbox-label">
-                            <input type="checkbox" checked={selectedGames.includes("3")}
-                                onChange={() => toggleGame("3")} />
+                        <label className="custom-radio">
+                            <input
+                                type="radio"
+                                name="game"
+                                value="3"
+                                checked={selectedGame === 3}
+                                onChange={() => setSelectedGame(3)}
+                            />
+                            <span className="radio-mark"></span>
                             <span>Three</span>
                         </label>
+
                     </div>
                 </div>
 
-                <p className="selected-display">
-                    Selected: {selectedGames.join(", ") || "None"}
-                </p>
 
-                <button onClick={buildRoom}>Save Room</button>
+                <button onClick={buildRoom} disabled={!selectedGame}>Save Room</button>
             </div>
         )}
 

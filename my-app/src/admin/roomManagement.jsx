@@ -11,11 +11,12 @@ after admin pushes start it should take admin to a new page? but idk what
 This page should display link to website, QR code to website, and roomCode --> right now have dummy website and QR code
 
 */
-export default function roomManagement() {
+export default function RoomManagement() {
     const location = useLocation();
     const { room } = location.state;
     const roomCode = String(room.roomCode);
     const [users, setUsers] = useState([]);
+    const navigate = useNavigate();
     const isAdmin = true;
 
     useEffect(() => {
@@ -37,6 +38,7 @@ export default function roomManagement() {
     function start() {
         console.log("In start function!");
         socket.emit("startGame", { roomCode });
+        navigate("/admin/adminInteraction", { state: { room } });
     }
 
 

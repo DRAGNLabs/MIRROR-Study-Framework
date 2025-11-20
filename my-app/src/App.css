@@ -644,4 +644,98 @@ nav a:hover {
 }
 
 
+/* Container for each radio option */
+.custom-radio {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 10px;
+    margin: 8px 0;
+    user-select: none;
+    font-size: 16px;
+}
+
+/* Hide the real radio button */
+.custom-radio input[type="radio"] {
+    display: none;
+}
+
+/* Outer circle */
+.custom-radio .radio-mark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #666;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    transition: border-color 0.2s ease;
+}
+
+/* The filled dot when selected */
+.custom-radio input[type="radio"]:checked + .radio-mark::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background: #007bff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Hover effect */
+.custom-radio:hover .radio-mark {
+    border-color: #007bff;
+}
+
+
+
+.admin-chat-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 95%;
+  min-height: 75vh;
+  position: relative;
+  top: 0rem; /* pushes just the chatbox down */
+  margin: 0 auto;
+  background: rgba(36, 25, 25, 0.655);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(10, 20, 23, 0);
+  animation: fadeIn 0.8s ease forwards;
+  overflow: hidden;
+  font-family: "Poppins", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.admin-chat-box {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: linear-gradient(180deg, #7484aaaa 0%, #1e293b 100%);
+  border-bottom: 1px solid rgba(27, 30, 43, 0.116);
+}
+
+.admin-next-bottom-left {
+  width: 100%;
+  background: #0f172a; /* same as admin */
+  padding: 20px;
+  display: flex;
+  justify-content: left;
+}
+
+
+.admin-message-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column; /* make vertical layout */
+  align-items: center;
+  justify-content: space-between; /* space between top and bottom */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0f172a; /* dark slate */
+  color: #e5e7eb;
+}
 

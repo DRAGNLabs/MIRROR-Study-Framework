@@ -22,7 +22,8 @@ router.post("/create", (req, res) => {
       });
     }
   )
-})
+});
+
 
 router.get("/", (req, res) => {
   db.all("SELECT * FROM rooms", [], (err, rows) => {

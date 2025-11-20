@@ -10,6 +10,7 @@ import Exit from "./exit"
 import Admin from "./admin/Admin"
 import WaitingRoom from './interaction/waitingRoom';
 import RoomManagement from './admin/roomManagement'
+import AdminInteraction from './admin/adminInteraction'
 
 function Home() {
   const [name, setName] = useState("");
@@ -28,6 +29,7 @@ function Home() {
       }
       const user = await loginUser(name, roomCode);
       const userId = user.userId; // not using this variable rn
+      // add user to room database
       console.log(`${name} logged in!`);
       navigate("/waiting", { state: { user } }); 
     } catch (error) {
@@ -78,6 +80,7 @@ export default function App() {
   const location = useLocation();
   const hideHomeOn = ["/interaction", "/waiting", "/survey"];
   const shouldHideHome = hideHomeOn.includes(location.pathname)
+  const isAdminPage = location.pathname.startsWith("/admin");
 
   return (
     
@@ -85,7 +88,7 @@ export default function App() {
       <header>
         {!shouldHideHome && (
         <nav>
-          <Link to="/">Home</Link>
+          <Link to={isAdminPage ? "/admin" : "/"}>Home</Link>
         </nav>
         )}
       </header>
@@ -97,7 +100,8 @@ export default function App() {
         <Route path="/exit" element={<Exit />}/>
         <Route path="/admin" element={<Admin />}/>
         <Route path="/waiting" element={<WaitingRoom />} />
-        <Route path="/roomManagement" element={<RoomManagement />} />
+        <Route path="/admin/roomManagement" element={<RoomManagement />} />
+        <Route path="/admin/adminInteraction" element={<AdminInteraction/>} />
         {/* add a route to llm page when its added */}
       </Routes>
     </>
