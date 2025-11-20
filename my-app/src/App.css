@@ -564,3 +564,84 @@ nav a:hover {
 }
 
 
+
+.users-box {
+  background-color: rgba(255, 255, 255, 0.08); /* soft translucent box */
+  padding: 20px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  width: 260px;
+  border-radius: 12px;
+  text-align: left;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.users-box h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: #cce7ff;
+  text-align: center;
+}
+
+.users-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.users-box li {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.users-box li:last-child {
+  border-bottom: none;
+}
+
+
+.users-card {
+  /* background: #ffffff; */
+  background: #90c2d99a;
+  padding: 24px 28px;
+  margin: 30px auto;
+  width: 80%;
+  max-width: 450px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.users-card h3 {
+  margin-top: 0;
+  margin-bottom: 18px;
+  font-size: 22px;
+  font-weight: 700;
+  /*color: #89b4ff;   /* Light blue that matches your gradient theme */
+  color: #02152a;
+}
+
+.users-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.users-card li {
+  font-size: 18px;
+  padding: 8px 0;
+  /* color: #333; */
+  color: #313438;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.users-card li:last-child {
+  border-bottom: none;
+}
+
+
+

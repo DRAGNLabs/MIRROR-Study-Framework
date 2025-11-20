@@ -56,11 +56,19 @@ export default function WaitingRoom() {
       <h1>Waiting Room</h1>
       <p>Room Code: {roomCode}</p>
 
-      <ul className="no-bullets">
+      {/* <ul className="no-bullets">
         {users.map((u, idx) => (
           <li key={idx}>{u.userName}</li>
         ))}
-      </ul>
+      </ul> */}
+      <div className="users-card">
+        <h3>Users in Room:</h3>
+        <ul>
+          {users.map((u, idx) => (
+            <li key={idx}>{u.userName}</li>
+          ))}
+        </ul>
+      </div>
 
       <p>{users.length < 3 ? "Waiting for more users..." : "Starting..."}</p>
     </div>

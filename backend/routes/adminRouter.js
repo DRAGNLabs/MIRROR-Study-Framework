@@ -60,6 +60,16 @@ router.delete("/delete/:roomCode", (req,res) => {
   });
 });
 
+router.get("/:roomCode", (req, res) => {
+  const roomCode = req.params.roomCode;
+  db.get("SELECT * FROM rooms WHERE roomCode = ?", [roomCode], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ message: "Room not found" });
+
+        res.json(row);
+    });
+})
+
 
 
 

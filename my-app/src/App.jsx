@@ -7,8 +7,9 @@ import './App.css';
 import { loginUser } from '../services/apiService';
 import Interaction from "./interaction/interaction";
 import Exit from "./exit"
-import Admin from "./Admin"
+import Admin from "./admin/Admin"
 import WaitingRoom from './interaction/waitingRoom';
+import RoomManagement from './admin/roomManagement'
 
 function Home() {
   const [name, setName] = useState("");
@@ -96,6 +97,7 @@ export default function App() {
         <Route path="/exit" element={<Exit />}/>
         <Route path="/admin" element={<Admin />}/>
         <Route path="/waiting" element={<WaitingRoom />} />
+        <Route path="/roomManagement" element={<RoomManagement />} />
         {/* add a route to llm page when its added */}
       </Routes>
     </>

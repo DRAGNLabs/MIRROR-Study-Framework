@@ -133,4 +133,10 @@ export async function getRoomPrompts(){ //need to change when this endpoint is s
   return res.json()
 }
 
+export async function getRoom(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
+  if(!response.ok) throw new Error("Can't get room ", roomCode);
+  return response.json();
+}
+
 

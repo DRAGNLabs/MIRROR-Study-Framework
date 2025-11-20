@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { getCreatedRooms, sendCreatedRoom, closeARoom, validRoomCode } from "../services/apiService";
+import { useNavigate } from "react-router-dom";
+import { getCreatedRooms, sendCreatedRoom, closeARoom, validRoomCode, getRoom } from "../../services/apiService";
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -11,6 +12,7 @@ export function Admin() {
     const [ error, setError] = useState("");
     const [ rooms, setRooms ] = useState([]);
     const [deletingRoom, setDeletingRoom] = useState(null);
+    const navigate = useNavigate();
 
 
     async function init(){
@@ -62,6 +64,12 @@ export function Admin() {
         setStart(true);
     }
 
+    async function startRoom(roomCode) {
+        const room = await getRoom(roomCode); //naming it room for now, might be better to do currentRoom?
+        console.log("Room ", room);
+        navigate("/roomManagement", { state: { room }});
+    }
+
     function generateRoomCode() { // Generates a random number between 100000 and 999999
   
         //ensure this generated roomCode has not already been used
@@ -102,6 +110,7 @@ export function Admin() {
                             <p>Users per room: {room.count}</p>
                             <p>Selected Games: {JSON.parse(room.gamesSelected).join(", ")}</p>
                             <p>Users in room: {JSON.parse(room.users).length}</p>
+                            <button onClick={() => startRoom(room.roomCode)}>Start Room</button>
                             <button onClick={() => closeRoom(room.roomCode)}>Close Room</button>
                         </div>
                     ))}
