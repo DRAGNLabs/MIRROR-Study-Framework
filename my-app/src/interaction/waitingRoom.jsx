@@ -7,18 +7,18 @@ export default function WaitingRoom() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = location.state
-  // if user not passed into state sends back to home page, not sure if this is the best way to handle this or if passing info in state is really that inconsistent
-  if (!user) {
-    console.log("User not passed through state")
-    navigate("/", { replace: true });
-    return null;
+ //not sure if this is the best thing to do if user is not found in state
+  if (!location.state?.user) {
+    return <p>Loading...</p>
   }
-  const { userId, userName, roomCode } = user;
+  const { userId } = user;
+  const roomCode = String(user.roomCode);
   const [users, setUsers] = useState([]);
+  const isAdmin = false;
 
 
   useEffect(() => {
-    socket.emit("join-room", { roomCode, user });
+    socket.emit("join-room", { roomCode, isAdmin, user });
 
     socket.on("room-users", (userList) => {
       setUsers(userList);
@@ -42,13 +42,13 @@ export default function WaitingRoom() {
     };
   }, [roomCode]);
 
-  useEffect(() => {
-    if (users.length === 3) {
-      setTimeout(() => {
-        navigate("/interaction", { state: { user } });
-      }, 400);
-    }
-  }, [users]);
+  // useEffect(() => {
+  //   if (users.length === 3) {
+  //     setTimeout(() => {
+  //       navigate("/interaction", { state: { user } });
+  //     }, 400);
+  //   }
+  // }, [users]);
 
 
   return (

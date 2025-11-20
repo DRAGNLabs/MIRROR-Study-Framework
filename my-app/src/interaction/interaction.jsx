@@ -16,7 +16,8 @@ export function Interaction(){
         return null;
     }
 
-    const { userId, userName, roomCode } = user;
+    const { userId } = user;
+    const roomCode = String(user.roomCode); // to make sure sockets are connecting between user and admin
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
 
