@@ -100,11 +100,11 @@ io.on("connection", (socket) => {
         const data = socketUserMap[socket.id]
         if (!data)  return;
 
-        const { roomCode, user } = data
-        rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
-
-        // sends updated users list
-        io.to(roomCode).emit("room-users", rooms[roomCode]);
+        const { roomCode, isAdmin, user } = data
+        if(!isAdmin) {
+            rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
+            io.to(roomCode).emit("room-users", rooms[roomCode]);
+        }
 
         // If not enough users send back to waiting room
         if (roomState[roomCode] && rooms[roomCode].length < 3) {
