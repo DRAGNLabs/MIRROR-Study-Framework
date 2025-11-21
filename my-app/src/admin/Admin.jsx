@@ -124,7 +124,7 @@ export function Admin() {
                     <input
                         className="text-input small"
                         type="number"
-                        min={3}
+                        min={1}
                         value={count}
                         ref={inputRef}
                         onChange={(e) => setCount(e.target.value)}
