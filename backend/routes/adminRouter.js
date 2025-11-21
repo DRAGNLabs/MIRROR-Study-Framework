@@ -22,7 +22,8 @@ router.post("/create", (req, res) => {
       });
     }
   )
-})
+});
+
 
 router.get("/", (req, res) => {
   db.all("SELECT * FROM rooms", [], (err, rows) => {
@@ -59,6 +60,16 @@ router.delete("/delete/:roomCode", (req,res) => {
     res.json({ success: true, deleted: this.changes }); // this.changes says how many rows were deleted
   });
 });
+
+router.get("/:roomCode", (req, res) => {
+  const roomCode = req.params.roomCode;
+  db.get("SELECT * FROM rooms WHERE roomCode = ?", [roomCode], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ message: "Room not found" });
+
+        res.json(row);
+    });
+})
 
 
 

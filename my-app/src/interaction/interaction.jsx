@@ -12,11 +12,13 @@ export function Interaction(){
     const [messages, setMessages] = useState([]); 
     const { user } = location.state
     if (!user) { 
+        console.log("User not passed through state to interactions")
         navigate("/", { replace: true });
         return null;
     }
 
-    const { userId, userName, roomCode } = user;
+    const { userId } = user;
+    const roomCode = String(user.roomCode); // to make sure sockets are connecting between user and admin
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
 
@@ -28,6 +30,10 @@ export function Interaction(){
 
         socket.on("force-return-to-waiting-room", () => {
             navigate("/waiting", { state: { user } });
+        });
+
+        socket.on("startUserSurvey", () => {
+            navigate("/survey", { state: { userId }});
         });
 
         return () => {
@@ -125,11 +131,11 @@ export function Interaction(){
         <button type="submit">Send</button>
         </form>
         </div>
-        <div className="next-bottom-left">
+        {/* <div className="next-bottom-left">
             <button onClick={() => navigate("/survey", { state: { userId } })}>
             Next</button>
            
-        </div>
+        </div> */}
 
         </>
     )

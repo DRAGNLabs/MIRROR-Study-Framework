@@ -28,40 +28,60 @@ const rooms = {};
 const socketUserMap = {};
 const roomState = {};
 io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
+   console.log("User connected:", socket.id);
     
-    socket.on("join-room", ({ roomCode, user }) => {
-        if (!roomCode || !user) {
-            console.warn("join-room missing roomCode or user", roomCode, user);
+    socket.on("join-room", ({ roomCode, isAdmin, user }) => {
+        if (!roomCode || typeof roomCode !== "string") {
+            console.warn("join-room missing or invalid roomCode", roomCode, user);
             return;
         }
 
         // add user to room
-        socket.join(roomCode);
-        socketUserMap[socket.id] = { roomCode, user };
-
         if(!rooms[roomCode]) rooms[roomCode] = [];
-        const alreadyInRoom = rooms[roomCode].some((u) => u.userId === user.userId);
-        if (!alreadyInRoom) {
-            rooms[roomCode].push(user)
+        socket.join(roomCode);
+        socketUserMap[socket.id] = { roomCode, isAdmin, user }; // should I track admin here?
+        if (!isAdmin) {
+            
+            const alreadyInRoom = rooms[roomCode].some((u) => u.userId === user.userId);
+            if (!alreadyInRoom) {
+                rooms[roomCode].push(user);
+            }
         }
-
         // send updated user list
-        io.to(roomCode).emit("room-users", rooms[roomCode])
+        io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-        if (!roomState[roomCode] && rooms[roomCode].length >= 3) {
-            roomState[roomCode] = true;
-            io.to(roomCode).emit("start-chat");
-        }
+       console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode);
     });
 
+    socket.on("startGame", ({roomCode}) => {
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("startGame invalid roomCode:", roomCode);
+        }
+        roomState[roomCode] = true;
+        io.to(roomCode).emit("start-chat");
+    });
+
+    socket.on("startSurvey", ({roomCode}) => {
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("startSurvey invalid roomCode:", roomCode);
+        }
+        io.to(roomCode).emit("startUserSurvey");
+    })
+
     socket.on("send-message", ({ roomCode, message }) => {
-        if (!roomCode || ! message) return;
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("send-message invalid roomCode:", roomCode);
+        }
+        if (!message) {
+            console.warn("message not present");
+        }
         socket.to(roomCode).emit("receive-message", message); 
     });
 
     socket.on("leave-room", ({ roomCode, userId }) => {
-        if (!roomCode || !rooms[roomCode]) return;
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("leave-room invalid roomCode:", roomCode);
+        }
 
         rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
         io.to(roomCode).emit("room-users", rooms[roomCode]);
@@ -73,17 +93,18 @@ io.on("connection", (socket) => {
         }
 
         socket.leave(roomCode);
+        delete socketUserMap[socket.id];
     });
 
     socket.on("disconnect", () => {
         const data = socketUserMap[socket.id]
         if (!data)  return;
 
-        const { roomCode, user } = data
-        rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
-
-        // sends updated users list
-        io.to(roomCode).emit("room-users", rooms[roomCode]);
+        const { roomCode, isAdmin, user } = data
+        if(!isAdmin) {
+            rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
+            io.to(roomCode).emit("room-users", rooms[roomCode]);
+        }
 
         // If not enough users send back to waiting room
         if (roomState[roomCode] && rooms[roomCode].length < 3) {
@@ -94,6 +115,14 @@ io.on("connection", (socket) => {
         // Clean up mapping
         delete socketUserMap[socket.id];
         console.log("User disconnected:", socket.id)
+    });
+
+    socket.on("connect_error", (err) => {
+        console.error("Connection error:", err.message);
+    });
+
+    socket.on("connect_timeout", () => {
+        console.error("Connection timed out:", socket.id);
     });
 });
 
