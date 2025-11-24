@@ -4,7 +4,7 @@ import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import Survey from "./survey/survey";
 import { useState } from "react";
 import './App.css';
-import { loginUser } from '../services/apiService';
+import { loginUser, validRoomCode } from '../services/apiService';
 import Interaction from "./interaction/interaction";
 import Exit from "./exit"
 import Admin from "./admin/Admin"
@@ -25,6 +25,12 @@ function Home() {
     try {
       if (!name || !roomCode){
         console.log("You need both a name and a roomcode!");
+        return;
+      }
+      const doesNotExist = await validRoomCode(roomCode);
+      if (doesNotExist) {
+        console.log("Not a valid room Code");
+        alert("Room code is not valid");
         return;
       }
       const user = await loginUser(name, roomCode);
