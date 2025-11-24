@@ -7,6 +7,7 @@ import llmRouter from "./routes/llmRouter.js";
 import adminRouter from "./routes/adminRouter.js"
 import db from "./db.js";
 import "./initDB.js";
+import { streamLLM } from "./llm.js";
 
 import { createServer } from 'http';
 import { Server } from 'socket.io'
@@ -77,6 +78,25 @@ io.on("connection", (socket) => {
         }
         socket.to(roomCode).emit("receive-message", message); 
     });
+
+    socket.on("generate-ai", async ({ roomCode, prompt }) => {
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("generate-ai invalid room:", roomCode);
+            return;
+        }
+        try {
+            io.to(roomCode).emit("ai-start");
+
+            await streamLLM(prompt, async (token) => {
+                io.to(roomCode).emit("ai-token", token);
+            });
+
+            io.to(roomCode).emit("ai-end");
+        } catch (error) {
+            console.error("LLM Stream Error:", error);
+            io.to(roomCode).emit("ai-error", "LLM failed"); // do I want this?
+        }
+    })
 
     socket.on("leave-room", ({ roomCode, userId }) => {
         if (!roomCode || !rooms[roomCode]) {
