@@ -102,84 +102,14 @@ export function Interaction(){
         const userMsg = { sender: "user", text: prompt, userName: user.userName };
         setMessages((prev) => [...prev, userMsg]);
         socket.emit("send-message", { roomCode, message: userMsg });
-        socket.emit("generate-ai",  { roomCode, prompt });
+        socket.emit("generate-ai",  { roomCode, prompt }); // comment this out and uncommene messages below to stop calling openAI (for testing)
+
+        // const llmMsg = { sender: "llm", text: "okay" };
+        // setMessages((prev) => [...prev, llmMsg])
+        // socket.emit("send-message", { roomCode: roomCode, message: llmMsg})
         setPrompt("");
     };
 
-    //     try {
-    //         // After we're saving rooms 
-    //         // const roomInfo = await getUsersRoom(roomCode);
-    //         // console.log(roomUsers);
-    //         // const roomUsers = roomInfo.users
-    //         // Write code to loop through roomUsers and check that they have all sent a message
-    //         // setMessages(prev => [
-    //         //     ...prev,
-    //         //     { sender: "assistant", content: "" }
-    //         // ]);
-    //         // await callToLLM(prompt, (token) => {
-    //         //     setMessages(prev => {
-    //         //         const last = prev[prev.length - 1]
-
-    //         //         return [
-    //         //             ...prev.slice(0,-1),
-    //         //             {...last, content: last.content + token}
-    //         //         ];
-    //         //     });
-    //         // });
-
-    //         // setTimeout(() => {
-    //         //     const finalMessage = messagesRef.current[messagesRef.current.length - 1];
-    //         //     socket.emit("send-message", {
-    //         //         roomCode,
-    //         //         message: finalMessage
-    //         //     });
-    //         // }, 0);
-
-    //         socket.on("ai-start", () => {
-    //             setMessages(prev => [
-    //                 ...prev,
-    //                 { sender: "llm", text: "", id: "streaming" }
-    //             ]);
-    //         });
-
-    //         socket.on("ai-token", (token) => {
-    //             setMessages(prev => {
-    //                 const last = prev[prev.length-1];
-    //                 return[
-    //                     ...prev.slice(0,-1),
-    //                     {...last, text: last.text + token}
-    //                 ];
-    //             });
-    //         });
-
-    //         socket.on("ai-end", () => {
-    //             console.log("AI finished typing");
-    //         });
-
-
-    //         // const response = await calltoLLM(userId, prompt);
-    //         // const llmMsg = response;
-    //         // //NOT OFFICIALLY SET UP YET
-    //         // //console.log(`LLM response: ${JSON.stringify(response)}`);
-    //         // //const llmMsg = { sender: "llm", text: response || "(no response)" };
-    //         // // const llmMsg = { sender: "llm", text: "okay" };
-    //         // setMessages((prev) => [...prev, llmMsg])
-
-    //         // socket.emit("send-message", { roomCode: roomCode, message: llmMsg});
-    //         // const success = await sendLLMData(user.name, prompt, response.response); ALSO NOT SET UP YET
-    //         //console.log(`Data sent to backend `); //${success.message}
-    //     } catch (err) {
-    //         console.error("Error:", err);
-    //         setError(err.message || "Something went wrong.");
-    //     }
-    // }
-
-    // const handleKeyDown = (e) => {
-    //     if(e.key === "Enter"){
-    //         e.preventDefault();
-    //         handleSubmit(e);
-    //     }
-    // }
 
     return (
         <>
