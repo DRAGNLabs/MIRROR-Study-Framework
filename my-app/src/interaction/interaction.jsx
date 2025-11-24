@@ -102,7 +102,7 @@ export function Interaction(){
         const userMsg = { sender: "user", text: prompt, userName: user.userName };
         setMessages((prev) => [...prev, userMsg]);
         socket.emit("send-message", { roomCode, message: userMsg });
-        socket.emit("generate-ai",  { roomCode, prompt }); // comment this out and uncommene messages below to stop calling openAI (for testing)
+        socket.emit("generate-ai",  { roomCode, prompt }); // comment this out and uncomment code below to stop calling openAI (for testing)
 
         // const llmMsg = { sender: "llm", text: "okay" };
         // setMessages((prev) => [...prev, llmMsg])
@@ -147,7 +147,6 @@ export function Interaction(){
                 e.target.style.height = "auto"; // reset height
                 e.target.style.height = e.target.scrollHeight + "px"; // set to content height
             }}
-            // onKeyDown={handleKeyDown}
             />
         <button type="submit">Send</button>
         </form>
