@@ -62,6 +62,10 @@ export function Interaction(){
             setStreamingText("");
         });
 
+        // socket.on("force-to-login", () => {
+        //     navigate("/");
+        // });
+
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
@@ -69,6 +73,7 @@ export function Interaction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
+            // socket.off("force-to-login");
         };
     }, []);
 
@@ -169,12 +174,12 @@ export function Interaction(){
     //     }
     // }
 
-    const handleKeyDown = (e) => {
-        if(e.key === "Enter"){
-            e.preventDefault();
-            handleSubmit(e);
-        }
-    }
+    // const handleKeyDown = (e) => {
+    //     if(e.key === "Enter"){
+    //         e.preventDefault();
+    //         handleSubmit(e);
+    //     }
+    // }
 
     return (
         <>
@@ -212,7 +217,7 @@ export function Interaction(){
                 e.target.style.height = "auto"; // reset height
                 e.target.style.height = e.target.scrollHeight + "px"; // set to content height
             }}
-            onKeyDown={handleKeyDown}
+            // onKeyDown={handleKeyDown}
             />
         <button type="submit">Send</button>
         </form>

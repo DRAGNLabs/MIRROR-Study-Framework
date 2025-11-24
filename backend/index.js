@@ -132,6 +132,10 @@ io.on("connection", (socket) => {
             io.to(roomCode).emit("force-return-to-waiting-room");
         }
 
+        // if(isAdmin) {
+        //     io.to(roomCode).emit("force-to-login");
+        // }
+
         // Clean up mapping
         delete socketUserMap[socket.id];
         console.log("User disconnected:", socket.id)
