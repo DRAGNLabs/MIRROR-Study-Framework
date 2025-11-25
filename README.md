@@ -13,6 +13,10 @@ If Node.js is not installed or your verison is <20, download and install the lat
 
 After installation rerun the commands above to confirm Node.js and npm are installed and up to date.
 
+## Create .env file
+In backend directory create `.env` file
+specify `OPENAI_MODEL` and  `OPENAI_API_KEY` to the specified model you want to use and your OpenAI key for the LLM to work on the backend
+
 ## To start website
 ### Clone the Repository
 ```bash
