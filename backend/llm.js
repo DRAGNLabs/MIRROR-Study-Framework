@@ -1,9 +1,14 @@
 import OpenAI from 'openai';
-const client = new OpenAI();
+import dotenv from "dotenv";
+dotenv.config();
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 export async function streamLLM(prompt, onToken) {
   const stream = await client.responses.stream({
-    model: "gpt-4.1-nano",
+    model: process.env.OPENAI_MODEL,
     input: prompt,
   });
 
