@@ -3,15 +3,31 @@ const router = express.Router();
 import db from "../db.js"; 
 
 //creates a room based off of the roomCode and count of people allowed in the room
-router.post("/create", (req, res) => {
-  const { roomCode, count, gamesSelected, users } = req.body;
-  db.run('INSERT INTO rooms (roomCode, count, gamesSelected, users) VALUES (?, ?, ?, ?)', [
-    roomCode,
-    count, 
-    JSON.stringify(gamesSelected),
-    JSON.stringify(users ?? [])
-  ], 
-  function (err) {
+      // roomCode INTEGER NOT NULL PRIMARY KEY,
+      // gameType INTEGER NOT NULL, 
+      // numRounds INTEGER NOT NULL,
+      // usersNeeded INTEGER NOT NULL,
+      // modelType TEXT NOT NULL,
+      // started INTEGER NOT NULL,
+      // userIds TEXT NOT NULL,
+      // userMessages TEXT NOT NULL,
+      // llmInstructions TEXT NOT NULL,
+      // llmResponse TEXT NOT NULL
+router.post('/create', (req, res) => {
+  const { roomCode, gameType, numRounds, usersNeeded, modelType } = req.body;
+  db.run('INSERT INTO rooms (roomCode, gameType, numRounds, usersNeeded, modelType, started, userIds, userMessages, llmInstructions, llmResponse) VALUES (?, ?, ?, ?)', [
+      roomCode,
+      gameType,
+      numRounds,
+      usersNeeded,
+      modelType,
+      0,
+      [],
+      [],
+      [],
+      []
+    ],
+    function (err) {
       if (err) {
         console.error(err);
         return res.status(500).json({ error: 'Database error' });
@@ -23,6 +39,26 @@ router.post("/create", (req, res) => {
     }
   )
 });
+// router.post("/create", (req, res) => {
+//   const { roomCode, count, gamesSelected, users } = req.body;
+//   db.run('INSERT INTO rooms (roomCode, count, gamesSelected, users) VALUES (?, ?, ?, ?)', [
+//     roomCode,
+//     count, 
+//     JSON.stringify(gamesSelected),
+//     JSON.stringify(users ?? [])
+//   ], 
+//   function (err) {
+//       if (err) {
+//         console.error(err);
+//         return res.status(500).json({ error: 'Database error' });
+//       }
+
+//       res.status(201).json({
+//         message: 'Room successfully created!'
+//       });
+//     }
+//   )
+// });
 
 
 router.get("/", (req, res) => {
