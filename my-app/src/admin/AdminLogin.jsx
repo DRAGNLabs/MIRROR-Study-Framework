@@ -1,21 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { adminLogin } from "../../services/apiService";
 
 
 export function AdminLogin() {
-    const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
     const [error, setError] = useState("");
+    const [isValid, setIsValid] = useState(false);
 
 
     async function handleClick(){
-        if (userName === "admin" && password === "admin"){
+        if (password){
             setError("");
-            navigate("/admin");
+            const result = await adminLogin(password); 
+            if(result.ok){
+                sessionStorage.setItem("admin", "true"); // persistent across navigation
+                navigate("/admin");
+            } else{
+                setError("Incorrect password.");
+            }
         }
         else{
-            setError("Username or password is incorrect.");
+            setError("You need a password");
         }
     }
 
@@ -29,15 +36,7 @@ export function AdminLogin() {
     return(
     <div className="admin-container">
         <h1>Welcome Admin!</h1>
-        <p>Enter the username:</p>
-        <input 
-          type="text"
-          value={userName} 
-          onChange={(e) => setUserName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          required
-          />
-        <p>Enter the password:</p>
+        <p>Enter password:</p>
         <input 
           type="password" 
           value={password}
@@ -48,7 +47,7 @@ export function AdminLogin() {
         {error && <p style={{ color: "red" }}>{error}</p>}
 
         <div className="button-group">
-            <button onClick={handleClick} disabled={!userName.trim() || !password.trim()}>Login</button>
+            <button onClick={handleClick} disabled={!password.trim()}>Login</button>
             
         </div>
     </div>
