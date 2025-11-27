@@ -38,10 +38,15 @@ export default function WaitingRoom() {
 
     window.addEventListener("beforeunload", handleUnload);
 
+    // socket.on("force-to-login", () => {
+    //   navigate("/");
+    // });
+
     return () => {
       window.removeEventListener("beforeunload", handleUnload);
       socket.off("room-users");
-      socket.off("start-chat");
+      socket.off("start-chat", onStart);
+      // socket.off("force-to-login")
     };
   }, [roomCode]);
 
