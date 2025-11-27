@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 import userRouter from "./routes/userRouter.js";
 import surveyRouter from "./routes/surveyRouter.js";
 import llmRouter from "./routes/llmRouter.js";
-import adminRouter from "./routes/adminRouter.js"
+import adminRouter from "./routes/adminRouter.js";
+import roomRouter from "./routes/roomRouter.js";
 import db from "./db.js";
 import "./initDB.js";
 import { streamLLM } from "./llm.js";
@@ -158,7 +159,8 @@ app.use(express.json());
 app.use("/api/users", userRouter);
 app.use("/api/survey", surveyRouter);
 app.use("/api/llm-response", llmRouter);
-app.use("/api/rooms", adminRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/rooms", roomRouter);
 
 
 const PORT = process.env.PORT || 3001;

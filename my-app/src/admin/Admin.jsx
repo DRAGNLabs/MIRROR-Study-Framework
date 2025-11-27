@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getCreatedRooms, sendCreatedRoom, closeARoom, validRoomCode, getRoom } from "../../services/apiService";
 
 export function Admin() {
@@ -12,7 +12,11 @@ export function Admin() {
     const [ error, setError] = useState("");
     const [ rooms, setRooms ] = useState([]);
     const [deletingRoom, setDeletingRoom] = useState(null);
+    const [valid, setValid] = useState(false);
+    const location = useLocation();
+    const validLogin = location.state?.isValid;
     const navigate = useNavigate();
+
 
 
     async function init(){
@@ -22,6 +26,14 @@ export function Admin() {
 
     useEffect(() => { 
         init();
+        const isAuth = sessionStorage.getItem("admin");
+
+        if(!isAuth){
+            navigate("/adminLogin");
+        } else {
+            init();
+            setValid(true);
+        }
     }, []);
 
     
