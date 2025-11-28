@@ -4,22 +4,46 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getUser } from '../../services/apiService';
 import { sendSurvey  } from "../../services/apiService";
+import game1 from "./surveys/game1.json";
+// import game2 from "./surveys/game2.json";
+// import game3 from "./surveys/game3.json";
+
+const surveyMap = {
+    1: game1
+    // 2: game2, 
+    // 3: game3
+}
 
 export function Survey() {
     const [user, setUser] = useState(null);
     const location = useLocation();
-    const { userId } = location.state || {}; //the userId is passed from the previous 
+    const { userId, roomCode } = location.state || {}; //the userId is passed from the previous 
     // page although i need to double check and make sure this is still working
     const [answer, setAnswer] = useState([]);
-    const [first, setFirst] = useState("");
-    const [second, setSecond] = useState("");
-    const [third, setThird] = useState("");
+    const [answers, setAnswers] = useState({}); // ✅ now exists
+
     const [ error, setError] = useState("");
+    const [survey, setSurvey] = useState(null);
     const navigate = useNavigate();
     const inputRef = useRef();
 
 
+    //getGameNumber from the room information
+    async function loadSurvey(){
+        // const roomInfo = await getRoom(roomCode);
+        // const gameNumber = roomInfo.gamesSelected; //this should change when we change the database storing the 1 game that was selected.
+        // const selectedSurvey = surveyMap[gameNumber];
+        // setSurvey(selectedSurvey);
+        setSurvey(game1);
+    }
+
+    
+
     useEffect(() => {
+        if (roomCode){
+            loadSurvey();
+        }
+
         async function fetchUser() {
             try {
                 const data = await getUser(userId);
@@ -29,6 +53,8 @@ export function Survey() {
             }
         }
         fetchUser();
+
+
     }, []);
 
     //handles click when the enter button is pressed
@@ -66,6 +92,15 @@ export function Survey() {
          }
     }
 
+    //If survey hasn’t loaded yet, return early to avoid crash
+    if (!survey) {
+        return (
+        <div className="survey-container">
+            <p>Survey is loading...</p>
+        </div>
+        );
+    }
+
 
     return (
         //survey using dumby questions and dumby data that will be sent.
@@ -73,57 +108,85 @@ export function Survey() {
             {user ? (
                 <p>{user.userName} please complete the following survey of your experience from room {user.roomCode}!</p> 
             ) : ( <p>User info is loading...</p> )}
-            <p>do you like tacos?</p>
-            <input 
-            type="text"
-            value={first} 
-            ref={inputRef}
-            onChange={(e) => setFirst(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="of course"
-            required
-            />
-            
-            <p>do you prefer crunchy or soft tacos?</p>
-            <input 
-            type="text"
-            value={second}
-            ref={inputRef}
-            onChange={(e) => setSecond(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="crunchy of course"
-            required
-            />
+            {survey.questions.map(q => (
+            <div key={q.id || q.label} className="survey-question">
 
-            <p>are you having a good day?</p>
-            <input 
-            type="text"
-            value={third} //idk if i can set the value to the same name
-            ref={inputRef} // GPT says you shouldn't use same ref for all 3 inputs
-            onChange={(e) => setThird(e.target.value)} 
-            onKeyDown={handleKeyDown}
-            placeholder="absolutely!"
-            required
-            />
+            <p>{q.label}</p>
 
-            <div className="button-group"> 
+            {/* SELECT (yes/no etc.) */}
+            {q.type === "select" && (
+                <select
+                onChange={(e) => setAnswers(prev => ({
+                    ...prev, [q.id]: e.target.value
+                }))}
+                >
+                <option value="">Select...</option>
+                {q.options.map(o => (
+                    <option key={o} value={o}>{o}</option>
+                ))}
+                </select>
+            )}
+
+            {/* TEXT INPUT */}
+            {q.type === "text" && (
+                <input
+                type="text"
+                onChange={(e) => setAnswers(prev => ({
+                    ...prev, [q.id]: e.target.value
+                }))}
+                placeholder={q.placeholder || ""}
+                />
+            )}
+
+            {/* 1–10 LITERAL SCALE SLIDER */}
+            {q.type === "scale" && q.style === "slider" && (
+                <div className="scale-wrapper">
+                <span className="end-label">{q.leftLabel || q.leftLable}</span>
+
+                <input
+                    type="range"
+                    min={q.min}
+                    max={q.max}
+                    step={q.step}
+                    value={answers[q.id] >> q.min}
+                    onChange={(e) => setAnswers(prev => ({
+                    ...prev, [q.id]: Number(e.target.value)
+                    }))}
+                />
+
+                <span className="end-label">{q.rightLabel}</span>
+                <span className="selected-number">
+                    {answers[q.id] ?? q.min}
+                </span>
+                </div>
+            )}
+            </div>
+        ))}
+
+            <div className="button-group">
                 <button
-                    onClick={() => {
-                    // Only add to answers once both fields are filled
-                        if (first && second && third) {
-                            setAnswer((prevAnswers) => {
-                                const updated = [...prevAnswers, { first, second, third }]; // build the new array
-                                handleClick(updated); // do something with it immediately
-                                return updated; // give React the new array to store
-                            }); // Move on to next page
-                        } else {
-                            alert("Please fill in both answers before submitting!");
-                        }
+                    onClick={async () => {
+                    const missing = survey.questions.filter(q => answers[q.id] == null || answers[q.id] === "");
+                    
+                    if (missing.length > 0) {
+                        alert("Please fill out all survey questions before submitting!");
+                        console.log("Missing questions:", missing.map(q => q.id));
+                        return;
+                    }
+
+                    try {
+                        await sendSurvey(userId, user.userName, answers);
+                        navigate("/exit");
+                    } catch (err) {
+                        console.error("Survey submit failed:", err);
+                        setError("Failed to send survey.");
+                    }
                     }}
                 >
                     Submit
                 </button>
-            </div>
+                </div>
+
 
         </div>
     )
