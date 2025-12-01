@@ -15,17 +15,12 @@ import db from "../db.js";
       // llmResponse TEXT NOT NULL
 router.post('/create', (req, res) => {
   const { roomCode, gameType, numRounds, usersNeeded, modelType } = req.body;
-  db.run('INSERT INTO rooms (roomCode, gameType, numRounds, usersNeeded, modelType, started, userIds, userMessages, llmInstructions, llmResponse) VALUES (?, ?, ?, ?)', [
+  db.run('INSERT INTO rooms (roomCode, gameType, numRounds, usersNeeded, modelType) VALUES (?, ?, ?, ?)', [
       roomCode,
       gameType,
       numRounds,
       usersNeeded,
-      modelType,
-      0,
-      [],
-      [],
-      [],
-      []
+      modelType
     ],
     function (err) {
       if (err) {

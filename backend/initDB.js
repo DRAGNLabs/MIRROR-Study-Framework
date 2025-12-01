@@ -28,11 +28,11 @@ db.serialize(() => {
       numRounds INTEGER NOT NULL,
       usersNeeded INTEGER NOT NULL,
       modelType TEXT NOT NULL,
-      started INTEGER NOT NULL,
-      userIds TEXT NOT NULL,
-      userMessages TEXT NOT NULL,
-      llmInstructions TEXT NOT NULL,
-      llmResponse TEXT NOT NULL
+      started INTEGER NOT NULL DEFAULT 0,
+      userIds TEXT NOT NULL DEFAULT '[]',
+      userMessages TEXT NOT NULL DEFAULT '{}',
+      llmInstructions TEXT NOT NULL DEFAULT '{}',
+      llmResponse TEXT NOT NULL DEFAULT '{}'
     )
   `)
   // db.run(`
