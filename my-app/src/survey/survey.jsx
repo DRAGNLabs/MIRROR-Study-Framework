@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getUser } from '../../services/apiService';
-import { sendSurvey  } from "../../services/apiService";
+import { getUser } from '../../services/usersService';
+import { sendSurvey  } from "../../services/surveyService";
 
 export function Survey() {
     const [user, setUser] = useState(null);

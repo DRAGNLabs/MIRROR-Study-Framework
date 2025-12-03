@@ -5,6 +5,7 @@ const router = express.Router();
 
 
 //get all users, hasnt been tested
+//do we need this function? Are we ever going to use it?
 router.get("/", (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows)=> {
         if (err) return res.status(500).json({ error: err.message });
@@ -16,6 +17,9 @@ router.get("/", (req, res) => {
 //create or login a user
 router.post("/", (req, res) => {
     const {userName, roomCode} = req.body;
+    // if (!userName || !roomCode) {
+    //     return res.status(400).json({})
+    // }
     db.run("INSERT INTO users (userName, roomCode) VALUES (?, ?)", [userName, roomCode],
     function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -27,7 +31,20 @@ router.post("/", (req, res) => {
         }
     );
 
-})
+});
+
+// updates role for when games are working
+router.patch("/:userId/role", (req, res) => {
+    const { userId, role } = req.body;
+    // if (!userId || !role) {
+    //     return res.status(400).json({ error: "userId and role are required"})
+    // }
+    db.run("UPDATE users SET role = ? WHERE userId = ?", [role, userId], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+
+        res.json({message: "role in users successfully updated!"});
+    })
+});
 
 //get one user
 router.get("/:userId", (req, res) => {

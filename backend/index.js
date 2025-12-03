@@ -20,7 +20,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:5173', // hardcoded for now, probably will have to update this later
+        origin: 'http://localhost:5173', // hardcoded for now, probably will have to update this later import from config file
         methods: ["GET", "POST"]
     }
 });
@@ -157,7 +157,7 @@ app.use(express.json());
 
 app.use("/api/users", userRouter);
 app.use("/api/survey", surveyRouter);
-app.use("/api/llm-response", llmRouter);
+// app.use("/api/llm-response", llmRouter);
 app.use("/api/rooms", adminRouter);
 
 

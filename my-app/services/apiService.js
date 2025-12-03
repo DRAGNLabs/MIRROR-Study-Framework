@@ -22,19 +22,20 @@ export async function getUser(userId) {
   return response.json();
 }
 
-export async function getUsersRoom(roomCode) {
+export async function getRoom(roomCode) {
   const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
   if (!response.ok) throw new Error("Can't get room.");
 
   return response.json();
 }
 
-export async function sendSurvey(userId, userName, data) {
-  const response = await fetch(`${API_BASE}/survey/${userId}`, {
+export async function sendSurvey(surveyId, userId, data) {
+  const response = await fetch(`${API_BASE}/survey/${surveyId}`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({userName: userName, surveyData: data})
+    body: JSON.stringify({userId, data})
   });
+
   if(!response.ok) throw new Error("Error sending survey.");
 
   return response.json();
@@ -56,41 +57,52 @@ export async function getAllSurveys(){
 //   if(!response.ok) throw new Error("Can't call to LLM.");
 //   return response.json();
 // }
-export async function callToLLM(prompt, onToken) {
-  const response = await fetch(`${API_BASE}/llm-response`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt }),
-  });
+// export async function callToLLM(prompt, onToken) {
+//   const response = await fetch(`${API_BASE}/llm-response`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ prompt }),
+//   });
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
+//   const reader = response.body.getReader();
+//   const decoder = new TextDecoder();
 
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    onToken(decoder.decode(value));
-  }
-}
+//   while (true) {
+//     const { value, done } = await reader.read();
+//     if (done) break;
+//     onToken(decoder.decode(value));
+//   }
+// }
 
 
-export async function sendLLMData(userId, prompt, response){
-  const res = await fetch(`${API_BASE}/llm-response/${userId}`, {
+// export async function sendLLMData(userId, prompt, response){
+//   const res = await fetch(`${API_BASE}/llm-response/${userId}`, {
+//     method: 'POST', 
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({id: userId, promtp: prompt, response: response})
+//   })
+
+//   if(!res.ok) throw new Error("Error uploading responses and prompts to db.");
+
+//   return res.json();
+// }
+
+// export async function sendCreatedRoom(roomCode, count, games){
+//   const res = await fetch(`${API_BASE}/rooms/create`, {
+//     method: 'POST', 
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({roomCode: roomCode, count: Number(count), gamesSelected: games, users: "[]"}),
+//   })
+//   if(!res.ok) throw new Error("Error creating room.");
+
+//   return res.json();
+// }
+
+export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType){
+  const res = await fetch(`${API_BASE}/rooms`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({id: userId, promtp: prompt, response: response})
-  })
-
-  if(!res.ok) throw new Error("Error uploading responses and prompts to db.");
-
-  return res.json();
-}
-
-export async function sendCreatedRoom(roomCode, count, games){
-  const res = await fetch(`${API_BASE}/rooms/create`, {
-    method: 'POST', 
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({roomCode: roomCode, count: Number(count), gamesSelected: games, users: "[]"}),
+    body: JSON.stringify({roomCode, gameType, numRounds, usersNeeded: Number(usersNeeded), modelType}),
   })
   if(!res.ok) throw new Error("Error creating room.");
 
@@ -107,7 +119,7 @@ export async function validRoomCode(roomCode){
   const res = await fetch(`${API_BASE}/rooms/valid`,{
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({roomCode: roomCode})
+    body: JSON.stringify({ roomCode })
   })
   if(!res.ok) throw new Error("Error validating room.");
   return res.json();
@@ -121,39 +133,39 @@ export async function closeARoom(roomCode){
   return res.json();
 }
 // All functions below have not been tested. For LLM functionality.
-export async function callLLM(userPrompts){ //res should be whatever i say in llm.js but idk yet
-  const res = await fetch(`${API_BASE}/llm-response`, 
-    {
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({userPrompts: userPrompts})
+// export async function callLLM(userPrompts){ //res should be whatever i say in llm.js but idk yet
+//   const res = await fetch(`${API_BASE}/llm-response`, 
+//     {
+//       method: 'POST', 
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ userPrompts })
   
-    }
-  );
-  if (!res.ok) throw new Error("Error fetching the surveys from the database.");
-  return res.json();
-}
+//     }
+//   );
+//   if (!res.ok) throw new Error("Error fetching the surveys from the database.");
+//   return res.json();
+// }
 
-export async function submitPrompt(roomCode, userId, userName, prompt){
-  const res = await fetch(`${API_BASE}/llm-response/user-prompts`, {
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({roomCode: roomCode, userData: {userId, userName, prompt}})
-  })
-  if (!res.ok) throw new Error("Error fetching the surveys from the database.");
-  return res.json(); //response should be an okay sign and the number of users in userData
+// export async function submitPrompt(roomCode, userId, userName, prompt){
+//   const res = await fetch(`${API_BASE}/llm-response/user-prompts`, {
+//       method: 'POST', 
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({roomCode: roomCode, userData: {userId, userName, prompt}})
+//   })
+//   if (!res.ok) throw new Error("Error fetching the surveys from the database.");
+//   return res.json(); //response should be an okay sign and the number of users in userData
 
-}
+// }
 
-export async function getRoomPrompts(){ //need to change when this endpoint is set up
-  const res = await fetch(`${API_BASE}/llm-response/get`);
-  return res.json()
-}
+// export async function getRoomPrompts(){ //need to change when this endpoint is set up
+//   const res = await fetch(`${API_BASE}/llm-response/get`);
+//   return res.json()
+// }
 
-export async function getRoom(roomCode) {
-  const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
-  if(!response.ok) throw new Error("Can't get room ", roomCode);
-  return response.json();
-}
+// export async function getRoom(roomCode) {
+//   const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
+//   if(!response.ok) throw new Error("Can't get room ", roomCode);
+//   return response.json();
+// }
 
 

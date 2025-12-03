@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-// import { getUser, sendLLMData, calltoLLM, getUsersRoom } from '../../services/apiService';
 import { socket } from '../socket';
 
 export function Interaction(){

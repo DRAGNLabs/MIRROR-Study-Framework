@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCreatedRooms, sendCreatedRoom, closeARoom, validRoomCode, getRoom } from "../../services/apiService";
+import { getCreatedRooms, sendCreatedRoom, closeARoom, validRoomCode, getRoom } from "../../services/roomsService";
+
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
