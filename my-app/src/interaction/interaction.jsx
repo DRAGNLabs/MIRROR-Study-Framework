@@ -2,14 +2,21 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getUser, sendLLMData, calltoLLM, getUsersRoom } from '../../services/apiService';
+// import { getUser, sendLLMData, calltoLLM, getUsersRoom } from '../../services/apiService';
 import { socket } from '../socket';
 
 export function Interaction(){
     const location = useLocation();
     const navigate = useNavigate();
     const [prompt, setPrompt] = useState("");
-    const [messages, setMessages] = useState([]); 
+    const [messages, setMessages] = useState([]);
+    const [streamingText, setStreamingText] = useState(""); 
+    const [currentStreamingId, setCurrentStreamingId] = useState(null);
+    if(!location.state) {
+        console.log("User not passed through state to interactions")
+        navigate("/", { replace: true });
+        return null; 
+    }
     const { user } = location.state
     if (!user) { 
         console.log("User not passed through state to interactions")
@@ -21,7 +28,6 @@ export function Interaction(){
     const roomCode = String(user.roomCode); // to make sure sockets are connecting between user and admin
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
-
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
@@ -36,12 +42,51 @@ export function Interaction(){
             navigate("/survey", { state: { userId }});
         });
 
+        socket.on("ai-start", () => {
+            const newId = `streaming-${Date.now()}`;
+            setCurrentStreamingId(newId);
+            setStreamingText("");
+            setMessages((prev) => [
+                ...prev,
+                {sender: "llm", text: "", id: newId},
+            ]);
+        });
+
+        socket.on("ai-token", (token) => {
+            setStreamingText(prev => prev + token);
+        });
+
+        socket.on("ai-end", () => {
+            console.log("AI finished typing");
+            setCurrentStreamingId(null);
+            setStreamingText("");
+        });
+
+        // socket.on("force-to-login", () => {
+        //     navigate("/");
+        // });
+
         return () => {
             socket.off("receive-message");
-            socket.off("room-users") 
-            socket.off("force-return-to-waiting-room")
+            socket.off("room-users");
+            socket.off("force-return-to-waiting-room");
+            socket.off("ai-token");
+            socket.off("ai-start");
+            socket.off("ai-end");
+            // socket.off("force-to-login");
         };
     }, []);
+
+    useEffect(() => {
+        if (!streamingText || !currentStreamingId) return;
+
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.id === currentStreamingId ? { ...msg, text: streamingText } : msg
+            )
+        );
+    }, [streamingText,currentStreamingId]);
+
 
     useEffect(() => {
         if (chatBoxRef.current) {
@@ -52,43 +97,19 @@ export function Interaction(){
     const handleSubmit = async(e) => {
         e.preventDefault();
 
-        if (!user.userName || !prompt.trim()) return;
+        if (!prompt.trim()) return;
 
         const userMsg = { sender: "user", text: prompt, userName: user.userName };
         setMessages((prev) => [...prev, userMsg]);
-        socket.emit("send-message", { roomCode: user.roomCode, message: userMsg });
+        socket.emit("send-message", { roomCode, message: userMsg });
+        socket.emit("generate-ai",  { roomCode, prompt }); // comment this out and uncomment code below to stop calling openAI (for testing)
 
+        // const llmMsg = { sender: "llm", text: "okay" };
+        // setMessages((prev) => [...prev, llmMsg])
+        // socket.emit("send-message", { roomCode: roomCode, message: llmMsg})
         setPrompt("");
+    };
 
-        try {
-            // After we're saving rooms 
-            // const roomInfo = await getUsersRoom(roomCode);
-            // console.log(roomUsers);
-            // const roomUsers = roomInfo.users
-            // Write code to loop through roomUsers and check that they have all sent a message
-
-
-            //const response = await calltoLLM(user.userName, prompt); NOT OFFICIALLY SET UP YET
-            //console.log(`LLM response: ${JSON.stringify(response)}`);
-            //const llmMsg = { sender: "llm", text: response || "(no response)" };
-            const llmMsg = { sender: "llm", text: "okay" };
-            setMessages((prev) => [...prev, llmMsg])
-
-            socket.emit("send-message", { roomCode: roomCode, message: llmMsg})
-            // const success = await sendLLMData(user.name, prompt, response.response); ALSO NOT SET UP YET
-            //console.log(`Data sent to backend `); //${success.message}
-        } catch (err) {
-            console.error("Error:", err);
-            setError(err.message || "Something went wrong.");
-        }
-    }
-
-    const handleKeyDown = (e) => {
-        if(e.key === "Enter"){
-            e.preventDefault();
-            handleSubmit(e);
-        }
-    }
 
     return (
         <>
@@ -126,7 +147,6 @@ export function Interaction(){
                 e.target.style.height = "auto"; // reset height
                 e.target.style.height = e.target.scrollHeight + "px"; // set to content height
             }}
-            onKeyDown={handleKeyDown}
             />
         <button type="submit">Send</button>
         </form>

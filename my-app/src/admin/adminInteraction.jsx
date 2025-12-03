@@ -9,6 +9,8 @@ export default function AdminInteraction(){
     const navigate = useNavigate();
     const [prompt, setPrompt] = useState("");
     const [messages, setMessages] = useState([]); 
+    const [streamingText, setStreamingText] = useState(""); 
+    const [currentStreamingId, setCurrentStreamingId] = useState(null);
     const { room } = location.state
     if (!room) {
         console.log("Room not passed through state to adminInteraction room")
@@ -28,12 +30,45 @@ export default function AdminInteraction(){
             navigate("/admin/roomManagement", { state: { room } });
         });
 
+        socket.on("ai-start", () => {
+            const newId = Date.now();
+            setCurrentStreamingId(newId);
+            setStreamingText("");
+            setMessages((prev) => [
+                ...prev,
+                {sender: "llm", text: "", id: newId},
+            ]);
+        });
+
+        socket.on("ai-token", (token) => {
+            setStreamingText(prev => prev + token);
+        });
+
+        socket.on("ai-end", () => {
+            console.log("AI finished typing");
+            setCurrentStreamingId(null);
+            setStreamingText("");
+        })
+
         return () => {
             socket.off("receive-message");
-            socket.off("room-users") 
-            socket.off("force-return-to-waiting-room")
+            socket.off("room-users");
+            socket.off("force-return-to-waiting-room");
+            socket.off("ai-token");
+            socket.off("ai-start");
+            socket.off("ai-end");
         };
     }, []);
+
+    useEffect(() => {
+        if (!streamingText) return;
+
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.id === currentStreamingId ? { ...msg, text: streamingText } : msg
+            )
+        );
+    }, [streamingText]);
 
     useEffect(() => {
         if (chatBoxRef.current) {

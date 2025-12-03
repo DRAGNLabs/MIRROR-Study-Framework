@@ -46,16 +46,33 @@ export async function getAllSurveys(){
   return response.json();
 }
 
-
-export async function calltoLLM(userId, prompt){
+// going to have to change inputs to this function once we have 3 users sending response
+// export async function calltoLLM(userId, prompt){
+//   const response = await fetch(`${API_BASE}/llm-response`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({id: userId, userPrompts: prompt })
+//   });
+//   if(!response.ok) throw new Error("Can't call to LLM.");
+//   return response.json();
+// }
+export async function callToLLM(prompt, onToken) {
   const response = await fetch(`${API_BASE}/llm-response`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({id: userId, prompt: prompt })
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt }),
   });
-  if(!response.ok) throw new Error("Can't call to LLM.");
-  return response.json();
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    onToken(decoder.decode(value));
+  }
 }
+
 
 export async function sendLLMData(userId, prompt, response){
   const res = await fetch(`${API_BASE}/llm-response/${userId}`, {

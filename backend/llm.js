@@ -1,27 +1,23 @@
-import { openai } from '@ai-sdk/openai';
-import { streamText } from 'ai';
-import 'dotenv/config';
+import OpenAI from 'openai';
+import dotenv from "dotenv";
+dotenv.config();
 
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
-export async function respondToUser(userPrompts) {
-  // Construct the LLM prompt
-  const prompt = ``;
-
-  // Send prompt to LLM
-  const result = await streamText({
-    model: openai('gpt-4.1-nano'),
-    prompt: prompt.trim()
+export async function streamLLM(prompt, onToken) {
+  const stream = await client.responses.stream({
+    model: process.env.OPENAI_MODEL,
+    input: prompt,
   });
 
-  // Collect the streamed output
-  let fullResponse = '';
-  for await (const delta of result.textStream) {
-    fullResponse += delta;
+  for await (const event of stream) {
+    if (event.type === "response.output_text.delta") {
+      const token = event.delta;
+      if (token && onToken) {
+        onToken(token);
+      }
+    }
   }
-  return fullResponse;
-
 }
-
-//idk what form to make this return
-
-
