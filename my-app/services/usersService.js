@@ -20,11 +20,3 @@ export async function getUser(userId) {
 
   return response.json();
 }
-
-
-export async function getUser(userId) {
-  const response = await fetch(`${API_BASE}/users/${userId}`);
-  if (!response.ok) throw new Error("Can't get user.");
-
-  return response.json();
-}

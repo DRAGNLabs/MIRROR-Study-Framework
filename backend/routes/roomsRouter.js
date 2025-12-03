@@ -2,17 +2,6 @@ import express from "express";
 const router = express.Router();
 import db from "../db.js"; 
 
-//creates a room based off of the roomCode and count of people allowed in the room
-      // roomCode INTEGER NOT NULL PRIMARY KEY,
-      // gameType INTEGER NOT NULL, 
-      // numRounds INTEGER NOT NULL,
-      // usersNeeded INTEGER NOT NULL,
-      // modelType TEXT NOT NULL,
-      // started INTEGER NOT NULL,
-      // userIds TEXT NOT NULL,
-      // userMessages TEXT NOT NULL,
-      // llmInstructions TEXT NOT NULL,
-      // llmResponse TEXT NOT NULL
 router.post('/', (req, res) => {
   const { roomCode, gameType, numRounds, usersNeeded, modelType } = req.body;
   if (!roomCode || !gameType || !numRounds || !usersNeeded || !modelType) {
@@ -114,9 +103,30 @@ router.patch("/:roomCode/llmResponse", (req, res) => {
 });
 
 
+router.patch("/:roomCode/completed", (req, res) => {
+    const { roomCode } = req.params;
+
+    db.run("UPDATE rooms SET completed = 1 WHERE roomCode = ?", [roomCode], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+
+        res.status(200).json({
+          roomCode,
+          message: "Room is completed!"
+        });
+    })
+});
+
+
 
 router.get("/", (req, res) => {
   db.all("SELECT * FROM rooms", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json(rows);
+  });
+});
+
+router.get("/nonCompleted", (req, res) => {
+  db.all("SELECT * FROM rooms WHERE completed = 0", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.status(200).json(rows);
   });

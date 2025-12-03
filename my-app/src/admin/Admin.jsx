@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCreatedRooms, sendCreatedRoom, closeARoom, validRoomCode, getRoom } from "../../services/roomsService";
+import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms } from "../../services/roomsService";
 
 
 export function Admin() {
@@ -17,7 +17,7 @@ export function Admin() {
 
 
     async function init(){
-        const rooms = await getCreatedRooms();
+        const rooms = await getOpenRooms();
         setRooms(rooms);
     }
 
@@ -27,7 +27,7 @@ export function Admin() {
 
     
     async function createRoom() { //changes the page to customize the room
-        const newRoomCode = generateRoomCode();
+        const newRoomCode = await generateRoomCode();
         setNewRoomCode(newRoomCode);
         setStart(false);
         setRoomCreated(true);
@@ -35,25 +35,28 @@ export function Admin() {
 
     async function buildRoom() { //sends the room into the backend
         try {
-            const response = await sendCreatedRoom(newRoomCode, count, selectedGame);
-            const rooms = await getCreatedRooms();
-            console.log(rooms);
+            // roomCode, gameType, numRounds, usersNeeded, modelType
+            console.log(newRoomCode, selectedGame, count);
+            const response = await sendRoom(newRoomCode, selectedGame, 3, count, "gpt-4"); // for now I'm putting dummy values for each of the game things, count and the rest after selectedGame should change
+            const rooms = await getOpenRooms();
+            // console.log(rooms);
             setRooms(rooms);
-            setStart(true);
-            setRoomCreated(false);
+            setStart(true); // what does setStart do?
+            setRoomCreated(false); // what is the point of setRoomCreated?
         } catch (error){
             console.error("Error:", error);
-            setError(error.message || "Something went wrong.");
+            setError(error.message || "Something went wrong."); // at what point is there not going to be error.message, also why setError?
 
         }
 
     }
 
-    async function closeRoom(roomCode) {
+    async function closeRoom(roomCode) { // esentially closeRoom should be blocked once admin opens it
         try {
             setDeletingRoom(roomCode);
             const response = await closeARoom(roomCode);
-            setRooms(prev => prev.filter(r => r.roomCode !== roomCode));           
+            setRooms(await getOpenRooms());
+            // setRooms(prev => prev.filter(r => r.roomCode !== roomCode));           
             
 
         } catch (error) {
@@ -67,7 +70,7 @@ export function Admin() {
 
     async function startRoom(roomCode) {
         try {
-            const room = await getRoom(roomCode); //naming it room for now, might be better to do currentRoom?
+            const room = await getRoom(roomCode); // naming it room for now, might be better to do currentRoom?
             navigate("/admin/roomManagement", { state: { room }});
         } catch(error) {
             console.error("Error:", error);
@@ -75,12 +78,12 @@ export function Admin() {
         }
     }
 
-    function generateRoomCode() { // Generates a random number between 100000 and 999999
+    async function generateRoomCode() { // Generates a random number between 100000 and 999999
   
         //ensure this generated roomCode has not already been used
         while (true){
             const roomCode = Math.floor(100000 + Math.random() * 900000);
-            if(validRoomCode(roomCode)){
+            if(await validRoomCode(roomCode)){
                 console.log(roomCode);
                 return roomCode
             }

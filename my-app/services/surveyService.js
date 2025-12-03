@@ -2,10 +2,10 @@ const API_BASE = "http://localhost:3001/api"; // going to want to change this to
 
 
 export async function sendSurvey(surveyId, userId, data) {
-  const response = await fetch(`${API_BASE}/survey/${surveyId}`, {
+  const response = await fetch(`${API_BASE}/survey`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({userId, data})
+    body: JSON.stringify({surveyId, userId, data})
   });
 
   if(!response.ok) throw new Error("Error sending survey.");

@@ -4,7 +4,7 @@ export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, model
   const res = await fetch(`${API_BASE}/rooms`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({roomCode, gameType, numRounds, usersNeeded: Number(usersNeeded), modelType}), //do we need the Number()
+    body: JSON.stringify({roomCode: Number(roomCode), gameType: Number(gameType), numRounds: Number(numRounds), usersNeeded: Number(usersNeeded), modelType}), //do we need the Number() function, idk
   })
   if(!res.ok) throw new Error("Error creating room.");
 
@@ -59,6 +59,15 @@ export async function updateLlmResponse(llmResponse, roomCode) {
     return response.json();
 }
 
+export async function roomCompleted(roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/completed`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    if (!response.ok) throw new Error(`Error updating start and userIds in room ${roomCode}`);
+    return response.json();
+}
+
 export async function validRoomCode(roomCode){
   const response = await fetch(`${API_BASE}/rooms/valid`,{
     method: 'POST', 
@@ -80,6 +89,12 @@ export async function closeARoom(roomCode){
 
 export async function getCreatedRooms(){
   const response = await fetch(`${API_BASE}/rooms`);
-  if (!response.ok) throw new Error("Error fetching the surveys from the database.");
+  if (!response.ok) throw new Error("Error fetching the rooms from the database.");
   return response.json();
+}
+
+export async function getOpenRooms() {
+    const response = await fetch(`${API_BASE}/rooms/nonCompleted`);
+    if(!response.ok) throw new Error("Error fetching non completed rooms from the database");
+    return response.json();
 }

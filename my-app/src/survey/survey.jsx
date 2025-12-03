@@ -54,9 +54,8 @@ export function Survey() {
 
         try {
             console.log(userId);
-            console.log(user.userName);
             console.log(updated);
-            const response = await sendSurvey(userId, user.userName, updated); 
+            const response = await sendSurvey(1, userId, updated); // dummy surveyId, also will have to change structure of updated
             navigate("/exit");
 
 
