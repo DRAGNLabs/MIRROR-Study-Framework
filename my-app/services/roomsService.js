@@ -1,10 +1,10 @@
 const API_BASE = "http://localhost:3001/api"; // going to want to change this to import from config file
 
-export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType){
+export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType){ 
   const res = await fetch(`${API_BASE}/rooms`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({roomCode, gameType, numRounds, usersNeeded: Number(usersNeeded), modelType}),
+    body: JSON.stringify({roomCode, gameType, numRounds, usersNeeded: Number(usersNeeded), modelType}), //do we need the Number()
   })
   if(!res.ok) throw new Error("Error creating room.");
 

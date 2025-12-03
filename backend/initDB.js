@@ -7,7 +7,7 @@ db.serialize(() => {
       userId INTEGER PRIMARY KEY AUTOINCREMENT,
       userName TEXT NOT NULL,
       roomCode INTEGER NOT NULL,
-      role TEXT NOT NULL
+      role TEXT NOT NULL DEFAULT ''
     )
   `);
 
@@ -15,7 +15,7 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS survey (
       surveyId INTEGER NOT NULL PRIMARY KEY,
       userId INTEGER NOT NULL,
-      data TEXT NOT NULL
+      data TEXT NOT NULL DEFAULT '{}'
     )
   `);
   //userData = {userId, userName, prompt} store it in a list, items with this structure, return length of list
