@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 import db from "../db.js"; 
 
+// Creates room, puts roomCode, gameType, numRounds, usersNeeded, and modelType into table (rest of info will be updated later)
 router.post('/', (req, res) => {
   const { roomCode, gameType, numRounds, usersNeeded, modelType } = req.body;
   if (!roomCode || !gameType || !numRounds || !usersNeeded || !modelType) {
@@ -32,6 +33,7 @@ router.post('/', (req, res) => {
   )
 });
 
+// updates userIds and started to true, this will be used when admin directs users to interactions page
 router.patch("/:roomCode/started", (req, res) => {
     const { userIds } = req.body;
     const { roomCode } = req.params;
@@ -49,6 +51,7 @@ router.patch("/:roomCode/started", (req, res) => {
     })
 });
 
+// updates llmInstructions for specified room. This will be updated every round when LLM sends instructions
 router.patch("/:roomCode/llmInstructions", (req, res) => {
     const { llmInstructions } = req.body;
     const { roomCode } = req.params;
@@ -65,6 +68,7 @@ router.patch("/:roomCode/llmInstructions", (req, res) => {
     })
 });
 
+// updates userMessages for specified room. This will be updated every round once every user sends a message
 router.patch("/:roomCode/userMessages", (req, res) => {
     const { userMessages } = req.body;
     const { roomCode } = req.params;
@@ -85,6 +89,7 @@ router.patch("/:roomCode/userMessages", (req, res) => {
     })
 });
 
+// updates llmResponse for specified room. This will be udpated every round once LLM sends response
 router.patch("/:roomCode/llmResponse", (req, res) => {
     const { llmResponse } = req.body;
     const { roomCode } = req.params;
@@ -102,7 +107,7 @@ router.patch("/:roomCode/llmResponse", (req, res) => {
     })
 });
 
-
+// updates completed for specified room. Once admin directs users to survey page it will set the room as completed and those rooms won't show up on admin page anymore
 router.patch("/:roomCode/completed", (req, res) => {
     const { roomCode } = req.params;
 
@@ -116,8 +121,7 @@ router.patch("/:roomCode/completed", (req, res) => {
     })
 });
 
-
-
+// gets all rooms in table
 router.get("/", (req, res) => {
   db.all("SELECT * FROM rooms", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -125,6 +129,7 @@ router.get("/", (req, res) => {
   });
 });
 
+// gets all rooms that aren't completed in table. These rooms will be shown on /admin page
 router.get("/nonCompleted", (req, res) => {
   db.all("SELECT * FROM rooms WHERE completed = 0", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -132,6 +137,7 @@ router.get("/nonCompleted", (req, res) => {
   });
 });
 
+// Lets us know if roomCode is valid or not
 router.post("/valid", (req, res) => { //return false if found in database because its already taken and not valid
   const roomCode = req.body.roomCode;
   if(!roomCode) {
@@ -152,12 +158,9 @@ router.post("/valid", (req, res) => { //return false if found in database becaus
 })
 
 
-//deletes a room based off of roomCode
+// deletes a room based off of roomCode
 router.delete("/delete/:roomCode", (req,res) => {
   const roomCode = req.params.roomCode;
-  if(!roomCode) {
-    return res.status(400).json({ message: "roomCode is required" });
-  }
   db.run("DELETE FROM rooms WHERE roomCode = ?", [roomCode], function(err) {
     if (err) {
       console.error("Error deleting room:", err);

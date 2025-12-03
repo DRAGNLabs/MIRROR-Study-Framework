@@ -1,5 +1,6 @@
 const API_BASE = "http://localhost:3001/api"; // going to want to change this to import from config file
 
+// creates new user in user table (logs them in)
 export async function loginUser(userName, roomCode) {
   const response = await fetch(`${API_BASE}/users`, {
     method: 'POST',
@@ -14,6 +15,7 @@ export async function loginUser(userName, roomCode) {
   return response.json();
 }
 
+// gets user with specified userId
 export async function getUser(userId) {
   const response = await fetch(`${API_BASE}/users/${userId}`);
   if (!response.ok) throw new Error("Can't get user.");

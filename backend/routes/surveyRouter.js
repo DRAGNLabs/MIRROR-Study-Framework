@@ -3,7 +3,7 @@ const router = express.Router();
 import db from "../db.js"; 
 
 
-//posts a survey associated with a survey id
+// posts surveyId and userId into table (notice data is missing, we might not need this depending on how we want to update the survey table)
 router.post("/noData", (req, res) => {
   const { surveyId, userId } = req.body;
   if (!surveyId || !userId) {
@@ -27,6 +27,7 @@ router.post("/noData", (req, res) => {
   )
 });
 
+// posts surveyId, userId, and data into table
 router.post("/", (req, res) => {
   const { surveyId, userId, data } = req.body;
   if (!surveyId || !userId) {
@@ -53,6 +54,7 @@ router.post("/", (req, res) => {
 });
 
 // honestly we might not need this function, it depends on if we save data to survey table before users have submitted the survey, but idk
+// this updates survey value with the data from user
 router.patch("/:surveyId/data", (req, res) => {
     const { data } = req.body;
     const { surveyId } = req.params;
@@ -69,12 +71,11 @@ router.patch("/:surveyId/data", (req, res) => {
     })
 })
 
-
-//returns all the data in the survey table, hasnt been tested
+// returns all survey data
 router.get("/", (req, res) => {
   db.all("SELECT * FROM survey", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.status(200).json({ tables: rows });
+    res.status(200).json(rows);
   });
 });
 

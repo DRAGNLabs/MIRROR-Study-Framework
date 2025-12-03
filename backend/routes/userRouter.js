@@ -3,7 +3,7 @@ import db from "../db.js";
  
 const router = express.Router();
 
-//create or login a user
+// create or login a user
 router.post("/", (req, res) => {
     const {userName, roomCode} = req.body;
     if (!userName || !roomCode) {
@@ -22,7 +22,7 @@ router.post("/", (req, res) => {
 
 });
 
-// updates role for when games are working
+// updates role for user
 router.patch("/:userId/role", (req, res) => {
     const { userId } = req.params;
     const { role } = req.body;
@@ -40,7 +40,7 @@ router.patch("/:userId/role", (req, res) => {
     })
 });
 
-//get one user
+// get user with specified userId
 router.get("/:userId", (req, res) => {
     const userId = req.params.userId;
     if (!userId) {
@@ -54,18 +54,24 @@ router.get("/:userId", (req, res) => {
     });
 });
 
-//get all users, hasnt been tested
-//do we need this function? Are we ever going to use it?
+// get all users in table
 router.get("/", (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows)=> {
         if (err) return res.status(500).json({ error: err.message });
-        res.status(200).json({ tables: rows });
+        res.status(200).json(rows);
     })
 });
 
-
-//idk if there is a need to delete a user yet?
-// router.delete("/:id", (req,res) => {
-// })
+// delete user with specified userId from table
+router.delete("/delete/:userId", (req,res) => {
+  const userId = req.params.userId;
+  db.run("DELETE FROM users WHERE userId = ?", [userId], function(err) {
+    if (err) {
+      console.error("Error deleting user:", err);
+      return res.status(500).json({ success: false, message: "Error deleting user." });
+    }
+    res.status(200).json({ success: true, deleted: this.changes }); // this.changes says how many rows were deleted
+  });
+});
 
 export default router;
