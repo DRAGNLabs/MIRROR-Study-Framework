@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket"; 
-import { getRoom } from "../../services/apiService";
+import { getRoom } from "../../services/roomsService";
 
 
 export default function RoomManagement() {

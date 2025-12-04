@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getUser } from '../../services/apiService';
-import { sendSurvey  } from "../../services/apiService";
+import { getUser } from '../../services/usersService';
+import { sendSurvey  } from "../../services/surveyService";
 import game1 from "./surveys/game1.json";
 // import game2 from "./surveys/game2.json";
 // import game3 from "./surveys/game3.json";
@@ -80,9 +80,8 @@ export function Survey() {
 
         try {
             console.log(userId);
-            console.log(user.userName);
             console.log(updated);
-            const response = await sendSurvey(userId, user.userName, updated); 
+            const response = await sendSurvey(1, userId, updated); // dummy surveyId, also will have to change structure of updated
             navigate("/exit");
 
 
