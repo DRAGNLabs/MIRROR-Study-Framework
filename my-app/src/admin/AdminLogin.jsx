@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { adminLogin } from "../../services/apiService";
+import { adminLogin } from "../../services/adminService";
 
 
 export function AdminLogin() {

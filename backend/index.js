@@ -3,9 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import userRouter from "./routes/userRouter.js";
 import surveyRouter from "./routes/surveyRouter.js";
-import llmRouter from "./routes/llmRouter.js";
 import adminRouter from "./routes/adminRouter.js";
-import roomRouter from "./routes/roomRouter.js";
+import roomsRouter from "./routes/roomsRouter.js"
 import db from "./db.js";
 import "./initDB.js";
 import { streamLLM } from "./llm.js";
@@ -21,7 +20,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:5173', // hardcoded for now, probably will have to update this later
+        origin: 'http://localhost:5173', // hardcoded for now, probably will have to update this later import from config file
         methods: ["GET", "POST"]
     }
 });
@@ -158,9 +157,8 @@ app.use(express.json());
 
 app.use("/api/users", userRouter);
 app.use("/api/survey", surveyRouter);
-app.use("/api/llm-response", llmRouter);
+app.use("/api/rooms", roomsRouter);
 app.use("/api/admin", adminRouter);
-app.use("/api/rooms", roomRouter);
 
 
 const PORT = process.env.PORT || 3001;

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-// import { getUser, sendLLMData, calltoLLM, getUsersRoom } from '../../services/apiService';
 import { socket } from '../socket';
 
 export function Interaction(){
@@ -39,7 +38,7 @@ export function Interaction(){
         });
 
         socket.on("startUserSurvey", () => {
-            navigate("/survey", { state: { userId }});
+            navigate("/survey", { state: { userId, roomCode: user.roomCode }});
         });
 
         socket.on("ai-start", () => {

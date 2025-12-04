@@ -4,7 +4,8 @@ import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import Survey from "./survey/survey";
 import { useState } from "react";
 import './App.css';
-import { loginUser, validRoomCode } from '../services/apiService';
+import { loginUser } from '../services/usersService';
+import { validRoomCode } from '../services/roomsService';
 import Interaction from "./interaction/interaction";
 import Exit from "./exit"
 import Admin from "./admin/Admin"
