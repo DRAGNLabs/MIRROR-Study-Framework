@@ -20,14 +20,24 @@ export async function getRoom(roomCode) {
   return response.json();
 }
 
-// updates userIds and started when admin directs users to interactions page
-export async function roomStarted(userIds, roomCode) {
+// updates started when admin clicks start room
+export async function roomStarted(roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/started`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    if (!response.ok) throw new Error(`Error updating started in room ${roomCode}`);
+    return response.json();
+}
+
+// updates userIds when admin directs users to interactions page
+export async function updateUserIds(userIds, roomCode) {
     const response = await fetch(`${API_BASE}/rooms/${roomCode}/started`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userIds })
     })
-    if (!response.ok) throw new Error(`Error updating start and userIds in room ${roomCode}`);
+    if (!response.ok) throw new Error(`Error updating userIds in room ${roomCode}`);
     return response.json();
 }
 
@@ -74,7 +84,7 @@ export async function roomCompleted(roomCode) {
     return response.json();
 }
 
-// checks if roomCode is valid
+// checks if roomCode is valid when creating new room
 export async function validRoomCode(roomCode){
   const response = await fetch(`${API_BASE}/rooms/valid`,{
     method: 'POST', 
@@ -106,4 +116,14 @@ export async function getOpenRooms() {
     const response = await fetch(`${API_BASE}/rooms/nonCompleted`);
     if(!response.ok) throw new Error("Error fetching non completed rooms from the database");
     return response.json();
+}
+
+// check that user can log into room
+export async function loginRoom(roomCode){
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/login`,{
+    method: 'GET', 
+    headers: { 'Content-Type': 'application/json' }
+  })
+  if(!response.ok) throw new Error("Error validating room.");
+  return response.json();
 }

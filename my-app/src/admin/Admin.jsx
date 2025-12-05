@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms } from "../../services/roomsService";
+import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted } from "../../services/roomsService";
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -82,6 +82,7 @@ export function Admin() {
     async function startRoom(roomCode) {
         try {
             const room = await getRoom(roomCode); // naming it room for now, might be better to do currentRoom?
+            await roomStarted(roomCode);
             navigate("/admin/roomManagement", { state: { room }});
         } catch(error) {
             console.error("Error:", error);

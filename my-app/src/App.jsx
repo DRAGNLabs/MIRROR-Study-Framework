@@ -5,7 +5,7 @@ import Survey from "./survey/survey";
 import { useState } from "react";
 import './App.css';
 import { loginUser } from '../services/usersService';
-import { validRoomCode } from '../services/roomsService';
+import { loginRoom } from '../services/roomsService';
 import Interaction from "./interaction/interaction";
 import Exit from "./exit"
 import Admin from "./admin/Admin"
@@ -29,8 +29,8 @@ function Home() {
         console.log("You need both a name and a roomcode!");
         return;
       }
-      const doesNotExist = await validRoomCode(roomCode);
-      if (doesNotExist) {
+      const canLogin = await loginRoom(roomCode);
+      if (!canLogin) {
         console.log("Not a valid room Code");
         alert("Room code is not valid");
         return;
