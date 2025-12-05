@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket"; 
-import { getRoom } from "../../services/roomsService";
+import { updateUserIds, getRoom } from "../../services/roomsService";
 
 
 export default function RoomManagement() {
@@ -41,9 +41,14 @@ export default function RoomManagement() {
   
     }, []);
 
-    function start() {
+    async function start() {
         console.log("In start function!");
         socket.emit("startGame", { roomCode });
+        let userIds = []
+        for (let i = 0; i < users.length; i++) {
+            userIds.push(users[i].userId);
+        }
+        await updateUserIds(userIds, roomCode);
         navigate("/admin/adminInteraction", { state: { room } });
     }
 

@@ -19,9 +19,9 @@
     ],
     "prompts": [
         {
-            "1": "prompt 1 for LLM (round # prompts)", 
-            "2": "prompt 2 for LLM", 
-            "3": "prompt 3 for LLM"
+            "instruction_system": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 500 tons of fish, you can't get more resources. Write a prompt of instructions for the people requesting resources.", 
+            "response_system": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 500 tons of fish, you can't get more resources. There are 3 people requesting resources, their requests are below:\n ", 
+            "3": "might need a prompt for after round 1 if we want to keep convo history, also probably will need more instructions so it is not just one type of resource it is asking for"
         }
     ], 
     "questions": [

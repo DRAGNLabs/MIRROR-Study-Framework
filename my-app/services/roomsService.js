@@ -32,7 +32,7 @@ export async function roomStarted(roomCode) {
 
 // updates userIds when admin directs users to interactions page
 export async function updateUserIds(userIds, roomCode) {
-    const response = await fetch(`${API_BASE}/rooms/${roomCode}/started`, {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/userIds`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userIds })
