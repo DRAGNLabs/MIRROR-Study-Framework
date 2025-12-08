@@ -7,7 +7,7 @@ import './App.css';
 import { loginUser } from '../services/usersService';
 import { validRoomCode } from '../services/roomsService';
 import Interaction from "./interaction/interaction";
-import Exit from "./exit"
+import Exit from "./Exit"
 import Admin from "./admin/Admin"
 import WaitingRoom from './interaction/waitingRoom';
 import RoomManagement from './admin/roomManagement'
