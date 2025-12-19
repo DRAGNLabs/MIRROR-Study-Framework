@@ -3,6 +3,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
+import { getRoom, updateLlmInstructions, updateLlmResponse, updateUserMessages } from "../../services/roomsService"
+import game1 from "../games/game1.json";
+import game2 from "../games/game2.json";
+import game3 from "../games/game3.json";
+
+const gameMap = {
+    1: game1,
+    2: game2, 
+    3: game3
+}
 
 export function Interaction(){
     const location = useLocation();
@@ -11,6 +21,11 @@ export function Interaction(){
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
+    const [gameInfo, setGame] = useState(null);
+    const [currRound, setCurrRound] = useState(1);
+    const [canSend, setCanSend] = useState(false);
+    const [hasSentThisRound, setHasSentThisRound] = useState(false);
+
     if(!location.state) {
         console.log("User not passed through state to interactions")
         navigate("/", { replace: true });
@@ -24,9 +39,31 @@ export function Interaction(){
     }
 
     const { userId } = user;
-    const roomCode = String(user.roomCode); // to make sure sockets are connecting between user and admin
+    const roomCode = parseInt(user.roomCode); // to make sure sockets are connecting between user and admin
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
+
+
+    async function loadGame(){
+        const roomInfo = await getRoom(parseInt(roomCode));
+        const gameNumber = roomInfo.gameType; //this should change when we change the database storing the 1 game that was selected.
+        const numRounds = roomInfo.numRounds;
+        const selectedGame = gameMap[gameNumber];
+        setGame(selectedGame);
+        // setSurvey(game1);
+
+        // socket.emit("generate-ai", {
+        //     roomCode,
+        //     prompt: selectedGame.instruction_system
+        // });
+    }
+
+    useEffect(() => {
+        if (roomCode){
+            loadGame();
+        }
+    }, []);
+
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
@@ -61,6 +98,14 @@ export function Interaction(){
             setStreamingText("");
         });
 
+        socket.on("instructions-complete", (round) => {
+            setCurrRound(round); // maybe update this when round is over? instead of right here
+            setCanSend(true);
+            setHasSentThisRound(false);
+            // await updateLlmInstructions(roomCode, ); update them in this format  * llmInstructions: {round#1: "llmInstructions1", round#2: "llmInstructions2",...}, buffer = llmInstructions
+            // make it so user can type and send message 
+        });
+
         // socket.on("force-to-login", () => {
         //     navigate("/");
         // });
@@ -72,6 +117,7 @@ export function Interaction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
+            socket.off("instructions-complete");
             // socket.off("force-to-login");
         };
     }, []);
@@ -95,6 +141,10 @@ export function Interaction(){
 
     const handleSubmit = async(e) => {
         e.preventDefault();
+        if (!canSend || hasSentThisRound) {
+            alert("You can't send a message yet");
+            return;
+        }
 
         if (!prompt.trim()) return;
 
@@ -107,6 +157,8 @@ export function Interaction(){
         // setMessages((prev) => [...prev, llmMsg])
         // socket.emit("send-message", { roomCode: roomCode, message: llmMsg})
         setPrompt("");
+        setHasSentThisRound(true);
+        setCanSend(false);
     };
 
 
@@ -147,7 +199,7 @@ export function Interaction(){
                 e.target.style.height = e.target.scrollHeight + "px"; // set to content height
             }}
             />
-        <button type="submit">Send</button>
+        <button type="submit" disabled={!canSend || hasSentThisRound}>Send</button>
         </form>
         </div>
         {/* <div className="next-bottom-left">

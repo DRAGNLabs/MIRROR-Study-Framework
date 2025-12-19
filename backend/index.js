@@ -8,9 +8,19 @@ import roomsRouter from "./routes/roomsRouter.js"
 import db from "./db.js";
 import "./initDB.js";
 import { streamLLM } from "./llm.js";
-
 import { createServer } from 'http';
 import { Server } from 'socket.io'
+
+import game1 from "../my-app/src/games/game1.json" with { type: "json" };
+import game2 from "../my-app/src/games/game2.json" with { type: "json" };
+import game3 from "../my-app/src/games/game3.json" with { type: "json" };
+import { getRoom, updateLlmInstructions, appendLlmInstructions } from "../backend/services/roomsService.js"
+
+const gameMap = {
+    1: game1,
+    2: game2, 
+    3: game3
+}
 
 dotenv.config();
 
@@ -32,7 +42,7 @@ io.on("connection", (socket) => {
    console.log("User connected:", socket.id);
     
     socket.on("join-room", ({ roomCode, isAdmin, user }) => {
-        if (!roomCode || typeof roomCode !== "string") {
+        if (!roomCode || typeof roomCode !== 'number') {
             console.warn("join-room missing or invalid roomCode", roomCode, user);
             return;
         }
@@ -96,6 +106,64 @@ io.on("connection", (socket) => {
             console.error("LLM Stream Error:", error);
             io.to(roomCode).emit("ai-error", "LLM failed"); // do I want this?
         }
+    })
+
+    socket.on("start-round", async ({ roomCode, round }) => {
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("start-round invalid room:", roomCode);
+            return;
+        } 
+
+        const room = await getRoom(roomCode);
+        const game = gameMap[room.gameType]
+        // console.log(game);
+        const prompt = game.prompts[round-1].instruction_system;
+        // console.log(prompt);
+        // const room = await
+        // const game = gameMap[gameType];
+        // const instructionsPrompt = game.instruction_system;
+        io.to(roomCode).emit("ai-start");
+        
+        let buffer = "";
+        await streamLLM(prompt, token => {
+            buffer += token;
+            io.to(roomCode).emit("ai-token", token);
+        });
+
+        io.to(roomCode).emit("ai-end");
+
+        // need to somehow get room from database to update it with the buffer
+        // const existing = JSON.parse(room.llmInstructions);
+        // existing[round] = buffer;
+
+        // await updateRoomField(roomCode, "llmInstructions", existing);
+        const existingInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {}
+        if (existingInstructions[round]) {
+            throw new Error(`Round ${round} instructions already exist`);
+        }
+        const updatedInstructions = {
+            ...existingInstructions,
+            [round]: buffer
+        }
+        db.run(
+            "UPDATE rooms SET llmInstructions = ? WHERE roomCode = ?",
+            [JSON.stringify(updatedInstructions), roomCode]
+        );
+        // await updateLlmInstructions({
+        //     ...existingInstructions,
+        //     [round]: buffer
+        // }, roomCode
+        // ); 
+        io.to(roomCode).emit("instructions-complete", round); // on client side this should allow users to now send messages
+    })
+
+    // socket.on("user-messages-round", async ({ roomCode }) => {
+
+    //     io.to(roomCode).emit("")
+    // })
+    socket.on("get-llm-response", async ({ roomCode, round }) => {
+
+        io.to(roomCode).emit("end-round", round);
     })
 
     socket.on("leave-room", ({ roomCode, userId }) => {

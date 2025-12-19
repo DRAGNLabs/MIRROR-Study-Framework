@@ -25,6 +25,11 @@
         }
     ], 
     "questions": [
+        { 
+            "id": "resources",
+            "label": "How many tons of fish did you get?",
+            "type": "text"
+        },
         {
             "id": "tacos",
             "label": "do you enjoy eating tacos?", 

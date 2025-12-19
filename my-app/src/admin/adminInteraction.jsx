@@ -3,23 +3,62 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
+import { getRoom } from '../../services/roomsService.js'
 
 export default function AdminInteraction(){
     const location = useLocation();
     const navigate = useNavigate();
+    const [users, setUsers] =useState([]);
     const [prompt, setPrompt] = useState("");
     const [messages, setMessages] = useState([]); 
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
-    const { room } = location.state
-    if (!room) {
-        console.log("Room not passed through state to adminInteraction room")
-        navigate("/admin", { replace: true });
-        return null;
-    }
-    const roomCode = String(room.roomCode); // to make sure sockets are connecting between user and admin
+    const [currRound, setCurrRound] = useState(1);
+    const [numRounds, setNumRounds] = useState(0);
+    const [room, setRoom] = useState();
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
+    // const isAdmin = true;
+    const { roomCode } = location.state;
+
+    useEffect(() => {
+        if (!roomCode) {
+            navigate("/admin", { replace: true});
+            return;
+        }
+    }, [roomCode, navigate]);
+
+    useEffect(() => {
+        retrieveRoom();
+    }, [roomCode]);
+
+    useEffect(() => {
+        // loadGame();
+
+        // socket.emit("join-room", { roomCode, isAdmin});
+
+        // socket.on("room-users", (userList) => { // why do we need this?
+        //     setUsers(userList);
+        // });
+        socket.on("room-users", setUsers); // testing this out
+
+        return () => {
+            socket.off("room-users");
+        };
+  
+    }, []);
+
+    async function retrieveRoom() { 
+        try {
+            const response = await getRoom(roomCode);
+            console.log(response);
+            setRoom(response);
+        } catch (error){
+            console.error("Error:", error);
+            setError(error.message || "Something went wrong.");
+        }
+    }
+
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
@@ -48,7 +87,11 @@ export default function AdminInteraction(){
             console.log("AI finished typing");
             setCurrentStreamingId(null);
             setStreamingText("");
-        })
+        });
+
+        socket.on("instructions-complete", (round) => { // might not need this on admin side
+            setCurrRound(round); // probably don't need this at all
+        });
 
         return () => {
             socket.off("receive-message");
@@ -57,6 +100,7 @@ export default function AdminInteraction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
+            socket.off("instructions-complete");
         };
     }, []);
 
