@@ -4,14 +4,15 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getUser } from '../../services/usersService';
 import { sendSurvey  } from "../../services/surveyService";
-import game1 from "./surveys/game1.json";
-// import game2 from "./surveys/game2.json";
-// import game3 from "./surveys/game3.json";
+import { getRoom } from "../../services/roomsService"
+import game1 from "../games/game1.json"
+import game2 from "../games/game2.json"
+import game3 from "../games/game3.json"
 
 const surveyMap = {
-    1: game1
-    // 2: game2, 
-    // 3: game3
+    1: game1,
+    2: game2, 
+    3: game3
 }
 
 export function Survey() {
@@ -20,7 +21,7 @@ export function Survey() {
     const { userId, roomCode } = location.state || {}; //the userId is passed from the previous 
     // page although i need to double check and make sure this is still working
     const [answer, setAnswer] = useState([]);
-    const [answers, setAnswers] = useState({}); // ✅ now exists
+    const [answers, setAnswers] = useState({}); 
 
     const [ error, setError] = useState("");
     const [survey, setSurvey] = useState(null);
@@ -30,11 +31,11 @@ export function Survey() {
 
     //getGameNumber from the room information
     async function loadSurvey(){
-        // const roomInfo = await getRoom(roomCode);
-        // const gameNumber = roomInfo.gamesSelected; //this should change when we change the database storing the 1 game that was selected.
-        // const selectedSurvey = surveyMap[gameNumber];
-        // setSurvey(selectedSurvey);
-        setSurvey(game1);
+        const roomInfo = await getRoom(roomCode);
+        const gameNumber = roomInfo.gameType; //this should change when we change the database storing the 1 game that was selected.
+        const selectedSurvey = surveyMap[gameNumber];
+        setSurvey(selectedSurvey);
+        // setSurvey(game1);
     }
 
     

@@ -15,7 +15,7 @@ export default function WaitingRoom() {
     return <p>Loading...</p>
   }
   const { userId } = user;
-  const roomCode = String(user.roomCode);
+  const roomCode = parseInt(user.roomCode);
   const [users, setUsers] = useState([]);
   const isAdmin = false;
 
@@ -30,6 +30,7 @@ export default function WaitingRoom() {
     const onStart = () => {
       navigate("/interaction", { state: { user }});
     }
+
     socket.on("start-chat", onStart);
 
     const handleUnload = () => {

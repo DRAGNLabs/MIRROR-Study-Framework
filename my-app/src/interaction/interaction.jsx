@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
 
+
 export function Interaction(){
     const location = useLocation();
     const navigate = useNavigate();
@@ -11,6 +12,9 @@ export function Interaction(){
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
+    const [canSend, setCanSend] = useState(false);
+    const [hasSentThisRound, setHasSentThisRound] = useState(false);
+
     if(!location.state) {
         console.log("User not passed through state to interactions")
         navigate("/", { replace: true });
@@ -24,20 +28,20 @@ export function Interaction(){
     }
 
     const { userId } = user;
-    const roomCode = String(user.roomCode); // to make sure sockets are connecting between user and admin
-    const [error, setError] = useState("");
+    const roomCode = parseInt(user.roomCode); // to make sure sockets are connecting between user and admin
     const chatBoxRef = useRef(null);
+
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
-            setMessages((prev) => [...prev, message]);
+            setMessages((prev) => [...prev, message]); 
         });
 
         socket.on("force-return-to-waiting-room", () => {
             navigate("/waiting", { state: { user } });
         });
 
-        socket.on("startUserSurvey", () => {
+        socket.on("start-user-survey", () => {
             navigate("/survey", { state: { userId, roomCode: user.roomCode }});
         });
 
@@ -56,14 +60,24 @@ export function Interaction(){
         });
 
         socket.on("ai-end", () => {
-            console.log("AI finished typing");
             setCurrentStreamingId(null);
             setStreamingText("");
         });
 
-        // socket.on("force-to-login", () => {
-        //     navigate("/");
-        // });
+        socket.on("instructions-complete", (round) => {
+            setCanSend(true);
+            setHasSentThisRound(false);
+        });
+
+        socket.on("round-complete", (round) => {
+            setCanSend(false);
+            setHasSentThisRound(true);
+        });
+
+        socket.on("game-complete", ()=> {
+            setCanSend(false);
+            setHasSentThisRound(true);
+        });
 
         return () => {
             socket.off("receive-message");
@@ -72,7 +86,9 @@ export function Interaction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
-            // socket.off("force-to-login");
+            socket.off("instructions-complete");
+            socket.off("round-complete");
+            socket.off("game-complete");
         };
     }, []);
 
@@ -95,18 +111,24 @@ export function Interaction(){
 
     const handleSubmit = async(e) => {
         e.preventDefault();
+        if (!canSend || hasSentThisRound) {
+            alert("You can't send a message yet");
+            return;
+        }
 
         if (!prompt.trim()) return;
+;
+        const userName = user.userName;
+        socket.emit("submit-round-message", {
+            roomCode,
+            userId,
+            userName,
+            text: prompt
+        });
 
-        const userMsg = { sender: "user", text: prompt, userName: user.userName };
-        setMessages((prev) => [...prev, userMsg]);
-        socket.emit("send-message", { roomCode, message: userMsg });
-        socket.emit("generate-ai",  { roomCode, prompt }); // comment this out and uncomment code below to stop calling openAI (for testing)
-
-        // const llmMsg = { sender: "llm", text: "okay" };
-        // setMessages((prev) => [...prev, llmMsg])
-        // socket.emit("send-message", { roomCode: roomCode, message: llmMsg})
         setPrompt("");
+        setHasSentThisRound(true);
+        setCanSend(false);
     };
 
 
@@ -147,7 +169,7 @@ export function Interaction(){
                 e.target.style.height = e.target.scrollHeight + "px"; // set to content height
             }}
             />
-        <button type="submit">Send</button>
+        <button type="submit" disabled={!canSend || hasSentThisRound}>Send</button>
         </form>
         </div>
         {/* <div className="next-bottom-left">

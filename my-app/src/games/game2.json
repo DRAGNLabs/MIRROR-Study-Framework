@@ -1,0 +1,59 @@
+{
+    "title": "Game 1",
+    "rounds": 1, 
+    "roles": [
+        {
+            "role": "farmer", 
+            "backstory": "your daughter is dying of the plague and you make $2 an hour",
+            "drawbacks": "you just lost your job"
+        }, 
+        {
+            "role": "shepherd", 
+            "backstory": "people keep scattering your flock", 
+            "drawbacks": "you're allergic to sheep"
+        }, 
+        {
+            "role": "rich doctor", 
+            "backstory": "you're being sued for killing a patient", 
+            "drawbacks": "you now cant support your family"
+        }
+    ],
+    "prompts": [
+        {
+            "system_prompt": "",
+            "instruction_prompt": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 100000 gallons of water, you can't get more resources. Write a prompt of instructions for the people requesting resources.", 
+            "response_prompt": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 100000 gallons of water, you can't get more resources. There are 3 people requesting resources, their requests are below:\n "
+        }
+    ], 
+    "questions": [
+        { 
+            "id": "resources",
+            "label": "How many gallons of water did you get?",
+            "type": "text"
+        },
+        {
+            "id": "tacos",
+            "label": "do you enjoy eating tacos?", 
+            "type": "select",
+            "options": ["yes", "no"]
+        }, 
+        {
+            "id": "fairness",
+            "label": "do you think the LLM was fair",
+            "type": "text"
+        }, 
+        {
+            "id": "what do you rate pepsi on a scale of 1-10",
+            "label": "rate pepsi on a scale of 1-10",
+            "type": "scale",
+            "min": 1, 
+            "max": 10, 
+            "step": 1,
+            "leftLable": "awful", 
+            "rightLabel": "magestic", 
+            "style": "slider"
+        }
+        
+    ]
+    
+}

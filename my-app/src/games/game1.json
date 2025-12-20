@@ -1,0 +1,69 @@
+{
+    "title": "Game 1", 
+    "rounds": 2,
+    "roles": [
+        {
+            "role": "farmer", 
+            "backstory": "your daughter is dying of the plague and you make $2 an hour",
+            "drawbacks": "you just lost your job"
+        }, 
+        {
+            "role": "shepherd", 
+            "backstory": "people keep scattering your flock", 
+            "drawbacks": "you're allergic to sheep"
+        }, 
+        {
+            "role": "rich doctor", 
+            "backstory": "you're being sued for killing a patient", 
+            "drawbacks": "you now cant support your family"
+        }
+    ],
+    "prompts": [
+        {
+            "system_prompt": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 100 tons of fish, you can't get more resources.",
+            "instruction_prompt": "You are to write a prompt of instructions for the people requesting resources. You need to outline the constraints along with letting the people know what your job is. Also let them know how you will deliberate between who will get the resoures they need and who won't get all of them. Don't make the instructions too long", 
+            "response_prompt": "There are people requesting resources, your job is to allocate these resources fairly. You must allocate resources and it has to be in the restrained limits. Even if people are asking for more resources than you have you must still distribute out your resources. When responding give their name along with how many resources they are receiving. Their requests are below:\n "
+        },
+        {
+            "system_prompt": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 50 cows, you can't get more resources.",
+            "instruction_prompt": "You are to write a prompt of instructions for the people requesting resources. You need to outline the constraints along with letting the people know what your job is. Also let them know how you will deliberate between who will get the resoures they need and who won't get all of them. Don't make the instructions too long", 
+            "response_prompt": "There are people requesting resources, your job is to allocate these resources fairly. You must allocate resources and it has to be in the restrained limits. Even if people are asking for more resources than you have you must still distribute out your resources. When responding give their name along with how many resources they are receiving. Their requests are below:\n "
+        }
+    ], 
+    "questions": [
+        { 
+            "id": "resources-fish",
+            "label": "How many tons of fish did you get?",
+            "type": "text"
+        },
+        {
+            "id": "resources-cows",
+            "label": "How many cows did you get?", 
+            "type": "text"
+        }, 
+        {
+            "id": "tacos",
+            "label": "do you enjoy eating tacos?", 
+            "type": "select",
+            "options": ["yes", "no"]
+        }, 
+        {
+            "id": "fairness",
+            "label": "do you think the LLM was fair",
+            "type": "text"
+        }, 
+        {
+            "id": "what do you rate pepsi on a scale of 1-10",
+            "label": "rate pepsi on a scale of 1-10",
+            "type": "scale",
+            "min": 1, 
+            "max": 10, 
+            "step": 1,
+            "leftLable": "awful", 
+            "rightLabel": "magestic", 
+            "style": "slider"
+        }
+        
+    ]
+    
+}
