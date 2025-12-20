@@ -3,16 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
-import { getRoom, updateLlmInstructions, updateLlmResponse, updateUserMessages } from "../../services/roomsService"
-import game1 from "../games/game1.json";
-import game2 from "../games/game2.json";
-import game3 from "../games/game3.json";
 
-const gameMap = {
-    1: game1,
-    2: game2, 
-    3: game3
-}
 
 export function Interaction(){
     const location = useLocation();
@@ -21,8 +12,6 @@ export function Interaction(){
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
-    const [gameInfo, setGame] = useState(null);
-    const [currRound, setCurrRound] = useState(1);
     const [canSend, setCanSend] = useState(false);
     const [hasSentThisRound, setHasSentThisRound] = useState(false);
 
@@ -40,42 +29,19 @@ export function Interaction(){
 
     const { userId } = user;
     const roomCode = parseInt(user.roomCode); // to make sure sockets are connecting between user and admin
-    const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
-
-
-    async function loadGame(){
-        const roomInfo = await getRoom(parseInt(roomCode));
-        const gameNumber = roomInfo.gameType; //this should change when we change the database storing the 1 game that was selected.
-        const numRounds = roomInfo.numRounds;
-        const selectedGame = gameMap[gameNumber];
-        setGame(selectedGame);
-        // setSurvey(game1);
-
-        // socket.emit("generate-ai", {
-        //     roomCode,
-        //     prompt: selectedGame.instruction_system
-        // });
-    }
-
-    useEffect(() => {
-        if (roomCode){
-            loadGame();
-        }
-    }, []);
 
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
-            setMessages((prev) => [...prev, message]);
-            console.log(messages);
+            setMessages((prev) => [...prev, message]); 
         });
 
         socket.on("force-return-to-waiting-room", () => {
             navigate("/waiting", { state: { user } });
         });
 
-        socket.on("startUserSurvey", () => {
+        socket.on("start-user-survey", () => {
             navigate("/survey", { state: { userId, roomCode: user.roomCode }});
         });
 
@@ -94,27 +60,16 @@ export function Interaction(){
         });
 
         socket.on("ai-end", () => {
-            console.log("AI finished typing");
             setCurrentStreamingId(null);
-            // const llmMessage = { sender: "llm", text: streamingText }
-            // setMessages((prev) => [...prev, llmMessage]);
-            setMessages
             setStreamingText("");
         });
 
         socket.on("instructions-complete", (round) => {
-            // setCurrRound(round); // maybe update this when round is over? instead of right here
             setCanSend(true);
             setHasSentThisRound(false);
-            // await updateLlmInstructions(roomCode, ); update them in this format  * llmInstructions: {round#1: "llmInstructions1", round#2: "llmInstructions2",...}, buffer = llmInstructions
-            // make it so user can type and send message 
         });
 
-        // socket.on("force-to-login", () => {
-        //     navigate("/");
-        // });
         socket.on("round-complete", (round) => {
-            setCurrRound(round+1);
             setCanSend(false);
             setHasSentThisRound(true);
         });
@@ -134,7 +89,6 @@ export function Interaction(){
             socket.off("instructions-complete");
             socket.off("round-complete");
             socket.off("game-complete");
-            // socket.off("force-to-login");
         };
     }, []);
 
@@ -163,10 +117,7 @@ export function Interaction(){
         }
 
         if (!prompt.trim()) return;
-
-        // const userMsg = { sender: "user", userId: user.userId, userName: user.userName, text: prompt };
-        // setMessages((prev) => [...prev, userMsg]);
-        // socket.emit("send-message", { roomCode, message: userMsg });
+;
         const userName = user.userName;
         socket.emit("submit-round-message", {
             roomCode,
@@ -175,11 +126,6 @@ export function Interaction(){
             text: prompt
         });
 
-        // socket.emit("generate-ai",  { roomCode, prompt }); // comment this out and uncomment code below to stop calling openAI (for testing)
-
-        // const llmMsg = { sender: "llm", text: "okay" };
-        // setMessages((prev) => [...prev, llmMsg])
-        // socket.emit("send-message", { roomCode: roomCode, message: llmMsg})
         setPrompt("");
         setHasSentThisRound(true);
         setCanSend(false);

@@ -1,22 +1,10 @@
-const API_BASE = "http://localhost:3001/api";
-
-export async function appendLlmInstructions(roomCode, round, text) {
-    console.log("Round in appendLlmInstructions: ", round);
-    const room = await getRoom(roomCode);
-    
-    const instructions = room.llmInstructions
-     ? JSON.parse(room.llmInstructions) : {};
-    
-     if (instructions[round]) {
-        // console.log(`instructions at round ${round}`, instructions[round]);
-        throw new Error(`Instructions in round ${round} already exists`);
-     }
-
-     instructions[round] = text;
-
-     await updateLlmInstructions(instructions, roomCode);
-}
-
+const API_BASE = "http://localhost:3001/api"; // once again going to have to change this
+/*
+ This file is here because I didn't want to import from the frontend into the backend, 
+ I'm updating most of the room stuff in the index.js instead of in the frontend (more secure), 
+ originally I was going to do it from admin but if they rerender than the userMessages will be reset
+ And llmInstructions and llmResponses are generated in index.js so it makes sense to update the backend there
+*/
 
 export async function getRoom(roomCode) {
   const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
@@ -35,14 +23,19 @@ export async function updateLlmInstructions(llmInstructions, roomCode) {
     return response.json();
 }
 
-export async function updateLlmResponse(llmResponse, roomCode) {
-    const response = await fetch(`${API_BASE}/rooms/${roomCode}/llmResponse`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ llmResponse })
-    })
-    if (!response.ok) throw new Error(`Error updating llmResponse in room ${roomCode}`);
-    return response.json();
+export async function appendLlmInstructions(roomCode, round, text) {
+    const room = await getRoom(roomCode);
+    
+    const instructions = room.llmInstructions
+     ? JSON.parse(room.llmInstructions) : {};
+    
+     if (instructions[round]) {
+        throw new Error(`Instructions in round ${round} already exists`);
+     }
+
+     instructions[round] = text;
+
+     await updateLlmInstructions(instructions, roomCode);
 }
 
 export async function updateUserMessages(userMessages, roomCode) {
@@ -52,6 +45,16 @@ export async function updateUserMessages(userMessages, roomCode) {
         body: JSON.stringify({ userMessages })
     })
     if (!response.ok) throw new Error(`Error updating userMessages in room ${roomCode}`);
+    return response.json();
+}
+
+export async function updateLlmResponse(llmResponse, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/llmResponse`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ llmResponse })
+    })
+    if (!response.ok) throw new Error(`Error updating llmResponse in room ${roomCode}`);
     return response.json();
 }
 
