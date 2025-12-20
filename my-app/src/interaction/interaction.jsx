@@ -68,6 +68,7 @@ export function Interaction(){
     useEffect(() => {
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
+            console.log(messages);
         });
 
         socket.on("force-return-to-waiting-room", () => {
@@ -95,11 +96,14 @@ export function Interaction(){
         socket.on("ai-end", () => {
             console.log("AI finished typing");
             setCurrentStreamingId(null);
+            // const llmMessage = { sender: "llm", text: streamingText }
+            // setMessages((prev) => [...prev, llmMessage]);
+            setMessages
             setStreamingText("");
         });
 
         socket.on("instructions-complete", (round) => {
-            setCurrRound(round); // maybe update this when round is over? instead of right here
+            // setCurrRound(round); // maybe update this when round is over? instead of right here
             setCanSend(true);
             setHasSentThisRound(false);
             // await updateLlmInstructions(roomCode, ); update them in this format  * llmInstructions: {round#1: "llmInstructions1", round#2: "llmInstructions2",...}, buffer = llmInstructions
@@ -109,6 +113,11 @@ export function Interaction(){
         // socket.on("force-to-login", () => {
         //     navigate("/");
         // });
+        socket.on("round-complete", (round) => {
+            setCurrRound(round+1);
+            setCanSend(false);
+            setHasSentThisRound(true);
+        });
 
         return () => {
             socket.off("receive-message");
@@ -118,6 +127,7 @@ export function Interaction(){
             socket.off("ai-start");
             socket.off("ai-end");
             socket.off("instructions-complete");
+            socket.off("round-complete");
             // socket.off("force-to-login");
         };
     }, []);
@@ -148,10 +158,18 @@ export function Interaction(){
 
         if (!prompt.trim()) return;
 
-        const userMsg = { sender: "user", text: prompt, userName: user.userName };
-        setMessages((prev) => [...prev, userMsg]);
-        socket.emit("send-message", { roomCode, message: userMsg });
-        socket.emit("generate-ai",  { roomCode, prompt }); // comment this out and uncomment code below to stop calling openAI (for testing)
+        // const userMsg = { sender: "user", userId: user.userId, userName: user.userName, text: prompt };
+        // setMessages((prev) => [...prev, userMsg]);
+        // socket.emit("send-message", { roomCode, message: userMsg });
+        const userName = user.userName;
+        socket.emit("submit-round-message", {
+            roomCode,
+            userId,
+            userName,
+            text: prompt
+        });
+
+        // socket.emit("generate-ai",  { roomCode, prompt }); // comment this out and uncomment code below to stop calling openAI (for testing)
 
         // const llmMsg = { sender: "llm", text: "okay" };
         // setMessages((prev) => [...prev, llmMsg])

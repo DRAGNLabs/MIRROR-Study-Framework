@@ -32,26 +32,11 @@ export default function AdminInteraction(){
         retrieveRoom();
     }, [roomCode]);
 
-    useEffect(() => {
-        // loadGame();
-
-        // socket.emit("join-room", { roomCode, isAdmin});
-
-        // socket.on("room-users", (userList) => { // why do we need this?
-        //     setUsers(userList);
-        // });
-        socket.on("room-users", setUsers); // testing this out
-
-        return () => {
-            socket.off("room-users");
-        };
-  
-    }, []);
 
     async function retrieveRoom() { 
         try {
             const response = await getRoom(roomCode);
-            console.log(response);
+            // console.log(response);
             setRoom(response);
         } catch (error){
             console.error("Error:", error);
@@ -63,6 +48,7 @@ export default function AdminInteraction(){
     useEffect(() => {
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
+            console.log(messages);
         });
 
         socket.on("force-return-to-waiting-room", () => {
@@ -85,12 +71,25 @@ export default function AdminInteraction(){
 
         socket.on("ai-end", () => {
             console.log("AI finished typing");
+            // const llmMessage = { sender: "llm", id: "", text: streamingText }
+            // setMessages((prev) => [...prev, llmMessage]);
             setCurrentStreamingId(null);
             setStreamingText("");
         });
 
-        socket.on("instructions-complete", (round) => { // might not need this on admin side
-            setCurrRound(round); // probably don't need this at all
+        // socket.on("instructions-complete", (round) => { // might not need this on admin side
+        //     setCurrRound(round); // probably don't need this at all
+        // });
+
+        socket.on("room-users", setUsers);
+
+        socket.on("round-complete", (nextRound) => {
+            console.log("Next round from server:", nextRound);
+            socket.emit('start-round', {
+                roomCode,
+                round: nextRound
+                // prompt: gameInfo["prompts"][0]["instruction_system"]
+            });
         });
 
         return () => {
@@ -100,7 +99,9 @@ export default function AdminInteraction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
-            socket.off("instructions-complete");
+            // socket.off("instructions-complete");
+            socket.off("room-users");
+            socket.off("round-complete");
         };
     }, []);
 
