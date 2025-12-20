@@ -53,8 +53,8 @@ async function getLlmResponse(roomCode) {
 
     const game = gameMap[room.gameType];
     const totalRounds = game.rounds; // totalRounds needs to equal the length of prompts in game file
-    const responsePrompt = game.prompts[round-1].response_system; 
-    const instructionsPrompt = game.prompts[round-1].instruction_system;
+    const responsePrompt = game.prompts[round-1].response_prompt; 
+    const instructionsPrompt = game.prompts[round-1].instruction_prompt;
     const systemPrompt = game.prompts[round-1].system_prompt;
 
     // right now when a new round starts the LLM isn't given the messages of the previous round(s), I'm not sure if we want it this way or want the LLM to have context of previous rounds this depends on how we set up the game
@@ -153,7 +153,7 @@ io.on("connection", (socket) => {
         }
     
         const game = gameMap[room.gameType];
-        const userPrompt = game.prompts[round-1].instruction_system;
+        const userPrompt = game.prompts[round-1].instruction_prompt;
         const systemPrompt = game.prompts[round-1].system_prompt;
 
         const messages = [
