@@ -119,8 +119,9 @@ export function Admin() {
                     {rooms.map(room => (
                         <div className="room-display" key={room.roomCode}>
                             <p>Room Code: {room.roomCode}</p>
-                            <p>Users per room: {room.count}</p>
-                            <p>Selected Game: {room.gamesSelected}</p>
+                            <p>Users needed per room: {room.usersNeeded}</p>
+                            <p>Selected Game: {room.gameType}</p>
+                            <p>Started: {room.started}</p>
                             {/* <p>Users in room: {JSON.parse(room.users).length}</p> */}
                             <button onClick={() => startRoom(room.roomCode)}>Start Room</button>
                             <button onClick={() => closeRoom(room.roomCode)}>Close Room</button>

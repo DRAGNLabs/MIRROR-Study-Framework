@@ -14,7 +14,7 @@ import { Server } from 'socket.io'
 import game1 from "../my-app/src/games/game1.json" with { type: "json" };
 import game2 from "../my-app/src/games/game2.json" with { type: "json" };
 import game3 from "../my-app/src/games/game3.json" with { type: "json" };
-import { getRoom, updateLlmInstructions, appendLlmInstructions, updateLlmResponse, updateUserMessages } from "../backend/services/roomsService.js"
+import { getRoom, updateLlmInstructions, appendLlmInstructions, updateLlmResponse, updateUserMessages, roomCompleted } from "../backend/services/roomsService.js"
 
 const gameMap = {
     1: game1,
@@ -112,6 +112,7 @@ async function resolveRound(roomCode) {
 
     if (round >= totalRounds) {
         io.to(roomCode).emit("game-complete");
+        await roomCompleted(roomCode);
         const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
         io.to(roomCode).emit("receive-message", endGameMsg);
         return;

@@ -54,3 +54,12 @@ export async function updateUserMessages(userMessages, roomCode) {
     if (!response.ok) throw new Error(`Error updating userMessages in room ${roomCode}`);
     return response.json();
 }
+
+export async function roomCompleted(roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/completed`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    if (!response.ok) throw new Error(`Error updating start and userIds in room ${roomCode}`);
+    return response.json();
+}

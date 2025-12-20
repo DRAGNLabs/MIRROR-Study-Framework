@@ -92,6 +92,10 @@ export default function AdminInteraction(){
             });
         });
 
+        // socket.on("game-complete", (roomCode) => {
+        //     await roomCompleted(roomCode);
+        // });
+
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
@@ -102,6 +106,7 @@ export default function AdminInteraction(){
             // socket.off("instructions-complete");
             socket.off("room-users");
             socket.off("round-complete");
+            // socket.off("game-complete");
         };
     }, []);
 

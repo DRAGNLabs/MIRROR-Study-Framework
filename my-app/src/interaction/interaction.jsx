@@ -119,6 +119,11 @@ export function Interaction(){
             setHasSentThisRound(true);
         });
 
+        socket.on("game-complete", ()=> {
+            setCanSend(false);
+            setHasSentThisRound(true);
+        });
+
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
@@ -128,6 +133,7 @@ export function Interaction(){
             socket.off("ai-end");
             socket.off("instructions-complete");
             socket.off("round-complete");
+            socket.off("game-complete");
             // socket.off("force-to-login");
         };
     }, []);
