@@ -3,27 +3,47 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
+import { getRoom } from '../../services/roomsService.js'
 
 export default function AdminInteraction(){
     const location = useLocation();
     const navigate = useNavigate();
-    const [prompt, setPrompt] = useState("");
+    const [users, setUsers] =useState([]);
     const [messages, setMessages] = useState([]); 
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
-    const { room } = location.state
-    if (!room) {
-        console.log("Room not passed through state to adminInteraction room")
-        navigate("/admin", { replace: true });
-        return null;
-    }
-    const roomCode = String(room.roomCode); // to make sure sockets are connecting between user and admin
+    const [room, setRoom] = useState();
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
+    const { roomCode } = location.state;
+
+    useEffect(() => {
+        if (!roomCode) {
+            navigate("/admin", { replace: true});
+            return;
+        }
+    }, [roomCode, navigate]);
+
+    useEffect(() => {
+        retrieveRoom();
+    }, [roomCode]);
+
+
+    async function retrieveRoom() { 
+        try {
+            const response = await getRoom(roomCode);
+            setRoom(response);
+        } catch (error){
+            console.error("Error:", error);
+            setError(error.message || "Something went wrong.");
+        }
+    }
+
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
+            console.log(messages);
         });
 
         socket.on("force-return-to-waiting-room", () => {
@@ -45,10 +65,19 @@ export default function AdminInteraction(){
         });
 
         socket.on("ai-end", () => {
-            console.log("AI finished typing");
             setCurrentStreamingId(null);
             setStreamingText("");
-        })
+        });
+
+        socket.on("room-users", setUsers);
+
+        socket.on("round-complete", (nextRound) => {
+            console.log("Next round from server:", nextRound);
+            socket.emit('start-round', {
+                roomCode,
+                round: nextRound
+            });
+        });
 
         return () => {
             socket.off("receive-message");
@@ -57,6 +86,8 @@ export default function AdminInteraction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
+            socket.off("room-users");
+            socket.off("round-complete");
         };
     }, []);
 
@@ -77,7 +108,7 @@ export default function AdminInteraction(){
     }, [messages]);
 
     function toSurvey() {
-        socket.emit("startSurvey", { roomCode });
+        socket.emit("start-survey", { roomCode });
     }
 
 

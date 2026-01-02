@@ -34,19 +34,36 @@ router.post('/', (req, res) => {
 });
 
 // updates userIds and started to true, this will be used when admin directs users to interactions page
-router.patch("/:roomCode/started", (req, res) => {
+router.patch("/:roomCode/userIds", (req, res) => {
     const { userIds } = req.body;
     const { roomCode } = req.params;
     if (!userIds) {
         return res.status(400).json({ error: "userIds is required"})
     }
-    db.run("UPDATE rooms SET userIds = ?, started = 1 WHERE roomCode = ?", [JSON.stringify(userIds), roomCode], function (err) {
+    db.run("UPDATE rooms SET userIds = ? WHERE roomCode = ?", [JSON.stringify(userIds), roomCode], function (err) {
         if (err) return res.status(500).json({ error: err.message });
 
         res.status(200).json({
           roomCode,
           userIds,
-          message: "Room userIds and started successfully updated!"
+          message: "Room userIds successfully updated!"
+        });
+    })
+});
+
+// updates started when admin clicks start room
+router.patch("/:roomCode/started", (req, res) => {
+    // const { userIds } = req.body;
+    const { roomCode } = req.params;
+    // if (!userIds) {
+    //     return res.status(400).json({ error: "userIds is required"})
+    // }
+    db.run("UPDATE rooms SET started = 1 WHERE roomCode = ?", [roomCode], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+
+        res.status(200).json({
+          roomCode,
+          message: "Started successfully updated to 1!"
         });
     })
 });
@@ -155,6 +172,20 @@ router.post("/valid", (req, res) => { //return false if found in database becaus
 
   });
 
+})
+
+router.get("/:roomCode/login", (req, res) => {
+  const roomCode = req.params.roomCode;
+  db.get("SELECT * FROM rooms WHERE roomCode = ?", [parseInt(roomCode)], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: "Error validating room in database" });
+    }
+    if (row && row.started==1) {
+      return res.json(true);
+    }
+
+    return res.json(false);
+  })
 })
 
 

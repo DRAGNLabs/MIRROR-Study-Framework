@@ -1,39 +1,33 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket"; 
-import { getRoom } from "../../services/roomsService";
-
+import { updateUserIds, getRoom } from "../../services/roomsService";
 
 export default function RoomManagement() {
     const location = useLocation();
-    const { room } = location.state;
-    if (!room) {
-        console.log("Room not passed through state to roomManagement room")
-        navigate("/admin", { replace: true });
-        return null;
-    }
-    const roomCode = String(room.roomCode);
     const [users, setUsers] = useState([]);
+    const [room, setRoom] = useState("");
+    const [error, setError] = useState("");
     const navigate = useNavigate();
     const isAdmin = true;
-
-    // FOR LATER: might consider having this function instead of just sending room through state if room is changing a lot but it is not needed now
-    // async function retrieveRoom() { 
-    //     try {
-    //         const response = await getRoom(roomCode);
-    //     } catch (error){
-    //         console.error("Error:", error);
-    //         setError(error.message || "Something went wrong.");
-    //     }
-
-    // }
+    const { roomCode } = location.state;
 
     useEffect(() => {
+        if (!roomCode) {
+            navigate("/admin", { replace: true});
+            return;
+        }
+    }, [roomCode, navigate]);
+
+    useEffect(() => {
+        retrieveRoom();
+    }, [roomCode]);
+
+    useEffect(() => {
+
         socket.emit("join-room", { roomCode, isAdmin});
 
-        socket.on("room-users", (userList) => {
-            setUsers(userList);
-        });
+        socket.on("room-users", setUsers); 
 
         return () => {
             socket.off("room-users");
@@ -41,10 +35,30 @@ export default function RoomManagement() {
   
     }, []);
 
-    function start() {
+
+    async function retrieveRoom() { 
+        try {
+            const response = await getRoom(roomCode);
+            setRoom(response);
+        } catch (error){
+            console.error("Error:", error);
+            setError(error.message || "Something went wrong.");
+        }
+    }
+
+    async function start() {
         console.log("In start function!");
-        socket.emit("startGame", { roomCode });
-        navigate("/admin/adminInteraction", { state: { room } });
+        socket.emit("start-game", { roomCode });
+        let userIds = [];
+        for (let i = 0; i < users.length; i++) {
+            userIds.push(users[i].userId);
+        }
+        await updateUserIds(userIds, roomCode);
+        socket.emit('start-round', {
+            roomCode,
+            round: 1
+        });
+        navigate("/admin/adminInteraction", { state: { roomCode } });
     }
 
 

@@ -19,12 +19,6 @@ router.post("/login", async (req, res) => {
   } catch (err){
     return res.status(500).json({ error: "Server error", details: err.message });
   }
-    // if (req.body.password === "Drag0ns"){
-    //     return res.json({ ok: true, message: "Admin authenticated" });
-    // }
-    // else {
-    //     return res.status(401).json({ ok: false, error: "Unauthorized" });
-    // }
 });
 
 export default router;

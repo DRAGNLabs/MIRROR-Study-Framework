@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms } from "../../services/roomsService";
+import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted } from "../../services/roomsService";
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -81,8 +81,8 @@ export function Admin() {
 
     async function startRoom(roomCode) {
         try {
-            const room = await getRoom(roomCode); // naming it room for now, might be better to do currentRoom?
-            navigate("/admin/roomManagement", { state: { room }});
+            await roomStarted(roomCode);
+            navigate("/admin/roomManagement", { state: { roomCode }}); // this is probably fine to pass room for now
         } catch(error) {
             console.error("Error:", error);
             setError(error.message || "Something went wrong.");
@@ -119,8 +119,9 @@ export function Admin() {
                     {rooms.map(room => (
                         <div className="room-display" key={room.roomCode}>
                             <p>Room Code: {room.roomCode}</p>
-                            <p>Users per room: {room.count}</p>
-                            <p>Selected Game: {room.gamesSelected}</p>
+                            <p>Users needed per room: {room.usersNeeded}</p>
+                            <p>Selected Game: {room.gameType}</p>
+                            <p>Started: {room.started}</p>
                             {/* <p>Users in room: {JSON.parse(room.users).length}</p> */}
                             <button onClick={() => startRoom(room.roomCode)}>Start Room</button>
                             <button onClick={() => closeRoom(room.roomCode)}>Close Room</button>

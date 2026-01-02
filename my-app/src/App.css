@@ -243,6 +243,8 @@ nav a:hover {
 
 /* === Chat Messages Area === */
 .chat-box {
+  height: 525px;
+  max-height: 525px;
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
@@ -709,6 +711,8 @@ nav a:hover {
 }
 
 .admin-chat-box {
+  height: 625px;
+  max-height: 625px;
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
