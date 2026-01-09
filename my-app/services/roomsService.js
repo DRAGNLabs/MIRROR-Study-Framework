@@ -127,3 +127,23 @@ export async function loginRoom(roomCode){
   if(!response.ok) throw new Error("Error validating room.");
   return response.json();
 }
+
+export async function getUsersInRoom(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/users`, {
+    method: "GET",
+    headers: { 'Content-Type': 'application/json' }
+  })
+  if(!response.ok) throw new Error("Error getting users in room");
+  return response.json();
+}
+
+// export async function getUsersWithSurveyStatus(roomCode, surveyId) {
+//   console.log("services roomCode type", typeof(roomCode));
+//   console.log("services surveyId type", typeof(surveyId));
+//   const response = await fetch(`${API_BASE}/rooms/${roomCode}/survey-status/${surveyId}`, {
+//     method: 'GET',
+//     headers: { 'Content-Type': 'application/json' }
+//   })
+//   if(!response.ok) throw new Error("Error getting survey status for users");
+//   return response.json();
+// }

@@ -746,3 +746,93 @@ nav a:hover {
   color: #e5e7eb;
 }
 
+/*
+for AdminSurvey.jsx
+*/
+.survey-status-box {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.survey-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.survey-status-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: black;
+}
+
+.survey-progress {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.survey-user-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.survey-user {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  transition: background 0.2s ease;
+}
+
+.survey-user.pending {
+  background: #e7e8eb;
+}
+
+.survey-user.completed {
+  background: #e7e8eb;
+}
+
+.user-name {
+  font-weight: 500;
+  color: black;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.survey-user.pending .status-badge {
+  background: #ffe8e8;
+  color: #c0392b;
+}
+
+.survey-user.completed .status-badge {
+  background: #d4f4e2;
+  color: #1e8449;
+}
+
+.survey-progress-bar {
+  width: 80%;
+  height: 8px;
+  background: #eee;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.survey-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2ecc71, #27ae60);
+  transition: width 0.3s ease;
+}

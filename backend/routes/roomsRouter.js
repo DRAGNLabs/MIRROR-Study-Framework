@@ -212,9 +212,74 @@ router.get("/:roomCode", (req, res) => {
 
         res.status(200).json(row);
     });
-})
+});
 
 
+router.get("/:roomCode/users", async (req, res) => {
+  const { roomCode } = req.params;
+  if(!roomCode) {
+    return res.status(400).json({ message: "roomCode is required" });
+  }
+
+  const users = await db.all(
+    `SELECT * FROM users WHERE roomCode = ?`, [roomCode], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ message: "users not found with corresponding roomCode" });
+
+        res.status(200).json(row);
+    });
+});
+
+
+// router.get("/:roomCode/survey-status/:surveyId", async (req, res) => {
+//     console.log("in users survey status endpoint", req.params);
+//     const { roomCode, surveyId } = req.params;
+//     console.log("roomcode type", typeof(roomCode));
+//     console.log("surveyId type", typeof(surveyId));
+//     try {
+//       const rawUsers = await db.all(
+//           `
+//           SELECT
+//             u.userId,
+//             u.userName,
+//             u.role,
+//             CASE 
+//               WHEN EXISTS (
+//                 SELECT 1
+//                 FROM survey s
+//                 WHERE s.userId = u.userId
+//                   AND s.surveyId = ?
+//               ) 
+//               THEN 1
+//               ELSE 0
+//             END AS completedSurvey
+//           FROM users u
+//           WHERE u.roomCode = ?
+//           `,
+//           [surveyId, roomCode]
+//       );
+
+//       const users = Array.isArray(rawUsers) ? rawUsers : Object.values(rawUsers);
+//       console.log("users:", users);
+//       res.json(users);
+//   } catch (err) {
+//     console.error("Error fetching survey status:", err);
+//     res.status(500).json({ error: "Error getting survey status for users" });
+//   }
+  
+// });
+
+
+          // SELECT
+          //   u.userId,
+          //   u.userName,
+          //   u.role,
+          //   CASE WHEN s.userId IS NOT NULL THEN 1 ELSE 0 END AS completedSurvey
+          // FROM users u
+          // LEFT JOIN survey s
+          //   ON u.userId = s.userId
+          //   AND s.surveyId = ?
+          // WHERE u.roomCode = ?
 
 
 

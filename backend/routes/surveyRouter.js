@@ -79,5 +79,18 @@ router.get("/", (req, res) => {
   });
 });
 
+router.get("/:userId", (req, res) => {
+  const { userId } = req.params;
+  console.log("HERE");
+  db.get(`SELECT EXISTS (
+      SELECT 1
+      FROM survey
+      WHERE userId = ?
+    ) AS completed`, [userId], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json({completed: rows.completed });
+  });
+});
+
 
 export default router;

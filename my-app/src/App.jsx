@@ -13,6 +13,7 @@ import WaitingRoom from './interaction/waitingRoom';
 import RoomManagement from './admin/roomManagement'
 import AdminInteraction from './admin/adminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
+import AdminSurvey from './admin/adminSurvey';
 
 function Home() {
   const [name, setName] = useState("");
@@ -111,6 +112,7 @@ export default function App() {
         <Route path="/admin/roomManagement" element={<RoomManagement />} />
         <Route path="/admin/adminInteraction" element={<AdminInteraction/>} />
         <Route path='/adminLogin' element={<LoginAdmin/>} />
+        <Route path='/admin/adminSurvey' element={<AdminSurvey/>} />
         {/* add a route to llm page when its added */}
       </Routes>
     </>

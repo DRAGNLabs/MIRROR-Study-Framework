@@ -19,3 +19,13 @@ export async function getAllSurveys(){
   if (!response.ok) throw new Error("Error fetching the surveys from the database.");
   return response.json();
 }
+
+export async function getSurveyStatus(userId) {
+  const response = await fetch(`${API_BASE}/survey/${userId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if(!response.ok) throw new Error("Error getting survey status");
+  return response.json();
+}

@@ -109,6 +109,7 @@ export default function AdminInteraction(){
 
     function toSurvey() {
         socket.emit("start-survey", { roomCode });
+        navigate("/admin/adminSurvey", { state: { roomCode } });
     }
 
 

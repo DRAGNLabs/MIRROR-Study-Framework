@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getUser } from '../../services/usersService';
 import { sendSurvey  } from "../../services/surveyService";
 import { getRoom } from "../../services/roomsService"
+import { socket } from '../socket';
 import game1 from "../games/game1.json"
 import game2 from "../games/game2.json"
 import game3 from "../games/game3.json"
@@ -27,6 +28,7 @@ export function Survey() {
     const [survey, setSurvey] = useState(null);
     const navigate = useNavigate();
     const inputRef = useRef();
+    const surveyId = 1;
 
 
     //getGameNumber from the room information
@@ -59,33 +61,56 @@ export function Survey() {
     }, []);
 
     //handles click when the enter button is pressed
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter") {
-        e.preventDefault();
-        if (first && second && third) {
-            const updated = [...answer, {first, second, third }]; //maybe find a way to store that
-            // data in the db with a number associate to it to know which question?
-            setAnswer(updated);
-            handleClick(updated);
-            } else {
-                alert("Please fill in both answers before submitting!");
-            }
-        }
-    };
+    // const handleKeyDown = (e) => {
+    //     if (e.key === "Enter") {
+    //     e.preventDefault();
+    //     if (first && second && third) {
+    //         const updated = [...answer, {first, second, third }]; //maybe find a way to store that
+    //         // data in the db with a number associate to it to know which question?
+    //         setAnswer(updated);
+    //         handleClick(updated);
+    //         } else {
+    //             alert("Please fill in both answers before submitting!");
+    //         }
+    //     }
+    // };
 
-    async function handleClick(updated){
+    async function handleClick(){
         // console.log(user);
+        // async () => {
+        //             const missing = survey.questions.filter(q => answers[q.id] == null || answers[q.id] === "");
+                    
+        //             if (missing.length > 0) {
+        //                 alert("Please fill out all survey questions before submitting!");
+        //                 console.log("Missing questions:", missing.map(q => q.id));
+        //                 return;
+        //             }
 
-        if (!updated) return;
+        //             try {
+        //                 await sendSurvey(1, userId, answers);
+        //                 socket.emit("survey-complete", { roomCode, userId, surveyId });
+        //                 navigate("/exit");
+        //             } catch (err) {
+        //                 console.error("Survey submit failed:", err);
+        //                 setError("Failed to send survey.");
+        //             }
+        //             }}
+        if (!survey) return;
 
+        const missing = survey.questions.filter(
+            q => answers[q.id] == null || answers[q.id] === ""
+        );
+
+        if (missing.length > 0) {
+            alert("Please fill out all survey questions before submitting!");
+            console.log("Missing questions:", missing.map(q => q.id));
+            return;
+        }
 
         try {
-            console.log(userId);
-            console.log(updated);
-            const response = await sendSurvey(1, userId, updated); // dummy surveyId, also will have to change structure of updated
+            const response = await sendSurvey(1, userId, answers); // dummy surveyId, also will have to change structure of updated
+            socket.emit("survey-complete", { roomCode, userId, surveyId });
             navigate("/exit");
-
-
         } catch (err) {
             console.error("Error:", err);
             setError(err.message || "Something went wrong.");
@@ -164,24 +189,25 @@ export function Survey() {
         ))}
 
             <div className="button-group">
-                <button
-                    onClick={async () => {
-                    const missing = survey.questions.filter(q => answers[q.id] == null || answers[q.id] === "");
+                <button onClick={handleClick}
+                    //     async () => {
+                    // const missing = survey.questions.filter(q => answers[q.id] == null || answers[q.id] === "");
                     
-                    if (missing.length > 0) {
-                        alert("Please fill out all survey questions before submitting!");
-                        console.log("Missing questions:", missing.map(q => q.id));
-                        return;
-                    }
+                    // if (missing.length > 0) {
+                    //     alert("Please fill out all survey questions before submitting!");
+                    //     console.log("Missing questions:", missing.map(q => q.id));
+                    //     return;
+                    // }
 
-                    try {
-                        await sendSurvey(userId, user.userName, answers);
-                        navigate("/exit");
-                    } catch (err) {
-                        console.error("Survey submit failed:", err);
-                        setError("Failed to send survey.");
-                    }
-                    }}
+                    // try {
+                    //     await sendSurvey(1, userId, answers);
+                    //     socket.emit("survey-complete", { roomCode, userId, surveyId });
+                    //     navigate("/exit");
+                    // } catch (err) {
+                    //     console.error("Survey submit failed:", err);
+                    //     setError("Failed to send survey.");
+                    // }
+                   // }}
                 >
                     Submit
                 </button>
