@@ -19,8 +19,9 @@ const surveyMap = {
 export function Survey() {
     const [user, setUser] = useState(null);
     const location = useLocation();
-    const { userId, roomCode } = location.state || {}; //the userId is passed from the previous 
+    let { userId, roomCode } = location.state || {}; //the userId is passed from the previous 
     // page although i need to double check and make sure this is still working
+    roomCode = parseInt(roomCode);
     const [answer, setAnswer] = useState([]);
     const [answers, setAnswers] = useState({}); 
 

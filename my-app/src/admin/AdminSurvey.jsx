@@ -117,7 +117,7 @@ export default function AdminSurvey() {
         // socket.on("survey-complete", (user) => {
         //     setCompletedSurvey((prev) => [...prev, user]);
         // });
-        socket.on("survey-complete", ({ userId }) => {
+        socket.on("user-survey-complete", ({ userId, surveyId }) => {
             console.log("in socket for survey-complete");
             setUsers(prev =>
                 prev.map(u => 
@@ -128,7 +128,7 @@ export default function AdminSurvey() {
 
         return () => {
             // socket.off("room-users");
-            socket.off("survey-complete");
+            socket.off("user-survey-complete");
             // socket.off("receive-message");
         };
     }, []);
@@ -138,14 +138,14 @@ export default function AdminSurvey() {
     return (
         <div className="admin-container">
         <h1>Survey Status</h1>
-        {/* <div className="survey-progress-bar">
+        <div className="survey-progress-bar">
         <div
             className="survey-progress-fill"
             style={{
             width: `${(users.filter(u => u.completedSurvey).length / users.length) * 100}%`
             }}
         />
-        </div> */}
+        </div>
 
             <div className="survey-status-box">
             <div className="survey-status-header">
@@ -171,6 +171,7 @@ export default function AdminSurvey() {
                 ))}
             </ul>
             </div>
+
         </div>
     )
 
