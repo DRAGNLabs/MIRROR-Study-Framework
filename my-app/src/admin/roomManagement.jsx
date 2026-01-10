@@ -12,12 +12,6 @@ export default function RoomManagement() {
     const isAdmin = true;
     const { roomCode } = location.state;
 
-    useEffect(() => {
-        if (!roomCode) {
-            navigate("/admin", { replace: true});
-            return;
-        }
-    }, [roomCode, navigate]);
 
     useEffect(() => {
         retrieveRoom();
@@ -58,7 +52,7 @@ export default function RoomManagement() {
             roomCode,
             round: 1
         });
-        navigate("/admin/adminInteraction", { state: { roomCode } });
+        navigate("/admin/interaction", { state: { roomCode } });
     }
 
 

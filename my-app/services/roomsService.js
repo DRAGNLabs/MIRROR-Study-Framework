@@ -127,3 +127,13 @@ export async function loginRoom(roomCode){
   if(!response.ok) throw new Error("Error validating room.");
   return response.json();
 }
+
+// getting all user objects that are in a room
+export async function getUsersInRoom(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/users`, {
+    method: "GET",
+    headers: { 'Content-Type': 'application/json' }
+  })
+  if(!response.ok) throw new Error("Error getting users in room");
+  return response.json();
+}
