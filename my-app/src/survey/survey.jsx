@@ -72,7 +72,7 @@ export function Survey() {
         try {
             const response = await sendSurvey(1, userId, answers); // dummy surveyId, because I have no idea what surveyId is supposed to be anymore
             socket.emit("survey-complete", { roomCode, userId, surveyId });
-            navigate("/exit");
+            navigate("/exit", { state: { userId }}); // right now I'm sending something in the state so it won't redirect you straight to home once you finish the survey
         } catch (err) {
             console.error("Error:", err);
             setError(err.message || "Something went wrong.");
