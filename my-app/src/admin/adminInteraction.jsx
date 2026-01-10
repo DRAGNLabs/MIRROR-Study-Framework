@@ -17,12 +17,6 @@ export default function AdminInteraction(){
     const chatBoxRef = useRef(null);
     const { roomCode } = location.state;
 
-    useEffect(() => {
-        if (!roomCode) {
-            navigate("/admin", { replace: true});
-            return;
-        }
-    }, [roomCode, navigate]);
 
     useEffect(() => {
         retrieveRoom();
@@ -109,7 +103,7 @@ export default function AdminInteraction(){
 
     function toSurvey() {
         socket.emit("start-survey", { roomCode });
-        navigate("/admin/adminSurvey", { state: { roomCode } });
+        navigate("/admin/survey", { state: { roomCode } });
     }
 
 

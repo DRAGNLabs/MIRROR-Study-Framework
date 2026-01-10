@@ -1,6 +1,6 @@
 /* This is the home page where users will login to the room using a given roomCode*/
 
-import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import Survey from "./survey/survey";
 import { useState } from "react";
 import './App.css';
@@ -14,6 +14,14 @@ import RoomManagement from './admin/roomManagement'
 import AdminInteraction from './admin/adminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
 import AdminSurvey from './admin/adminSurvey';
+
+function RequireState({ children, fallback = "/" }) {
+    const location = useLocation();
+    if (!location.state) {
+      return <Navigate to={fallback} replace />;
+    }
+    return children;
+  }
 
 function Home() {
   const [name, setName] = useState("");
@@ -104,16 +112,17 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/survey" element={<Survey />} /> 
-        <Route path="/interaction" element={<Interaction />} /> 
-        <Route path="/exit" element={<Exit />}/>
+        <Route path="/survey" element={<RequireState> <Survey /> </RequireState>} /> 
+        <Route path="/interaction" element={<RequireState> <Interaction /> </RequireState>} /> 
+        <Route path="/exit" element={<RequireState> <Exit /> </RequireState>}/>
         <Route path="/admin" element={<Admin />}/>
-        <Route path="/waiting" element={<WaitingRoom />} />
-        <Route path="/admin/roomManagement" element={<RoomManagement />} />
-        <Route path="/admin/adminInteraction" element={<AdminInteraction/>} />
+        <Route path="/waiting" element={<RequireState> <WaitingRoom /> </RequireState>} />
+        <Route path="/admin/roomManagement" element={<RequireState fallback="/adminLogin"> <RoomManagement /></RequireState>} />
+        <Route path="/admin/interaction" element={<RequireState fallback="/adminLogin"> <AdminInteraction/> </RequireState>} />
         <Route path='/adminLogin' element={<LoginAdmin/>} />
-        <Route path='/admin/adminSurvey' element={<AdminSurvey/>} />
+        <Route path='/admin/survey' element={<RequireState fallback="/adminLogin"> <AdminSurvey/> </RequireState>} />
         {/* add a route to llm page when its added */}
+        <Route path="*" element={window.location.pathname.includes("admin") ? ( < Navigate to= "/adminLogin" /> ) : ( <Navigate to="/" />)} />
       </Routes>
     </>
     

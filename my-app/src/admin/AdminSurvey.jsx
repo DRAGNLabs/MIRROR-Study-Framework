@@ -13,13 +13,6 @@ export default function AdminSurvey() {
     const surveyId = 1; // need to change this to what it actually will be
     const [error, setError]= useState("");
 
-    useEffect(() => {
-        if (!roomCode) {
-            navigate("/admin", { replace: true});
-            return;
-        }
-    }, [roomCode, navigate]);
-
     // useEffect(() => {
     //     async function fetchUsers() {
     //         try {
