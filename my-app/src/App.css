@@ -746,9 +746,7 @@ nav a:hover {
   color: #e5e7eb;
 }
 
-/*
-for AdminSurvey.jsx
-*/
+/*for AdminSurvey.jsx*/
 .survey-status-box {
   background: #ffffff;
   border-radius: 14px;

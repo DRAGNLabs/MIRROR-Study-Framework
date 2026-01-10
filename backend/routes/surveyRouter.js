@@ -79,9 +79,9 @@ router.get("/", (req, res) => {
   });
 });
 
+// checking if a user has finished a survey, returns 0 or 1
 router.get("/:userId", (req, res) => {
   const { userId } = req.params;
-  console.log("HERE");
   db.get(`SELECT EXISTS (
       SELECT 1
       FROM survey

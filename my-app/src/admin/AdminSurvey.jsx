@@ -8,26 +8,10 @@ export default function AdminSurvey() {
     const location = useLocation();
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
-    // const [room, setRoom] = useState("");
     const { roomCode } = location.state;
-    const surveyId = 1; // need to change this to what it actually will be
     const [error, setError]= useState("");
 
-    // useEffect(() => {
-    //     async function fetchUsers() {
-    //         try {
-    //             const usersFromDB = await getUsersWithSurveyStatus(roomCode, surveyId);
-    //             console.log("usersFromDB:", usersFromDB);
-    //             console.log(Array.isArray(usersFromDB), usersFromDB);
-    //             setUsers(usersFromDB);
-    //         } catch (err) {
-    //             console.error(err);
-    //             setError(err.message || "Failed to fetch users");
-    //         }
-    //     }
-    //     fetchUsers();
-    // }, [roomCode, surveyId]);
-
+    // this basically rerenders survey status if you refresh
     useEffect(() => {
         async function fetchUsers() {
             try {
@@ -41,75 +25,18 @@ export default function AdminSurvey() {
                         };
                     })
                 );
-                // console.log(usersFromDB);
-                // console.log(Array.isArray(usersFromDB), usersFromDB);
                 console.log(usersWithStatus);
                 setUsers(usersWithStatus);
-                // console.log("users 1", users);
             } catch (err) {
                 console.error(err);
                 setError(err.message || "failed to fetch users");
             }
         }
-        // async function getUsersSurveyStatus() {
-        //     try {
-        //         console.log(users);
-        //         for (const user of users) {
-        //             const { completed } = await getSurveyStatus(user.userId);
-        //             console.log("in survey status", completed);
-        //             if(completed === 1) {
-        //                 setUsers(prev => 
-        //                     prev.map(u =>
-        //                         u.userId === user.userId ? { ...u, completedSurvey: true}: u
-        //                     )
-        //                 );
-        //             }
-        //         }
-        //     } catch (err) {
-        //         console.error(err);
-        //         setError(err.message || "failed to fetch survey status");
-        //     }
-        // }
         fetchUsers();
-        // console.log("HERE");
-        // console.log(users);
-        // getUsersSurveyStatus();
     }, [roomCode]);
 
-    // useEffect(() => {
-    //     async function getUsersSurveyStatus() {
-    //         try {
-    //             console.log(users);
-    //             for (const user of users) {
-    //                 const { completed } = await getSurveyStatus(user.userId);
-    //                 console.log("in survey status", completed);
-    //                 if(completed === 1) {
-    //                     setUsers(prev => 
-    //                         prev.map(u =>
-    //                             u.userId === user.userId ? { ...u, completedSurvey: true}: u
-    //                         )
-    //                     );
-    //                 }
-    //             }
-    //         } catch (err) {
-    //             console.error(err);
-    //             setError(err.message || "failed to fetch survey status");
-    //         }
-    //     }
-    //     getUsersSurveyStatus();
-    // }, [users.length]);
-
-
-    // useEffect(() => {
-    //     retrieveRoom();
-    // }, [roomCode]);
 
     useEffect(() => {
-        // socket.on("room-users", setUsers);
-
-        // socket.on("survey-complete", (user) => {
-        //     setCompletedSurvey((prev) => [...prev, user]);
-        // });
         socket.on("user-survey-complete", ({ userId, surveyId }) => {
             console.log("in socket for survey-complete");
             setUsers(prev =>
@@ -120,9 +47,7 @@ export default function AdminSurvey() {
         });
 
         return () => {
-            // socket.off("room-users");
             socket.off("user-survey-complete");
-            // socket.off("receive-message");
         };
     }, []);
 

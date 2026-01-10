@@ -20,6 +20,7 @@ export async function getAllSurveys(){
   return response.json();
 }
 
+// for adminSurvey page, checking if each user has finished their survey
 export async function getSurveyStatus(userId) {
   const response = await fetch(`${API_BASE}/survey/${userId}`, {
     method: 'GET',

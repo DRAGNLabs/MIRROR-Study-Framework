@@ -74,19 +74,4 @@ router.delete("/delete/:userId", (req,res) => {
   });
 });
 
-// router.get("/:roomCode", async (req, res) => {
-//   const { roomCode } = req.params;
-//   if(!roomCode) {
-//     return res.status(400).json({ message: "roomCode is required" });
-//   }
-
-//   const users = await db.all(
-//     `SELECT * FROM users WHERE roomCode = ?`, [roomCode], (err, row) => {
-//         if (err) return res.status(500).json({ error: err.message });
-//         if (!row) return res.status(404).json({ message: "users not found with corresponding roomCode" });
-
-//         res.status(200).json(row);
-//     });
-// });
-
 export default router;
