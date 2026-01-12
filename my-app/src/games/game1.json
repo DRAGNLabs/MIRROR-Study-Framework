@@ -1,6 +1,7 @@
 {
     "title": "Game 1", 
     "rounds": 2,
+    "instructions": "temp instructions",
     "roles": [
         {
             "role": "farmer", 

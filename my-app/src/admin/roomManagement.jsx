@@ -47,7 +47,6 @@ export default function RoomManagement() {
     }
 
     async function start() {
-        console.log("In start function!");
         socket.emit("start-game", { roomCode });
         let userIds = [];
         for (let i = 0; i < users.length; i++) {
