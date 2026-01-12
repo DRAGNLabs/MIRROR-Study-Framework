@@ -787,11 +787,13 @@ stuff below is for instructions page
     border-radius: 10px;
 }
 
-
-/* .instructions-card {
+/*
+testing
+*/
+.instructions-card {
     max-width: 700px;
     margin: 0 auto;
-    background: #f9fafb;
+    background: #f9fafb31;
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
@@ -809,4 +811,6 @@ stuff below is for instructions page
 .instructions-card ol,
 .instructions-card ul {
     margin-left: 1.5rem;
-} */
+}
+
+

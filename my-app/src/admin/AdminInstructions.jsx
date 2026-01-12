@@ -37,7 +37,6 @@ export default function AdminInstructions() {
         }
 
         fetchRoom();
-        console.log(game);
 
     }, [roomCode])
 
@@ -58,14 +57,51 @@ export default function AdminInstructions() {
     if(loading) {
         return <p> Loading instructions...</p>;
     }
-    return(
+    // if(!loading) {
+    //     InstructionRenderer(game.instructions);
+    // }
+    // return(
+    //     <div className="admin-container">
+    //     <h1>Instructions</h1>
+    //         {/* <p> some temporary instructions...</p> */}
+    //         <p>Game Instructions: {game.instructions}</p>
+    //         <div className="admin-next-bottom-left">
+    //             <button onClick={toInteractions}>Next</button>
+    //         </div>
+    //     </div>
+    // )
+
+    // function InstructionRenderer({ instructions }) {
+    return (
         <div className="admin-container">
-        <h1>Instructions</h1>
-            {/* <p> some temporary instructions...</p> */}
-            <p>Game Instructions: {game.instructions}</p>
-            <div className="admin-next-bottom-left">
-                <button onClick={toInteractions}>Next</button>
+                <div className="instructions-card">
+                    <p className="instructions-overview">
+                        {game.instructions.overview}
+                    </p>
+
+                    <h3>Rounds</h3>
+                    <ol>
+                        {game.instructions.rounds.map((round) => (
+                            <li key={round.round}>
+                                {round.description}
+                            </li>
+                        ))}
+                    </ol>
+
+                    <h3>Important Notes</h3>
+                    <ul>
+                        {game.instructions.notes.map((note, i) => (
+                            <li key={i}>{note}</li>
+                        ))}
+                    </ul>
+                </div>
             </div>
-        </div>
-    )
+        );
+    // }
+
+    //  if(!loading) {
+    //     InstructionRenderer(game);
+    //     console.log(game.instructions);
+    // }
+
 }
