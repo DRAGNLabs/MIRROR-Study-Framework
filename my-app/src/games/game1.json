@@ -1,7 +1,7 @@
 {
     "title": "Game 1", 
     "rounds": 2,
-    "instructions": "temp instructions",
+    "instructions": "This is a resource allocation game. In this game the LLM will be given a limited amount of resources. You will have a role that requires you to obtain a certain amount of resources to achieve your goal. Your job is to prompt the LLM to be able to achieve these resources. Their are 2 rounds within this game. The rounds for this game include: \n 1. The LLM will distribute 100 pounds of fish \n 2. The LLM will distribute 50 cows",
     "roles": [
         {
             "role": "farmer", 
@@ -21,7 +21,7 @@
     ],
     "prompts": [
         {
-            "system_prompt": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 100 tons of fish, you can't get more resources.",
+            "system_prompt": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 100 pounds of fish, you can't get more resources.",
             "instruction_prompt": "You are to write a prompt of instructions for the people requesting resources. You need to outline the constraints along with letting the people know what your job is. Also let them know how you will deliberate between who will get the resoures they need and who won't get all of them. Don't make the instructions too long", 
             "response_prompt": "There are people requesting resources, your job is to allocate these resources fairly. You must allocate resources and it has to be in the restrained limits. Even if people are asking for more resources than you have you must still distribute out your resources. When responding give their name along with how many resources they are receiving. Their requests are below:\n "
         },
