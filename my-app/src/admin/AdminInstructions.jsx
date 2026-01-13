@@ -16,10 +16,8 @@ export default function AdminInstructions() {
     const navigate = useNavigate();
     const location = useLocation();
     const { roomCode } = location.state;
-    const [room, setRoom] = useState(null);
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [instructions, setInstructions] = useState("");
     const isAdmin = true;
 
     useEffect(() => {
@@ -27,7 +25,6 @@ export default function AdminInstructions() {
         async function fetchRoom() {
             try {
                 const roomData = await getRoom(roomCode);
-                setRoom(roomData);
                 setGame(gameMap[roomData.gameType]);
             } catch (err) {
                 console.error("Failed to fetch rom:", err);

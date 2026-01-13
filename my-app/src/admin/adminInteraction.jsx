@@ -89,7 +89,6 @@ export default function AdminInteraction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
-            socket.off("room-users");
             socket.off("round-complete");
         };
     }, []);

@@ -7,7 +7,6 @@ export function AdminLogin() {
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
     const [error, setError] = useState("");
-    const [isValid, setIsValid] = useState(false);
 
 
     async function handleClick(){
