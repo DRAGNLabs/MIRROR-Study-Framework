@@ -20,10 +20,10 @@ export default function AdminInstructions() {
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
     const [instructions, setInstructions] = useState("");
-    // const room = await getRoom(roomCode);
-    // const game = gameMap[room.gameType];
+    const isAdmin = true;
 
     useEffect(() => {
+        socket.emit("join-room", { roomCode, isAdmin});
         async function fetchRoom() {
             try {
                 const roomData = await getRoom(roomCode);
@@ -42,11 +42,6 @@ export default function AdminInstructions() {
 
     async function toInteractions() {
         socket.emit("start-game", { roomCode });
-        // let userIds = [];
-        // for (let i = 0; i < users.length; i++) {
-        //     userIds.push(users[i].userId);
-        // }
-        // await updateUserIds(userIds, roomCode);
         socket.emit('start-round', {
             roomCode,
             round: 1
@@ -57,51 +52,42 @@ export default function AdminInstructions() {
     if(loading) {
         return <p> Loading instructions...</p>;
     }
-    // if(!loading) {
-    //     InstructionRenderer(game.instructions);
-    // }
-    // return(
-    //     <div className="admin-container">
-    //     <h1>Instructions</h1>
-    //         {/* <p> some temporary instructions...</p> */}
-    //         <p>Game Instructions: {game.instructions}</p>
-    //         <div className="admin-next-bottom-left">
-    //             <button onClick={toInteractions}>Next</button>
-    //         </div>
-    //     </div>
-    // )
 
-    // function InstructionRenderer({ instructions }) {
     return (
-        <div className="admin-container">
-                <div className="instructions-card">
-                    <p className="instructions-overview">
-                        {game.instructions.overview}
-                    </p>
+  <div className="admin-container">
+    <div className="instructions-card">
 
-                    <h3>Rounds</h3>
-                    <ol>
-                        {game.instructions.rounds.map((round) => (
-                            <li key={round.round}>
-                                {round.description}
-                            </li>
-                        ))}
-                    </ol>
+    {<h3 className="section-title">Instructions</h3>}
 
-                    <h3>Important Notes</h3>
-                    <ul>
-                        {game.instructions.notes.map((note, i) => (
-                            <li key={i}>{note}</li>
-                        ))}
-                    </ul>
-                </div>
+      <p className="instructions-overview">
+        {game.instructions.overview}
+      </p>
+
+      <h3 className="section-title">Rounds</h3>
+
+      <div className="rounds-container">
+        {game.instructions.rounds.map((round, index) => (
+          <div key={round.round} className="round-row">
+            <div className="round-badge">{index + 1}</div>
+            <div className="round-content">
+              {round.description}
             </div>
-        );
-    // }
+          </div>
+        ))}
+      </div>
 
-    //  if(!loading) {
-    //     InstructionRenderer(game);
-    //     console.log(game.instructions);
-    // }
+      <h3 className="section-title">Overall Goal</h3>
+
+      <p className="instructions-overview">
+        {game.instructions.goal}
+      </p>
+
+    </div>
+        <div className="admin-next-bottom-left">
+                <button onClick={toInteractions}>Next</button>
+        </div>
+  </div>
+);
+
 
 }

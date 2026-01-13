@@ -27,12 +27,6 @@ export default function WaitingRoom() {
       setUsers(userList);
     });
 
-    // const onStart = () => {
-    //   navigate("/interaction", { state: { user }});
-    // }
-
-    // socket.on("start-chat", onStart);
-
     const toInstructions = () => {
       navigate("/instructions", { state: { user }});
     }
@@ -53,7 +47,6 @@ export default function WaitingRoom() {
       window.removeEventListener("beforeunload", handleUnload);
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);
-      // socket.off("start-chat", onStart);
       // socket.off("force-to-login")
     };
   }, [roomCode]);

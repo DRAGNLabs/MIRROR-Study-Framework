@@ -2,21 +2,16 @@
     "title": "Game 1", 
     "rounds": 2,
     "instructions": {
-        "overview": "This is a resource allocation game where players must persuade the LLM to allocate resources in their favor.",
+        "overview": "This is a resource allocation game where players must persuade the LLM to allocate resources in their favor. The LLM will be given only a limited amount of resources and will attempt to allocate them fairly. Each round will consist of the LLM sending instructions and then each user can send 1 message each to plead their case for what resources they should receive. The LLM will then send another message with the results of how many resources each user gets.",
         "rounds": [
             {
-                "round": 1,
                 "description": "The LLM will distribute 100 pounds of fish."
             },
             {
-                "round": 2,
                 "description": "The LLM will distribute 50 cows."
             }
         ],
-        "notes": [
-            "There are two rounds total.",
-            "Players must achieve their role-specific goal."
-        ]
+        "goal": "You will be given a role with a backstory and specific instructions to follow. Your goal is to follow those instructions and get as many resources as you can"
     },
     "roles": [
         {

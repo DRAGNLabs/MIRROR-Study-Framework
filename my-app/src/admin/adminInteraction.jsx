@@ -16,6 +16,7 @@ export default function AdminInteraction(){
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
     const { roomCode } = location.state;
+    const isAdmin = true;
 
     useEffect(() => {
         if (!roomCode) {
@@ -41,6 +42,8 @@ export default function AdminInteraction(){
 
 
     useEffect(() => {
+        socket.emit("join-room", { roomCode, isAdmin});
+
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
             console.log(messages);

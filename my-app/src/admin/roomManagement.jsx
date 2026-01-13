@@ -47,18 +47,12 @@ export default function RoomManagement() {
     }
 
     async function start() {
-        // socket.emit("start-game", { roomCode });
         socket.emit("show-instructions", { roomCode });
         let userIds = [];
         for (let i = 0; i < users.length; i++) {
             userIds.push(users[i].userId);
         }
         await updateUserIds(userIds, roomCode); // need to update this here to set user roles
-        // socket.emit('start-round', {
-        //     roomCode,
-        //     round: 1
-        // });
-        // navigate("/admin/adminInteraction", { state: { roomCode } });
         navigate("/admin/instructions", { state: { roomCode }});
 
     }

@@ -17,8 +17,11 @@ export default function Instructions() {
     const navigate = useNavigate();
     const { user } = location.state;
     const roomCode = parseInt(user.roomCode);
+    const isAdmin = false;
 
     useEffect(() => {
+        socket.emit("join-room", { roomCode, isAdmin, user });
+
         const onStart = () => {
             navigate("/interaction", { state: { user }});
         }
@@ -27,20 +30,9 @@ export default function Instructions() {
 
         return () => {
             socket.off("start-chat", onStart);
-            // socket.off("start-chat", onStart);
-            // socket.off("force-to-login")
         };
     }, [roomCode]);
 
-
-    // return (
-    //     <div className="user-instruction-container" >
-    //         <h2>Look up at admins instruction for details of instructions, below is your role with your background and any drawbacks you have:</h2>
-    //         <h1>Role: Shepherd</h1>
-    //         <h3>Backstory: People keep scattering your flock</h3>
-    //         <h3>Drawbacks: You're allergic to sheep</h3>
-    //     </div>
-    // )
     // instructions are hardcoded for now since we don't have role functionality yet, will update that once we implement role functionality
         return (
         <div className="user-instruction-container">

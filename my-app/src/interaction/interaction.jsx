@@ -14,6 +14,7 @@ export function Interaction(){
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
     const [canSend, setCanSend] = useState(false);
     const [hasSentThisRound, setHasSentThisRound] = useState(false);
+    const isAdmin = false;
 
     if(!location.state) {
         console.log("User not passed through state to interactions")
@@ -33,6 +34,7 @@ export function Interaction(){
 
 
     useEffect(() => {
+        socket.emit("join-room", { roomCode, isAdmin, user });
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
         });
