@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
 import { getRoom } from '../../services/roomsService.js'
+import { getUser } from '../../services/usersService.js'
 
 export default function AdminInteraction(){
     const location = useLocation();
@@ -31,19 +32,87 @@ export default function AdminInteraction(){
 
     async function retrieveRoom() { 
         try {
-            const response = await getRoom(roomCode);
-            setRoom(response);
+            const room = await getRoom(roomCode);
+            // userMessages: {round#1: [[userId, userMessage], [userId2, userMessage2],...], round#2: [[userId, userMessage], [userId2, userMessage2],...],...} I changed it to lists since JSON doesn't support tuples
+            // llmInstructions: {round#1: "llmInstructions1", round#2: "llmInstructions2",...}
+            // llmResponse: {round#1: "llmResponse1", round#2: "llmResponse2",...}
+            let llmInstructions = JSON.parse(room.llmInstructions);
+            let userMessages = JSON.parse(room.userMessages);
+            let llmResponse = JSON.parse(room.llmResponse);
+            let numRounds = JSON.parse(room.numRounds);
+            console.log("num", numRounds)
+            const newMsgs = resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
+            // console.log(newMsgs);
+            setMessages(newMsgs);
+            // console.log(newMsgs);
+            // for(let i = 0; i <)
+            setRoom(room);
         } catch (error){
             console.error("Error:", error);
             setError(error.message || "Something went wrong.");
         }
     }
 
+    async function getUserName(userId) {
+        try {
+            const user = await getUser(userId);
+            return user.userName;
+        } catch (error) {
+            console.error("Error:", error);
+            setError(error.message || "something went wrong.");
+        }
+    }
+
+    function resetMessages(llmInstructions, userMessages, llmResponse, numRounds) {
+        const newMsgs = [];
+
+        const rounds = Object.keys(llmInstructions);
+        // console.log("rounds:", rounds);
+        for (const round of rounds) {
+            // console.log("round:",round);
+            // console.log("Type of round:", typeof(round));
+            if (llmInstructions[round]) {
+                // console.log("HERE :)");
+                newMsgs.push({
+                    sender: "llm",
+                    text: llmInstructions[round],
+                    id: `llm-instructions-${round}`
+                });
+            }
+            // console.log(typeof(userMessages));
+            const msgs = userMessages[round] || [];
+            for (const [userId, text] of msgs) {
+                // console.log(userId);
+                newMsgs.push({
+                    sender: "user",
+                    userId,
+                    userName: getUserName(userId),
+                    text
+                });
+            }
+            if (llmResponse[round]) {
+                newMsgs.push({
+                    sender: "llm",
+                    text: llmResponse[round],
+                    id: `llm-${round}`
+                });
+            }
+            if (round === numRounds) {
+                newMsgs.push({
+                    sender: "user",
+                    userName: "Admin",
+                    text: "All rounds are complete, game is ended."
+                });
+            }
+            
+        }
+        return newMsgs;
+    }
+
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
-            console.log(messages);
         });
 
         socket.on("force-return-to-waiting-room", () => {
@@ -72,7 +141,7 @@ export default function AdminInteraction(){
         socket.on("room-users", setUsers);
 
         socket.on("round-complete", (nextRound) => {
-            console.log("Next round from server:", nextRound);
+            // console.log("Next round from server:", nextRound);
             socket.emit('start-round', {
                 roomCode,
                 round: nextRound
