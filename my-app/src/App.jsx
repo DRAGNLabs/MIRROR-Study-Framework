@@ -122,9 +122,8 @@ export default function App() {
         <Route path="/admin/roomManagement" element={<RequireState fallback="/adminLogin"> <RoomManagement /></RequireState>} />
         <Route path="/admin/interaction" element={<RequireState fallback="/adminLogin"> <AdminInteraction/> </RequireState>} />
         <Route path='/adminLogin' element={<LoginAdmin/>} />
-        <Route path='/instructions' element={<Instructions/>} /> 
-        <Route path='/admin/instructions' element={<AdminInstructions/>} />
-        {/* Once pull previous pull request is merged we'll have to update /instructions and /admin/instructions endpoints */}
+        <Route path='/instructions' element={<RequireState> <Instructions/> </RequireState>} /> 
+        <Route path='/admin/instructions' element={<RequireState fallback="/adminLogin"><AdminInstructions/></RequireState>} />
         <Route path='/admin/survey' element={<RequireState fallback="/adminLogin"> <AdminSurvey/> </RequireState>} />
         {/* add a route to llm page when its added */}
         <Route path="*" element={window.location.pathname.includes("admin") ? ( < Navigate to= "/adminLogin" /> ) : ( <Navigate to="/" />)} />

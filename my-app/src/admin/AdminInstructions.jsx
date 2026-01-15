@@ -43,7 +43,7 @@ export default function AdminInstructions() {
             roomCode,
             round: 1
         });
-        navigate("/admin/adminInteraction", { state: { roomCode } }); // will need to update this once next merge pull request happens (I changed endpoint to /admin/interactions or something like that)
+        navigate("/admin/interaction", { state: { roomCode } }); // will need to update this once next merge pull request happens (I changed endpoint to /admin/interactions or something like that)
     }
     
     if(loading) {

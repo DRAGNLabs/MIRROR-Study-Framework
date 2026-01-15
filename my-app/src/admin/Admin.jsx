@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted } from "../../services/roomsService";
+import game1 from "../games/game1.json";
+import game2 from "../games/game2.json";
+import game3 from "../games/game3.json"
+
+const gameMap = {
+    1: game1,
+    2: game2, 
+    3: game3
+}
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -50,7 +59,6 @@ export function Admin() {
             console.log(newRoomCode, selectedGame, count);
             const response = await sendRoom(newRoomCode, selectedGame, 3, count, "gpt-4"); // for now I'm putting dummy values for each of the game things, count and the rest after selectedGame should change
             const rooms = await getOpenRooms();
-            // console.log(rooms);
             setRooms(rooms);
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?
