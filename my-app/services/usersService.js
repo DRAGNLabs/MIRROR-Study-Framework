@@ -22,3 +22,12 @@ export async function getUser(userId) {
 
   return response.json();
 }
+
+// export async function getUsersInRoom(roomCode) {
+//   const response = await fetch(`${API_BASE}/users/${roomCode}`, {
+//     method: "GET",
+//     headers: { 'Content-Type': 'application/json' }
+//   });
+//   if(!response.ok) throw new Error("Error getting users in room");
+//   return response.json();
+// }
