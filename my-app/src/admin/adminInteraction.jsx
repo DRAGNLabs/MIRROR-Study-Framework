@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { socket } from '../socket';
+import { socket } from '../socket.js';
 import { getRoom } from '../../services/roomsService.js'
 import { getUser } from '../../services/usersService.js'
 
@@ -17,109 +17,38 @@ export default function AdminInteraction(){
     const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
     const { roomCode } = location.state;
+    const isStreamingRef = useRef(false);
+    const isAdmin = true;
 
     useEffect(() => {
         if (!roomCode) {
             navigate("/admin", { replace: true});
             return;
         }
+
+        // socket.emit("join-room", { roomCode, isAdmin});
     }, [roomCode, navigate]);
 
-    useEffect(() => {
-        retrieveRoom();
-    }, [roomCode]);
-
-
-    async function retrieveRoom() { 
-        try {
-            const room = await getRoom(roomCode);
-            // userMessages: {round#1: [[userId, userMessage], [userId2, userMessage2],...], round#2: [[userId, userMessage], [userId2, userMessage2],...],...} I changed it to lists since JSON doesn't support tuples
-            // llmInstructions: {round#1: "llmInstructions1", round#2: "llmInstructions2",...}
-            // llmResponse: {round#1: "llmResponse1", round#2: "llmResponse2",...}
-            let llmInstructions = JSON.parse(room.llmInstructions);
-            let userMessages = JSON.parse(room.userMessages);
-            let llmResponse = JSON.parse(room.llmResponse);
-            let numRounds = JSON.parse(room.numRounds);
-            console.log("num", numRounds)
-            const newMsgs = resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
-            // console.log(newMsgs);
-            setMessages(newMsgs);
-            // console.log(newMsgs);
-            // for(let i = 0; i <)
-            setRoom(room);
-        } catch (error){
-            console.error("Error:", error);
-            setError(error.message || "Something went wrong.");
-        }
-    }
-
-    async function getUserName(userId) {
-        try {
-            const user = await getUser(userId);
-            return user.userName;
-        } catch (error) {
-            console.error("Error:", error);
-            setError(error.message || "something went wrong.");
-        }
-    }
-
-    function resetMessages(llmInstructions, userMessages, llmResponse, numRounds) {
-        const newMsgs = [];
-
-        const rounds = Object.keys(llmInstructions);
-        // console.log("rounds:", rounds);
-        for (const round of rounds) {
-            // console.log("round:",round);
-            // console.log("Type of round:", typeof(round));
-            if (llmInstructions[round]) {
-                // console.log("HERE :)");
-                newMsgs.push({
-                    sender: "llm",
-                    text: llmInstructions[round],
-                    id: `llm-instructions-${round}`
-                });
-            }
-            // console.log(typeof(userMessages));
-            const msgs = userMessages[round] || [];
-            for (const [userId, text] of msgs) {
-                // console.log(userId);
-                newMsgs.push({
-                    sender: "user",
-                    userId,
-                    userName: getUserName(userId),
-                    text
-                });
-            }
-            if (llmResponse[round]) {
-                newMsgs.push({
-                    sender: "llm",
-                    text: llmResponse[round],
-                    id: `llm-${round}`
-                });
-            }
-            if (round === numRounds) {
-                newMsgs.push({
-                    sender: "user",
-                    userName: "Admin",
-                    text: "All rounds are complete, game is ended."
-                });
-            }
-            
-        }
-        return newMsgs;
-    }
-
 
     useEffect(() => {
+        socket.emit("join-room", { roomCode, isAdmin});
         socket.on("receive-message", (message) => {
+            // setMessages(prev => {
+            //     if (prev.some(m=>m.id === message.id)) return prev;
+            //     return [...prev, message];
+            // });
             setMessages((prev) => [...prev, message]);
         });
 
-        socket.on("force-return-to-waiting-room", () => {
-            navigate("/admin/roomManagement", { state: { room } });
-        });
+        // socket.on("force-return-to-waiting-room", () => {
+        //     navigate("/admin/roomManagement", { state: { room } });
+        // });
 
         socket.on("ai-start", () => {
+            console.log("HERE in ai-start");
+            isStreamingRef.current = true;
+            // version.current += 1;
+
             const newId = Date.now();
             setCurrentStreamingId(newId);
             setStreamingText("");
@@ -151,14 +80,15 @@ export default function AdminInteraction(){
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
-            socket.off("force-return-to-waiting-room");
+            // socket.off("force-return-to-waiting-room");
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
-            socket.off("room-users");
+            // socket.off("room-users");
             socket.off("round-complete");
         };
     }, []);
+
 
     useEffect(() => {
         if (!streamingText) return;
@@ -180,6 +110,85 @@ export default function AdminInteraction(){
         socket.emit("start-survey", { roomCode });
     }
 
+    async function getUserName(userId) {
+        try {
+            const user = await getUser(userId);
+            return user.userName;
+        } catch (error) {
+            console.error("Error:", error);
+            setError(error.message || "something went wrong.");
+        }
+    }
+
+    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds) {
+        const newMsgs = [];
+
+        const rounds = Object.keys(llmInstructions).sort((a,b) => a-b);
+        for (const round of rounds) {
+            if (llmInstructions[round]) {
+                newMsgs.push({
+                    sender: "llm",
+                    text: llmInstructions[round],
+                    id: `llm-instructions-${round}`
+                });
+            }
+            const msgs = userMessages[round] || [];
+            for (const [userId, text] of msgs) {
+                const userName = await getUserName(userId);
+                newMsgs.push({
+                    sender: "user",
+                    userId,
+                    userName: userName,
+                    text
+                });
+            }
+            if (llmResponse[round]) {
+                newMsgs.push({
+                    sender: "llm",
+                    text: llmResponse[round],
+                    id: `llm-${round}`
+                });
+            }
+            if (round === numRounds) {
+                newMsgs.push({
+                    sender: "user",
+                    userName: "Admin",
+                    text: "All rounds are complete, game is ended."
+                });
+            }
+            
+        }
+        return newMsgs;
+    }
+
+
+    useEffect(() => {
+
+        async function retrieveRoom() {
+            try {
+                const room = await getRoom(roomCode);
+                let llmInstructions = JSON.parse(room.llmInstructions);
+                let userMessages = JSON.parse(room.userMessages);
+                let llmResponse = JSON.parse(room.llmResponse);
+                let numRounds = JSON.parse(room.numRounds);
+                const newMsgs =  await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
+                if (isStreamingRef.current) {
+                    console.log("SKIP database");
+                    console.warn("Skipping DB fetch during stream");
+                    return;
+                }
+                setMessages(newMsgs);
+                // hasInitialized.current = true;
+                setRoom(room);
+            } catch (error){
+                console.error("Error:", error);
+                setError(error.message || "Something went wrong.");
+            }
+        }
+
+        retrieveRoom();
+
+    }, [roomCode]);
 
     return (
         <>

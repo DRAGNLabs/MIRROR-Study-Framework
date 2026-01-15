@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted } from "../../services/roomsService";
+import game1 from "../games/game1.json";
+import game2 from "../games/game2.json";
+import game3 from "../games/game3.json"
+
+const gameMap = {
+    1: game1,
+    2: game2, 
+    3: game3
+}
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);

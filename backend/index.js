@@ -36,7 +36,7 @@ const io = new Server(httpServer, {
 
 const rooms = {};
 const socketUserMap = {};
-const roomState = {};
+const roomState = {}; // this lets you know if game is started or not
 const gameState = {}
 
 // this function is meant to get the LLM response when all users have responded
@@ -184,7 +184,7 @@ io.on("connection", (socket) => {
 
         if (state.userMessages.has(userId)) return;
 
-        state.userMessages.set(userId, `${userName}: ${text}`);
+        state.userMessages.set(userId, text);
         const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
 
         // this sends the sent message to all users and admin interaction pages so it shows up on the chat box
@@ -206,6 +206,12 @@ io.on("connection", (socket) => {
         io.to(roomCode).emit("start-user-survey");
     });
 
+    // this disconnects users entirely from room if admin closes it while they're in it
+    socket.on("close-room", ({ roomCode }) => {
+        roomState[roomCode] = false;
+        io.to(roomCode).emit("force-return-to-login");
+    })
+
     // this is for if someone leaves the room while they're waiting
     socket.on("leave-room", ({ roomCode, userId }) => {
         if (!roomCode || !rooms[roomCode]) {
@@ -215,11 +221,14 @@ io.on("connection", (socket) => {
         rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
+
         // if not enough users send back to waiting room
-        if (roomState[roomCode] && rooms[roomCode].length < 3) {
-            roomState[roomCode] = false;
-            io.to(roomCode).emit("force-return-to-waiting-room");
-        }
+        // need to fix this
+        // if (roomState[roomCode] && rooms[roomCode].length < 3) {
+        //     roomState[roomCode] = false;
+        //     io.to(roomCode).emit("force-return-to-waiting-room");
+        // }
+
 
         socket.leave(roomCode);
         delete socketUserMap[socket.id];
@@ -237,10 +246,11 @@ io.on("connection", (socket) => {
         }
 
         // If not enough users send back to waiting room
-        if (roomState[roomCode] && rooms[roomCode].length < 3) {
-            roomState[roomCode] = false;
-            io.to(roomCode).emit("force-return-to-waiting-room");
-        }
+        // need to fix this
+        // if (roomState[roomCode] && rooms[roomCode].length < 3) {
+        //     roomState[roomCode] = false;
+        //     io.to(roomCode).emit("force-return-to-waiting-room");
+        // }
 
         // Clean up mapping
         delete socketUserMap[socket.id];
