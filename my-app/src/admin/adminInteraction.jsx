@@ -18,12 +18,6 @@ export default function AdminInteraction(){
     const { roomCode } = location.state;
     const isAdmin = true;
 
-    useEffect(() => {
-        if (!roomCode) {
-            navigate("/admin", { replace: true});
-            return;
-        }
-    }, [roomCode, navigate]);
 
     useEffect(() => {
         retrieveRoom();
@@ -111,6 +105,7 @@ export default function AdminInteraction(){
 
     function toSurvey() {
         socket.emit("start-survey", { roomCode });
+        navigate("/admin/survey", { state: { roomCode } });
     }
 
 

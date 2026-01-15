@@ -215,6 +215,13 @@ io.on("connection", (socket) => {
         io.to(roomCode).emit("start-user-survey");
     });
 
+    socket.on("survey-complete", ({ roomCode, userId, surveyId }) => {
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("survey complete invalid roomCode:", roomCode);
+        }
+        io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
+    })
+
     // this is for if someone leaves the room while they're waiting
     socket.on("leave-room", ({ roomCode, userId }) => {
         if (!roomCode || !rooms[roomCode]) {

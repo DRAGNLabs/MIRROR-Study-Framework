@@ -7,13 +7,6 @@ export default function WaitingRoom() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = location.state
- //not sure if it is better to navigate to home or print loading page
-  if (!user) {
-    console.log("User not passed through state to waiting room")
-    navigate("/", { replace: true });
-    return null;
-    return <p>Loading...</p>
-  }
   const { userId } = user;
   const roomCode = parseInt(user.roomCode);
   const [users, setUsers] = useState([]);
