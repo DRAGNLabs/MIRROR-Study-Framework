@@ -20,15 +20,6 @@ export default function AdminInteraction(){
     const isStreamingRef = useRef(false);
     const isAdmin = true;
 
-    useEffect(() => {
-        if (!roomCode) {
-            navigate("/admin", { replace: true});
-            return;
-        }
-
-        // socket.emit("join-room", { roomCode, isAdmin});
-    }, [roomCode, navigate]);
-
 
     useEffect(() => {
         socket.emit("join-room", { roomCode, isAdmin});
@@ -84,7 +75,6 @@ export default function AdminInteraction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
-            // socket.off("room-users");
             socket.off("round-complete");
         };
     }, []);
@@ -108,6 +98,7 @@ export default function AdminInteraction(){
 
     function toSurvey() {
         socket.emit("start-survey", { roomCode });
+        navigate("/admin/survey", { state: { roomCode } });
     }
 
     async function getUserName(userId) {

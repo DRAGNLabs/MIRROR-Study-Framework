@@ -18,19 +18,7 @@ export function Interaction(){
     const [hasSentThisRound, setHasSentThisRound] = useState(false);
     const isStreamingRef = useRef(false);
     const isAdmin = false;
-
-    if(!location.state) {
-        console.log("User not passed through state to interactions")
-        navigate("/", { replace: true });
-        return null; 
-    }
     const { user } = location.state
-    if (!user) { 
-        console.log("User not passed through state to interactions")
-        navigate("/", { replace: true });
-        return null;
-    }
-
     const { userId } = user;
     const roomCode = parseInt(user.roomCode); // to make sure sockets are connecting between user and admin
     const chatBoxRef = useRef(null);

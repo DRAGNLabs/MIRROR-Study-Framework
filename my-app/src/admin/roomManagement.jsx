@@ -12,12 +12,6 @@ export default function RoomManagement() {
     const isAdmin = true;
     const { roomCode } = location.state;
 
-    useEffect(() => {
-        if (!roomCode) {
-            navigate("/admin", { replace: true});
-            return;
-        }
-    }, [roomCode, navigate]);
 
     useEffect(() => {
         retrieveRoom();
@@ -47,18 +41,14 @@ export default function RoomManagement() {
     }
 
     async function start() {
-        console.log("In start function!");
-        socket.emit("start-game", { roomCode });
+        socket.emit("show-instructions", { roomCode });
         let userIds = [];
         for (let i = 0; i < users.length; i++) {
             userIds.push(users[i].userId);
         }
-        await updateUserIds(userIds, roomCode);
-        socket.emit('start-round', {
-            roomCode,
-            round: 1
-        });
-        navigate("/admin/adminInteraction", { state: { roomCode } });
+        await updateUserIds(userIds, roomCode); // need to update this here to set user roles
+        navigate("/admin/instructions", { state: { roomCode }});
+
     }
 
 

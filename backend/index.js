@@ -127,10 +127,19 @@ io.on("connection", (socket) => {
        console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode);
     });
 
+    socket.on("show-instructions", async ({roomCode}) => {
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("show-instructions invalid roomCode:", roomCode);
+        }
+        
+        io.to(roomCode).emit("to-instructions");
+    });
+
+
     // this triggers when admin starts game in roomManagement
     socket.on("start-game", async ({roomCode}) => {
         if (!roomCode || !rooms[roomCode]) {
-            console.warn("startGame invalid roomCode:", roomCode);
+            console.warn("start-game invalid roomCode:", roomCode);
         }
         roomState[roomCode] = true;
         // this one will send users from waitingRoom to interactions page
@@ -210,6 +219,13 @@ io.on("connection", (socket) => {
     socket.on("close-room", ({ roomCode }) => {
         roomState[roomCode] = false;
         io.to(roomCode).emit("force-return-to-login");
+    })
+
+    socket.on("survey-complete", ({ roomCode, userId, surveyId }) => {
+        if (!roomCode || !rooms[roomCode]) {
+            console.warn("survey complete invalid roomCode:", roomCode);
+        }
+        io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
     })
 
     // this is for if someone leaves the room while they're waiting

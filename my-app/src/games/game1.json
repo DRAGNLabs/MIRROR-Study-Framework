@@ -1,6 +1,18 @@
 {
     "title": "Game 1", 
     "rounds": 2,
+    "instructions": {
+        "overview": "This is a resource allocation game where players must persuade the LLM to allocate resources in their favor. The LLM will be given only a limited amount of resources and will attempt to allocate them fairly. Each round will consist of the LLM sending instructions and then each user can send 1 message each to plead their case for what resources they should receive. The LLM will then send another message with the results of how many resources each user gets.",
+        "rounds": [
+            {
+                "description": "The LLM will distribute 100 pounds of fish."
+            },
+            {
+                "description": "The LLM will distribute 50 cows."
+            }
+        ],
+        "goal": "You will be given a role with a backstory and specific instructions to follow. Your goal is to follow those instructions and get as many resources as you can"
+    },
     "roles": [
         {
             "role": "farmer", 
@@ -20,7 +32,7 @@
     ],
     "prompts": [
         {
-            "system_prompt": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 100 tons of fish, you can't get more resources.",
+            "system_prompt": "You are an agent who is in charge of giving resources to people. Everyone has different needs per resources and may have different reasons as to why they want them. You have limited resources to give and will have to decide what to give to who. Currently you have 100 pounds of fish, you can't get more resources.",
             "instruction_prompt": "You are to write a prompt of instructions for the people requesting resources. You need to outline the constraints along with letting the people know what your job is. Also let them know how you will deliberate between who will get the resoures they need and who won't get all of them. Don't make the instructions too long", 
             "response_prompt": "There are people requesting resources, your job is to allocate these resources fairly. You must allocate resources and it has to be in the restrained limits. Even if people are asking for more resources than you have you must still distribute out your resources. When responding give their name along with how many resources they are receiving. Their requests are below:\n "
         },

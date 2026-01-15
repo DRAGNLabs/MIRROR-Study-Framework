@@ -7,13 +7,6 @@ export default function WaitingRoom() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = location.state
- //not sure if it is better to navigate to home or print loading page
-  if (!user) {
-    console.log("User not passed through state to waiting room")
-    navigate("/", { replace: true });
-    return null;
-    return <p>Loading...</p>
-  }
   const { userId } = user;
   const roomCode = parseInt(user.roomCode);
   const [users, setUsers] = useState([]);
@@ -27,11 +20,11 @@ export default function WaitingRoom() {
       setUsers(userList);
     });
 
-    const onStart = () => {
-      navigate("/interaction", { state: { user }});
+    const toInstructions = () => {
+      navigate("/instructions", { state: { user }});
     }
 
-    socket.on("start-chat", onStart);
+    socket.on("to-instructions", toInstructions);
 
     const handleUnload = () => {
       socket.emit("leave-room", { roomCode, userId });
@@ -46,7 +39,7 @@ export default function WaitingRoom() {
     return () => {
       window.removeEventListener("beforeunload", handleUnload);
       socket.off("room-users");
-      socket.off("start-chat", onStart);
+      socket.off("to-instructions", toInstructions);
       // socket.off("force-to-login")
     };
   }, [roomCode]);
