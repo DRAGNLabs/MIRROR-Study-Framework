@@ -59,7 +59,6 @@ export function Admin() {
             console.log(newRoomCode, selectedGame, count);
             const response = await sendRoom(newRoomCode, selectedGame, 3, count, "gpt-4"); // for now I'm putting dummy values for each of the game things, count and the rest after selectedGame should change
             const rooms = await getOpenRooms();
-            // console.log(rooms);
             setRooms(rooms);
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?

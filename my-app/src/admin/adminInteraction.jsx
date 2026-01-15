@@ -24,21 +24,13 @@ export default function AdminInteraction(){
     useEffect(() => {
         socket.emit("join-room", { roomCode, isAdmin});
         socket.on("receive-message", (message) => {
-            // setMessages(prev => {
-            //     if (prev.some(m=>m.id === message.id)) return prev;
-            //     return [...prev, message];
-            // });
             setMessages((prev) => [...prev, message]);
         });
 
-        // socket.on("force-return-to-waiting-room", () => {
-        //     navigate("/admin/roomManagement", { state: { room } });
-        // });
 
         socket.on("ai-start", () => {
             console.log("HERE in ai-start");
             isStreamingRef.current = true;
-            // version.current += 1;
 
             const newId = Date.now();
             setCurrentStreamingId(newId);
