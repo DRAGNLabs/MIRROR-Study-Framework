@@ -20,11 +20,11 @@ export default function WaitingRoom() {
       setUsers(userList);
     });
 
-    const onStart = () => {
-      navigate("/interaction", { state: { user }});
+    const toInstructions = () => {
+      navigate("/instructions", { state: { user }});
     }
 
-    socket.on("start-chat", onStart);
+    socket.on("to-instructions", toInstructions);
 
     const handleUnload = () => {
       socket.emit("leave-room", { roomCode, userId });
@@ -39,7 +39,7 @@ export default function WaitingRoom() {
     return () => {
       window.removeEventListener("beforeunload", handleUnload);
       socket.off("room-users");
-      socket.off("start-chat", onStart);
+      socket.off("to-instructions", toInstructions);
       // socket.off("force-to-login")
     };
   }, [roomCode]);

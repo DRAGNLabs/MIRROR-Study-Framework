@@ -21,6 +21,7 @@ export function Interaction(){
 
 
     useEffect(() => {
+        socket.emit("join-room", { roomCode, isAdmin, user });
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
         });
