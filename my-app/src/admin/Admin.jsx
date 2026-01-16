@@ -55,9 +55,8 @@ export function Admin() {
 
     async function buildRoom() { //sends the room into the backend
         try {
-            // roomCode, gameType, numRounds, usersNeeded, modelType
-            console.log(newRoomCode, selectedGame, count);
-            const response = await sendRoom(newRoomCode, selectedGame, 3, count, "gpt-4"); // for now I'm putting dummy values for each of the game things, count and the rest after selectedGame should change
+            const gameData = gameMap[selectedGame];
+            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count); // this should be updated to right values now
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
