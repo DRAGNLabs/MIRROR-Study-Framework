@@ -239,6 +239,14 @@ io.on("connection", (socket) => {
     socket.on("close-room", ({ roomCode }) => {
         roomState[roomCode] = false;
         io.to(roomCode).emit("force-return-to-login");
+        const clients = io.sockets.adapter.rooms.get(roomCode);
+        if (clients) {
+            clients.forEach(clientId => {
+                const clientSocket = io.sockets.sockets.get(clientId);
+                clientSocket.leave(roomCode); // remove from room
+                clientSocket.disconnect(true); // optional: fully disconnect
+            });
+        }
     })
 
     socket.on("survey-complete", async ({ roomCode, userId, surveyId }) => {

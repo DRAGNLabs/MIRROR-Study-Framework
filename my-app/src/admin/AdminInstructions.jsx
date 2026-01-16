@@ -37,6 +37,16 @@ export default function AdminInstructions() {
 
     }, [roomCode])
 
+    useEffect(() => {
+      socket.on("force-return-to-login", () => {
+        navigate("/admin");
+      })
+
+      return () => {
+        socket.off("force-return-to-login");
+      }
+    }, []);
+
     async function toInteractions() {
         socket.emit("start-game", { roomCode });
         socket.emit('start-round', {

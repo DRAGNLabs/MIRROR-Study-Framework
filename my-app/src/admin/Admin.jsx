@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { socket } from "../socket"; 
 import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted } from "../../services/roomsService";
 import game1 from "../games/game1.json";
 import game2 from "../games/game2.json";
@@ -25,6 +26,7 @@ export function Admin() {
     const location = useLocation();
     const validLogin = location.state?.isValid;
     const navigate = useNavigate();
+    const isAdmin = true;
 
 
 
@@ -73,6 +75,7 @@ export function Admin() {
         try {
             setDeletingRoom(roomCode);
             const response = await closeARoom(roomCode);
+            socket.emit("close-room", { roomCode });
             setRooms(await getOpenRooms());
             // setRooms(prev => prev.filter(r => r.roomCode !== roomCode));           
             

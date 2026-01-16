@@ -35,6 +35,10 @@ export default function WaitingRoom() {
 
     socket.on("to-instructions", toInstructions);
 
+    socket.on("force-return-to-login", () => {
+      navigate("/");
+    })
+
     const handleUnload = () => {
       socket.emit("leave-room", { roomCode, userId });
     };
@@ -50,6 +54,7 @@ export default function WaitingRoom() {
       socket.off("status");
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);
+      socket.off("force-return-to-login");
       // socket.off("force-to-login")
     };
   }, [roomCode]);

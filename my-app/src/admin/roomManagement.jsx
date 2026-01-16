@@ -30,11 +30,16 @@ export default function RoomManagement() {
             }
         });
 
-        socket.on("room-users", setUsers); 
+        socket.on("room-users", setUsers);
+        
+        socket.on("force-return-to-login", () => {
+            navigate("/admin");
+        })
 
         return () => {
             socket.off("status");
             socket.off("room-users");
+            socket.off("force-return-to-login");
         };
   
     }, []);

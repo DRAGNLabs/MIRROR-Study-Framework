@@ -60,6 +60,10 @@ export default function AdminInteraction(){
             });
         });
 
+        socket.on("force-return-to-login", () => {
+            navigate("/admin");
+        });
+
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
@@ -67,6 +71,7 @@ export default function AdminInteraction(){
             socket.off("ai-start");
             socket.off("ai-end");
             socket.off("round-complete");
+            socket.off("force-return-to-login");
         };
     }, []);
 

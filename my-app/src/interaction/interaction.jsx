@@ -77,6 +77,10 @@ export function Interaction(){
             setHasSentThisRound(true);
         });
 
+        socket.on("force-return-to-login", () => {
+            navigate("/");
+        })
+
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
@@ -87,6 +91,7 @@ export function Interaction(){
             socket.off("instructions-complete");
             socket.off("round-complete");
             socket.off("game-complete");
+            socket.off("force-return-to-login");
         };
     }, []);
 
