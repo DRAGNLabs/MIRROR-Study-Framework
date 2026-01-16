@@ -128,23 +128,23 @@ export function Survey() {
             {/* 1–10 LITERAL SCALE SLIDER */}
             {q.type === "scale" && q.style === "slider" && (
                 <div className="scale-wrapper">
-                <span className="end-label">{q.leftLabel || q.leftLable}</span>
 
                 <input
                     type="range"
                     min={q.min}
                     max={q.max}
                     step={q.step}
-                    value={answers[q.id] >> q.min}
+                    value={answers[q.id] ?? q.min}
                     onChange={(e) => setAnswers(prev => ({
                     ...prev, [q.id]: Number(e.target.value)
-                    }))}
+                    })
+                )}
                 />
-
-                <span className="end-label">{q.rightLabel}</span>
-                <span className="selected-number">
-                    {answers[q.id] ?? q.min}
-                </span>
+                <div className="scale-labels">
+                    <span className="left-label">{q.leftLabel}</span>
+                    <span className="selected-number">{answers[q.id] ?? q.min}</span>
+                    <span className="right-label">{q.rightLabel}</span>
+                </div>
                 </div>
             )}
             </div>

@@ -50,9 +50,6 @@ async function getLlmResponse(roomCode) {
 
     const room = await getRoom(roomCode);
     const instructions = JSON.parse(room.llmInstructions)[round];
-    const existingUserMessages = JSON.parse(room.userMessages);
-    existingUserMessages[round] = currUserMessages;
-    await updateUserMessages(existingUserMessages, roomCode);
 
     const game = gameMap[room.gameType];
     const totalRounds = game.rounds; // totalRounds needs to equal the length of prompts in game file
@@ -205,6 +202,14 @@ io.on("connection", (socket) => {
 
         state.userMessages.set(userId, text);
         const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
+
+        const round = state.round;
+        const currUserMessages = Array.from(state.userMessages.entries());
+
+        const room = await getRoom(roomCode);
+        const existingUserMessages = JSON.parse(room.userMessages);
+        existingUserMessages[round] = currUserMessages;
+        await updateUserMessages(existingUserMessages, roomCode);
 
         // this sends the sent message to all users and admin interaction pages so it shows up on the chat box
         io.to(roomCode).emit("receive-message", userMsg);
