@@ -46,7 +46,7 @@ const activeUsers = new Map();
 async function getLlmResponse(roomCode) {
     const state = gameState[roomCode];
     const round = state.round;
-    const currUserMessages = Array.from(state.userMessages.entries());
+    // const currUserMessages = Array.from(state.userMessages.entries());
 
     const room = await getRoom(roomCode);
     const instructions = JSON.parse(room.llmInstructions)[round];
@@ -59,12 +59,14 @@ async function getLlmResponse(roomCode) {
 
     // right now when a new round starts the LLM isn't given the messages of the previous round(s), I'm not sure if we want it this way or want the LLM to have context of previous rounds this depends on how we set up the game
     // if we want to give the LLM all the messages from previous rounds we might want to save this in the rooms database
+    const currUserNames = Array.from(state.userNames.entries());
     const messages = [
         { "role": "system", "content": systemPrompt },
         { "role": "user", "content": instructionsPrompt },
         { "role": "assistant", "content": instructions },
-        { "role": "user", "content": `${responsePrompt} \n ${currUserMessages.map(([id, msg]) => `User ${id}: ${msg}`).join("\n")}` }
-    ]
+        { "role": "user", "content": `${responsePrompt} \n ${currUserNames.map(([id, userName]) => `User ${id}: ${userName} : ${state.userMessages.get(id)}`).join("\n")}` }
+    ] 
+    // we might want to change the format we are inputting the userMessage, I'm inputting the userId but it is probably not needed for now
 
     // here we are getting the llmResponse for the current round
     // ai-start just lets the interaction and adminInteraction pages know to create a new message for LLM that will be added to as tokens come in
@@ -164,7 +166,8 @@ io.on("connection", (socket) => {
             gameState[roomCode] = {
                 round,
                 userIds: new Set(userIds),
-                userMessages: new Map()
+                userMessages: new Map(),
+                userNames: new Map()
             };
         }
     
@@ -201,6 +204,7 @@ io.on("connection", (socket) => {
         if (state.userMessages.has(userId)) return;
 
         state.userMessages.set(userId, text);
+        state.userNames.set(userId, userName);
         const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
 
         const round = state.round;
