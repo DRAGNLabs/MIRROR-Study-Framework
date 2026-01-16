@@ -63,7 +63,6 @@ export default function AdminInteraction(){
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
-            // socket.off("force-return-to-waiting-room");
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");

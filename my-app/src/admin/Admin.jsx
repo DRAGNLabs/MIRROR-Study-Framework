@@ -90,7 +90,7 @@ export function Admin() {
     async function startRoom(roomCode) {
         try {
             await roomStarted(roomCode);
-            navigate("/admin/roomManagement", { state: { roomCode }}); // this is probably fine to pass room for now
+            navigate("/admin/waiting", { state: { roomCode }}); // this is probably fine to pass room for now
         } catch(error) {
             console.error("Error:", error);
             setError(error.message || "Something went wrong.");

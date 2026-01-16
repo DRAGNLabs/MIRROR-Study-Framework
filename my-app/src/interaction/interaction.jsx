@@ -39,7 +39,7 @@ export function Interaction(){
         });
 
         socket.on("start-user-survey", () => {
-            navigate("/survey", { state: { userId, roomCode: user.roomCode }});
+            navigate("/survey", { state: { user }});
         });
 
         socket.on("ai-start", () => {

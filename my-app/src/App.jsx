@@ -119,7 +119,7 @@ export default function App() {
         <Route path="/exit" element={<RequireState> <Exit /> </RequireState>}/>
         <Route path="/admin" element={<Admin />}/>
         <Route path="/waiting" element={<RequireState> <WaitingRoom /> </RequireState>} />
-        <Route path="/admin/roomManagement" element={<RequireState fallback="/adminLogin"> <RoomManagement /></RequireState>} />
+        <Route path="/admin/waiting" element={<RequireState fallback="/adminLogin"> <RoomManagement /></RequireState>} />
         <Route path="/admin/interaction" element={<RequireState fallback="/adminLogin"> <AdminInteraction/> </RequireState>} />
         <Route path='/adminLogin' element={<LoginAdmin/>} />
         <Route path='/instructions' element={<RequireState> <Instructions/> </RequireState>} /> 

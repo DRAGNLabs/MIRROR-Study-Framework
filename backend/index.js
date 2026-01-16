@@ -34,10 +34,13 @@ const io = new Server(httpServer, {
     }
 });
 
+
 const rooms = {};
 const socketUserMap = {};
 const roomState = {}; // this lets you know if game is started or not
-const gameState = {}
+const gameState = {};
+const surveyStatus = {};
+const status = {}; // "waiting" || "instructions" || "interaction" || "survey"
 
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(roomCode) {
@@ -87,7 +90,6 @@ async function getLlmResponse(roomCode) {
 
     if (round >= totalRounds) {
         io.to(roomCode).emit("game-complete");
-        await roomCompleted(roomCode);
         const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
         io.to(roomCode).emit("receive-message", endGameMsg);
         return;
@@ -111,7 +113,10 @@ io.on("connection", (socket) => {
         }
 
         // add user to room
-        if(!rooms[roomCode]) rooms[roomCode] = [];
+        if(!rooms[roomCode]) {
+             rooms[roomCode] = [];
+             status[roomCode] = "waiting";
+        }
         socket.join(roomCode);
         socketUserMap[socket.id] = { roomCode, isAdmin, user }; // should I track admin here?
         if (!isAdmin) {
@@ -124,6 +129,9 @@ io.on("connection", (socket) => {
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
+        // send user/admin to correct status page
+        io.to(roomCode).emit("status", status[roomCode]);
+
        console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode);
     });
 
@@ -132,6 +140,7 @@ io.on("connection", (socket) => {
             console.warn("show-instructions invalid roomCode:", roomCode);
         }
         
+        status[roomCode] = "instructions";
         io.to(roomCode).emit("to-instructions");
     });
 
@@ -142,6 +151,7 @@ io.on("connection", (socket) => {
             console.warn("start-game invalid roomCode:", roomCode);
         }
         roomState[roomCode] = true;
+        status[roomCode] = "interaction";
         // this one will send users from waitingRoom to interactions page
         io.to(roomCode).emit("start-chat");
     });
@@ -211,6 +221,7 @@ io.on("connection", (socket) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("startSurvey invalid roomCode:", roomCode);
         }
+        status[roomCode] = "survey";
         // this sends user from interaction page to survey page
         io.to(roomCode).emit("start-user-survey");
     });
@@ -221,12 +232,24 @@ io.on("connection", (socket) => {
         io.to(roomCode).emit("force-return-to-login");
     })
 
-    socket.on("survey-complete", ({ roomCode, userId, surveyId }) => {
+    socket.on("survey-complete", async ({ roomCode, userId, surveyId }) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("survey complete invalid roomCode:", roomCode);
         }
+        if (!surveyStatus[roomCode]) {
+            surveyStatus[roomCode] = new Set();
+        }
+
+        surveyStatus[roomCode].add(userId);
+
         io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
-    })
+        const currRoom = await getRoom(roomCode);
+        if(surveyStatus[roomCode].size === JSON.parse(currRoom.userIds).length) {
+            console.log(`All surveys complete for room ${roomCode}`);
+            await roomCompleted(roomCode);
+            // io.to(roomCode).emit("all-surveys-complete")
+        }    
+    });
 
     // this is for if someone leaves the room while they're waiting
     socket.on("leave-room", ({ roomCode, userId }) => {

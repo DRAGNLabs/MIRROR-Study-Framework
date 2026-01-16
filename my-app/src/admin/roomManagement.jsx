@@ -21,9 +21,19 @@ export default function RoomManagement() {
 
         socket.emit("join-room", { roomCode, isAdmin});
 
+        socket.on("status", (status) => {
+            const currentPath = location.pathname;
+            if(currentPath.includes(status)) {
+                return;
+            } else {
+                navigate(`/admin/${status}`, { state: { roomCode } });
+            }
+        });
+
         socket.on("room-users", setUsers); 
 
         return () => {
+            socket.off("status");
             socket.off("room-users");
         };
   

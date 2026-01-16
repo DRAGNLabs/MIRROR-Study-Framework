@@ -16,6 +16,15 @@ export default function WaitingRoom() {
   useEffect(() => {
     socket.emit("join-room", { roomCode, isAdmin, user });
 
+    socket.on("status", (status) => {
+        const currentPath = location.pathname;
+        if(currentPath.includes(status)) {
+            return;
+        } else {
+            navigate(`/${status}`, { state: { user } });
+        }
+    });
+
     socket.on("room-users", (userList) => {
       setUsers(userList);
     });
@@ -38,6 +47,7 @@ export default function WaitingRoom() {
 
     return () => {
       window.removeEventListener("beforeunload", handleUnload);
+      socket.off("status");
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);
       // socket.off("force-to-login")

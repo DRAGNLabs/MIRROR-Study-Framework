@@ -17,10 +17,10 @@ const surveyMap = {
 }
 
 export function Survey() {
-    const [user, setUser] = useState(null);
     const location = useLocation();
-    let { userId, roomCode } = location.state; 
-    roomCode = parseInt(roomCode);
+    const { user } = location.state
+    const { userId } = user;
+    const roomCode = parseInt(user.roomCode); 
     const [answer, setAnswer] = useState([]);
     const [answers, setAnswers] = useState({}); 
     const [ error, setError] = useState("");
@@ -42,15 +42,15 @@ export function Survey() {
             loadSurvey();
         }
 
-        async function fetchUser() {
-            try {
-                const data = await getUser(userId);
-                setUser(data);
-            } catch (err) {
-                console.error("Failed to fetch user:", err);
-            }
-        }
-        fetchUser();
+        // async function fetchUser() {
+        //     try {
+        //         const data = await getUser(userId);
+        //         setUser(data);
+        //     } catch (err) {
+        //         console.error("Failed to fetch user:", err);
+        //     }
+        // }
+        // fetchUser();
 
 
     }, []);
