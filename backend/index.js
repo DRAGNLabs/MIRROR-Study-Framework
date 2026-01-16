@@ -41,7 +41,7 @@ const roomState = {}; // this lets you know if game is started or not
 const gameState = {};
 const surveyStatus = {};
 const status = {}; // "waiting" || "instructions" || "interaction" || "survey"
-
+const activeUsers = new Map();
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(roomCode) {
     const state = gameState[roomCode];

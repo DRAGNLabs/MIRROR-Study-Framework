@@ -4,8 +4,8 @@ import { Link, Routes, Route, useNavigate, Navigate, useLocation } from 'react-r
 import Survey from "./survey/survey";
 import { useState } from "react";
 import './App.css';
-import { loginUser } from '../services/usersService';
-import { loginRoom } from '../services/roomsService';
+import { loginUser, getCreatedUser } from '../services/usersService';
+import { getRoom, loginRoom } from '../services/roomsService';
 import Interaction from "./interaction/interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
@@ -46,7 +46,25 @@ function Home() {
         alert("Room code is not valid");
         return;
       }
-      const user = await loginUser(name, roomCode);
+
+      const room = await getRoom(roomCode);
+      const userIds = JSON.parse(room.userIds);
+      if(room.completed) {
+        alert("Game already completed");
+        return;
+      }
+      if (userIds.length > 0) {
+        const user = await getCreatedUser(name, roomCode);
+        if (!user) {
+          alert("Game already started, you are not part of this room.");
+          return;
+          // navigate("/waiting", { state: { } });
+        }
+        navigate("/waiting", { state: { user }});
+        return;
+      }
+      // check if userIds are in room then only those with roomCode already in database can login
+      const user = await loginUser(name, roomCode); // this is techincally register
       const userId = user.userId; // not using this variable rn
       // add user to room database
       console.log(`${name} logged in!`);

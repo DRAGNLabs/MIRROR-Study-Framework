@@ -54,6 +54,24 @@ router.get("/:userId", (req, res) => {
     });
 });
 
+router.get("/:userName/:roomCode", (req, res) => {
+    const userName = req.params.userName;
+    const roomCode = req.params.roomCode;
+    if (!userName || !roomCode) {
+        return res.status(400).json({ error: "userName and roomCode are required" });
+    }
+    db.get("SELECT * FROM users WHERE userName = ? AND roomCode = ?", [userName, roomCode], 
+        (err, row) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (!row) {
+                return res.status(200).json(null);
+            }
+
+            res.status(200).json(row);
+        }
+    );
+});
+
 // get all users in table
 router.get("/", (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows)=> {
