@@ -43,6 +43,7 @@ db.serialize(() => {
  * userMessages: {round#1: [[userId, userMessage], [userId2, userMessage2],...], round#2: [[userId, userMessage], [userId2, userMessage2],...],...} I changed it to lists since JSON doesn't support tuples
  * llmInstructions: {round#1: "llmInstructions1", round#2: "llmInstructions2",...}
  * llmResponse: {round#1: "llmResponse1", round#2: "llmResponse2",...}
+ * status is a string that will be either waiting | instructions | interaction | survey
  * completed is boolean value (0 or 1) used to know what rooms to show on admin page 
  */
   db.run(`
@@ -57,6 +58,7 @@ db.serialize(() => {
       userMessages TEXT NOT NULL DEFAULT '{}',
       llmInstructions TEXT NOT NULL DEFAULT '{}',
       llmResponse TEXT NOT NULL DEFAULT '{}',
+      status TEXT NOT NULL DEFAULT '',
       completed INTEGER NOT NULL DEFAULT 0
     )
   `)

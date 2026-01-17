@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket"; 
-import { updateUserIds, getRoom } from "../../services/roomsService";
+import { updateUserIds, getRoom, updateStatus } from "../../services/roomsService";
 
 export default function RoomManagement() {
     const location = useLocation();
@@ -62,6 +62,7 @@ export default function RoomManagement() {
             userIds.push(users[i].userId);
         }
         await updateUserIds(userIds, roomCode); // need to update this here to set user roles
+        await updateStatus(roomCode, "instructions");
         navigate("/admin/instructions", { state: { roomCode }});
 
     }

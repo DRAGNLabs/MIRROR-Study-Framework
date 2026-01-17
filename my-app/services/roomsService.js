@@ -137,3 +137,13 @@ export async function getUsersInRoom(roomCode) {
   if(!response.ok) throw new Error("Error getting users in room");
   return response.json();
 }
+
+export async function updateStatus(roomCode, status) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/status`, {
+    method: "PATCH",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  })
+  if(!response.ok) throw new Error("Error updating status");
+  return response.json();
+}

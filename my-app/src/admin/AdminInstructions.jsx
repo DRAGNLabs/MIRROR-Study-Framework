@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
-import { getRoom } from "../../services/roomsService";
+import { getRoom, updateStatus } from "../../services/roomsService";
 import game1 from "../games/game1.json";
 import game2 from "../games/game2.json";
 import game3 from "../games/game3.json";
@@ -53,6 +53,7 @@ export default function AdminInstructions() {
             roomCode,
             round: 1
         });
+        await updateStatus(roomCode, "interaction");
         navigate("/admin/interaction", { state: { roomCode } }); // will need to update this once next merge pull request happens (I changed endpoint to /admin/interactions or something like that)
     }
     

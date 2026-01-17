@@ -160,9 +160,7 @@ export function Interaction(){
                     id: `llm-${round}`
                 });
             }
-            console.log("rounds:", round);
-            console.log("numRounds:", numRounds);
-            if (round === numRounds) {
+            if (parseInt(round) === parseInt(numRounds)) {
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",

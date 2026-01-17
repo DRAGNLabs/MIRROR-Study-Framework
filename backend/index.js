@@ -237,6 +237,8 @@ io.on("connection", (socket) => {
 
     // this disconnects users entirely from room if admin closes it while they're in it
     socket.on("close-room", ({ roomCode }) => {
+        if(!roomCode) return;
+
         roomState[roomCode] = false;
         io.to(roomCode).emit("force-return-to-login");
         const clients = io.sockets.adapter.rooms.get(roomCode);
@@ -247,6 +249,8 @@ io.on("connection", (socket) => {
                 clientSocket.disconnect(true); // optional: fully disconnect
             });
         }
+        delete status[roomCode];
+        delete rooms[roomCode];
     })
 
     socket.on("survey-complete", async ({ roomCode, userId, surveyId }) => {

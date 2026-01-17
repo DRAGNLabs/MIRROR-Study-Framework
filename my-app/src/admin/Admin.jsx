@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket"; 
-import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted } from "../../services/roomsService";
+import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus } from "../../services/roomsService";
 import game1 from "../games/game1.json";
 import game2 from "../games/game2.json";
 import game3 from "../games/game3.json"
@@ -72,6 +72,10 @@ export function Admin() {
     }
 
     async function closeRoom(roomCode) { // esentially closeRoom should be blocked once admin opens it
+        roomCurr = await getRoom(roomCode);
+        if (roomCurr.status === "survey") {
+            return;
+        }
         try {
             setDeletingRoom(roomCode);
             const response = await closeARoom(roomCode);
@@ -92,6 +96,7 @@ export function Admin() {
     async function startRoom(roomCode) {
         try {
             await roomStarted(roomCode);
+            await updateStatus(roomCode, "waiting");
             navigate("/admin/waiting", { state: { roomCode }}); // this is probably fine to pass room for now
         } catch(error) {
             console.error("Error:", error);

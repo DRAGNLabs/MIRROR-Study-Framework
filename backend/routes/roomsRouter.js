@@ -232,4 +232,19 @@ router.get("/:roomCode/users", async (req, res) => {
     });
 });
 
+router.patch("/:roomCode/status", async (req, res) => {
+  const { roomCode } = req.params;
+  const { status } = req.body;
+  db.run("UPDATE rooms SET status = ? WHERE roomCode = ?", [status, roomCode], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+
+    res.status(200).json({
+      roomCode,
+      status,
+      message: "status successfully updated!"
+    });
+  })
+
+})
+
 export default router;

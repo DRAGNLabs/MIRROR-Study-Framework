@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket.js';
-import { getRoom } from '../../services/roomsService.js'
+import { getRoom, updateStatus } from '../../services/roomsService.js'
 import { getUser } from '../../services/usersService.js'
 
 export default function AdminInteraction(){
@@ -92,8 +92,9 @@ export default function AdminInteraction(){
         }
     }, [messages]);
 
-    function toSurvey() {
+    async function toSurvey() {
         socket.emit("start-survey", { roomCode });
+        await updateStatus(roomCode, "survey");
         navigate("/admin/survey", { state: { roomCode } });
     }
 
@@ -136,7 +137,7 @@ export default function AdminInteraction(){
                     id: `llm-${round}`
                 });
             }
-            if (round === numRounds) {
+            if (parseInt(round) === parseInt(numRounds)) {
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",
