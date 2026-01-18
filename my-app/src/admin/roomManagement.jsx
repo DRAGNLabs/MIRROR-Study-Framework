@@ -87,7 +87,7 @@ export default function RoomManagement() {
                     </ul>
                 </div>
 
-            <button onClick={start} disabled={users.length < room.count && users.length < 3}>Start</button>
+            <button onClick={start} disabled={users.length < room.usersNeeded}>Start</button>
         </div>
     )
 }

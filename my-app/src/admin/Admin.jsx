@@ -72,8 +72,9 @@ export function Admin() {
     }
 
     async function closeRoom(roomCode) { // esentially closeRoom should be blocked once admin opens it
-        roomCurr = await getRoom(roomCode);
+        const roomCurr = await getRoom(roomCode);
         if (roomCurr.status === "survey") {
+            alert("You can't close the room it is in survey status");
             return;
         }
         try {

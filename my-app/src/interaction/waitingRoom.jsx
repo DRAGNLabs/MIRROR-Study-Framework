@@ -14,7 +14,7 @@ export default function WaitingRoom() {
 
 
   useEffect(() => {
-    socket.emit("join-room", { roomCode, isAdmin, user });
+    // socket.emit("join-room", { roomCode, isAdmin, user });
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;
@@ -39,15 +39,14 @@ export default function WaitingRoom() {
       navigate("/");
     })
 
+    // moved this down here because it for some reason was messing with the user list being updated right if it was first
+    socket.emit("join-room", { roomCode, isAdmin, user });
+
     const handleUnload = () => {
       socket.emit("leave-room", { roomCode, userId });
     };
 
     window.addEventListener("beforeunload", handleUnload);
-
-    // socket.on("force-to-login", () => {
-    //   navigate("/");
-    // });
 
     return () => {
       window.removeEventListener("beforeunload", handleUnload);
@@ -55,7 +54,6 @@ export default function WaitingRoom() {
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);
       socket.off("force-return-to-login");
-      // socket.off("force-to-login")
     };
   }, [roomCode]);
 

@@ -2,8 +2,8 @@
 
 import { Link, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import Survey from "./survey/survey";
-import { useState } from "react";
 import './App.css';
+import { useState } from "react";
 import { loginUser, getCreatedUser } from '../services/usersService';
 import { getRoom, loginRoom } from '../services/roomsService';
 import Interaction from "./interaction/interaction";
@@ -15,7 +15,7 @@ import AdminInteraction from './admin/adminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
 import Instructions from './interaction/Instructions';
 import AdminInstructions from './admin/adminInstructions';
-import AdminSurvey from './admin/adminSurvey';
+import AdminSurvey from './admin/AdminSurvey';
 
 function RequireState({ children, fallback = "/" }) {
     const location = useLocation();

@@ -41,7 +41,6 @@ const roomState = {}; // this lets you know if game is started or not
 const gameState = {};
 const surveyStatus = {};
 const status = {}; // "waiting" || "instructions" || "interaction" || "survey"
-const activeUsers = new Map();
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(roomCode) {
     const state = gameState[roomCode];
@@ -111,20 +110,21 @@ io.on("connection", (socket) => {
             return;
         }
 
-        // add user to room
         if(!rooms[roomCode]) {
              rooms[roomCode] = [];
              status[roomCode] = "waiting";
         }
+
         socket.join(roomCode);
         socketUserMap[socket.id] = { roomCode, isAdmin, user }; // should I track admin here?
         if (!isAdmin) {
-            
             const alreadyInRoom = rooms[roomCode].some((u) => u.userId === user.userId);
             if (!alreadyInRoom) {
                 rooms[roomCode].push(user);
-            }
+            } 
         }
+        // socket.join(roomCode);
+        // socketUserMap[socket.id] = { roomCode, isAdmin, user };
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
