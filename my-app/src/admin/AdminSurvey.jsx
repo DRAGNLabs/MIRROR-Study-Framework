@@ -25,7 +25,6 @@ export default function AdminSurvey() {
                         };
                     })
                 );
-                console.log(usersWithStatus);
                 setUsers(usersWithStatus);
             } catch (err) {
                 console.error(err);
@@ -38,7 +37,6 @@ export default function AdminSurvey() {
 
     useEffect(() => {
         socket.on("user-survey-complete", ({ userId, surveyId }) => {
-            console.log("in socket for survey-complete");
             setUsers(prev =>
                 prev.map(u => 
                     u.userId === userId ? { ...u, completedSurvey: true }: u

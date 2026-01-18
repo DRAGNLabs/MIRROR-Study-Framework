@@ -14,7 +14,16 @@ export default function WaitingRoom() {
 
 
   useEffect(() => {
-    socket.emit("join-room", { roomCode, isAdmin, user });
+    // socket.emit("join-room", { roomCode, isAdmin, user });
+
+    socket.on("status", (status) => {
+        const currentPath = location.pathname;
+        if(currentPath.includes(status)) {
+            return;
+        } else {
+            navigate(`/${status}`, { state: { user } });
+        }
+    });
 
     socket.on("room-users", (userList) => {
       setUsers(userList);
@@ -26,21 +35,25 @@ export default function WaitingRoom() {
 
     socket.on("to-instructions", toInstructions);
 
+    socket.on("force-return-to-login", () => {
+      navigate("/");
+    })
+
+    // moved this down here because it for some reason was messing with the user list being updated right if it was first
+    socket.emit("join-room", { roomCode, isAdmin, user });
+
     const handleUnload = () => {
       socket.emit("leave-room", { roomCode, userId });
     };
 
     window.addEventListener("beforeunload", handleUnload);
 
-    // socket.on("force-to-login", () => {
-    //   navigate("/");
-    // });
-
     return () => {
       window.removeEventListener("beforeunload", handleUnload);
+      socket.off("status");
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);
-      // socket.off("force-to-login")
+      socket.off("force-return-to-login");
     };
   }, [roomCode]);
 

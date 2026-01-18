@@ -1,11 +1,11 @@
 const API_BASE = "http://localhost:3001/api"; // going to want to change this to import from config file
 
 // creates new room in rooms table
-export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType){ 
+export async function sendRoom(roomCode, gameType, numRounds, usersNeeded){ 
   const res = await fetch(`${API_BASE}/rooms`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({roomCode: Number(roomCode), gameType: Number(gameType), numRounds: Number(numRounds), usersNeeded: Number(usersNeeded), modelType}), //do we need the Number() function, idk
+    body: JSON.stringify({roomCode: Number(roomCode), gameType: Number(gameType), numRounds: Number(numRounds), usersNeeded: Number(usersNeeded)}), //do we need the Number() function, idk
   })
   if(!res.ok) throw new Error("Error creating room.");
 
@@ -135,5 +135,15 @@ export async function getUsersInRoom(roomCode) {
     headers: { 'Content-Type': 'application/json' }
   })
   if(!response.ok) throw new Error("Error getting users in room");
+  return response.json();
+}
+
+export async function updateStatus(roomCode, status) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/status`, {
+    method: "PATCH",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  })
+  if(!response.ok) throw new Error("Error updating status");
   return response.json();
 }
