@@ -39,7 +39,7 @@ export function Interaction(){
         });
 
         socket.on("start-user-survey", () => {
-            navigate("/survey", { state: { userId, roomCode: user.roomCode }});
+            navigate("/survey", { state: { user }});
         });
 
         socket.on("ai-start", () => {
@@ -77,6 +77,10 @@ export function Interaction(){
             setHasSentThisRound(true);
         });
 
+        socket.on("force-return-to-login", () => {
+            navigate("/");
+        })
+
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
@@ -87,6 +91,7 @@ export function Interaction(){
             socket.off("instructions-complete");
             socket.off("round-complete");
             socket.off("game-complete");
+            socket.off("force-return-to-login");
         };
     }, []);
 
@@ -155,9 +160,7 @@ export function Interaction(){
                     id: `llm-${round}`
                 });
             }
-            console.log("rounds:", round);
-            console.log("numRounds:", numRounds);
-            if (round === numRounds) {
+            if (parseInt(round) === parseInt(numRounds)) {
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted } from "../../services/roomsService";
+import { socket } from "../socket"; 
+import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus } from "../../services/roomsService";
 import game1 from "../games/game1.json";
 import game2 from "../games/game2.json";
 import game3 from "../games/game3.json"
@@ -25,6 +26,7 @@ export function Admin() {
     const location = useLocation();
     const validLogin = location.state?.isValid;
     const navigate = useNavigate();
+    const isAdmin = true;
 
 
 
@@ -55,9 +57,8 @@ export function Admin() {
 
     async function buildRoom() { //sends the room into the backend
         try {
-            // roomCode, gameType, numRounds, usersNeeded, modelType
-            console.log(newRoomCode, selectedGame, count);
-            const response = await sendRoom(newRoomCode, selectedGame, 3, count, "gpt-4"); // for now I'm putting dummy values for each of the game things, count and the rest after selectedGame should change
+            const gameData = gameMap[selectedGame];
+            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count); // this should be updated to right values now
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
@@ -71,9 +72,15 @@ export function Admin() {
     }
 
     async function closeRoom(roomCode) { // esentially closeRoom should be blocked once admin opens it
+        const roomCurr = await getRoom(roomCode);
+        if (roomCurr.status === "survey") {
+            alert("You can't close the room it is in survey status");
+            return;
+        }
         try {
             setDeletingRoom(roomCode);
             const response = await closeARoom(roomCode);
+            socket.emit("close-room", { roomCode });
             setRooms(await getOpenRooms());
             // setRooms(prev => prev.filter(r => r.roomCode !== roomCode));           
             
@@ -90,7 +97,8 @@ export function Admin() {
     async function startRoom(roomCode) {
         try {
             await roomStarted(roomCode);
-            navigate("/admin/roomManagement", { state: { roomCode }}); // this is probably fine to pass room for now
+            await updateStatus(roomCode, "waiting");
+            navigate("/admin/waiting", { state: { roomCode }}); // this is probably fine to pass room for now
         } catch(error) {
             console.error("Error:", error);
             setError(error.message || "Something went wrong.");

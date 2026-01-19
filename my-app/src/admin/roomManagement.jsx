@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket"; 
-import { updateUserIds, getRoom } from "../../services/roomsService";
+import { updateUserIds, getRoom, updateStatus } from "../../services/roomsService";
 
 export default function RoomManagement() {
     const location = useLocation();
@@ -21,10 +21,25 @@ export default function RoomManagement() {
 
         socket.emit("join-room", { roomCode, isAdmin});
 
-        socket.on("room-users", setUsers); 
+        socket.on("status", (status) => {
+            const currentPath = location.pathname;
+            if(currentPath.includes(status)) {
+                return;
+            } else {
+                navigate(`/admin/${status}`, { state: { roomCode } });
+            }
+        });
+
+        socket.on("room-users", setUsers);
+        
+        socket.on("force-return-to-login", () => {
+            navigate("/admin");
+        })
 
         return () => {
+            socket.off("status");
             socket.off("room-users");
+            socket.off("force-return-to-login");
         };
   
     }, []);
@@ -47,6 +62,7 @@ export default function RoomManagement() {
             userIds.push(users[i].userId);
         }
         await updateUserIds(userIds, roomCode); // need to update this here to set user roles
+        await updateStatus(roomCode, "instructions");
         navigate("/admin/instructions", { state: { roomCode }});
 
     }
@@ -71,7 +87,7 @@ export default function RoomManagement() {
                     </ul>
                 </div>
 
-            <button onClick={start} disabled={users.length < room.count && users.length < 3}>Start</button>
+            <button onClick={start} disabled={users.length < room.usersNeeded}>Start</button>
         </div>
     )
 }

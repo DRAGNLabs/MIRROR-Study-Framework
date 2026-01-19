@@ -28,8 +28,13 @@ export default function Instructions() {
 
         socket.on("start-chat", onStart);
 
+        socket.on("force-return-to-login", () => {
+            navigate("/");
+        });
+
         return () => {
             socket.off("start-chat", onStart);
+            socket.off("force-return-to-login");
         };
     }, [roomCode]);
 

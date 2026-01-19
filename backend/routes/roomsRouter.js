@@ -1,13 +1,16 @@
 import express from "express";
 const router = express.Router();
 import db from "../db.js"; 
+import dotenv from "dotenv";
+dotenv.config();
 
 // Creates room, puts roomCode, gameType, numRounds, usersNeeded, and modelType into table (rest of info will be updated later)
 router.post('/', (req, res) => {
-  const { roomCode, gameType, numRounds, usersNeeded, modelType } = req.body;
-  if (!roomCode || !gameType || !numRounds || !usersNeeded || !modelType) {
-    return res.status(400).json({message: "roomCode, gameType, numRounds, usersNeeded, and modelType are required"});
+  const { roomCode, gameType, numRounds, usersNeeded } = req.body;
+  if (!roomCode || !gameType || !numRounds || !usersNeeded) {
+    return res.status(400).json({message: "roomCode, gameType, numRounds, and usersNeeded are required"});
   }
+  const modelType = process.env.OPENAI_MODEL;
   const sql = 'INSERT INTO rooms (roomCode, gameType, numRounds, usersNeeded, modelType) VALUES (?, ?, ?, ?, ?)';
   db.run(sql, [
       roomCode,
@@ -228,5 +231,20 @@ router.get("/:roomCode/users", async (req, res) => {
         res.status(200).json(row);
     });
 });
+
+router.patch("/:roomCode/status", async (req, res) => {
+  const { roomCode } = req.params;
+  const { status } = req.body;
+  db.run("UPDATE rooms SET status = ? WHERE roomCode = ?", [status, roomCode], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+
+    res.status(200).json({
+      roomCode,
+      status,
+      message: "status successfully updated!"
+    });
+  })
+
+})
 
 export default router;

@@ -953,3 +953,42 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   background: linear-gradient(90deg, #2ecc71, #27ae60);
   transition: width 0.3s ease;
 }
+
+/*
+for survey.jsx
+*/
+.scale-wrapper input[type="range"] {
+  padding: 0 0px; 
+}
+
+.scale-wrapper {
+  width: 100%;
+  margin: 1em 0;
+}
+
+/* Row under slider for labels and number */
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25em; /* slight space below slider */
+  position: relative;
+}
+
+/* Left label sticks left */
+.left-label {
+  text-align: left;
+}
+
+/* Right label sticks right */
+.right-label {
+  text-align: right;
+}
+
+/* Number centered below slider */
+.selected-number {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+}

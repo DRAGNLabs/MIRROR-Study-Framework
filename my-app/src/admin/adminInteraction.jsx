@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket.js';
-import { getRoom } from '../../services/roomsService.js'
+import { getRoom, updateStatus } from '../../services/roomsService.js'
 import { getUser } from '../../services/usersService.js'
 
 export default function AdminInteraction(){
@@ -60,14 +60,18 @@ export default function AdminInteraction(){
             });
         });
 
+        socket.on("force-return-to-login", () => {
+            navigate("/admin");
+        });
+
         return () => {
             socket.off("receive-message");
             socket.off("room-users");
-            // socket.off("force-return-to-waiting-room");
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
             socket.off("round-complete");
+            socket.off("force-return-to-login");
         };
     }, []);
 
@@ -88,8 +92,9 @@ export default function AdminInteraction(){
         }
     }, [messages]);
 
-    function toSurvey() {
+    async function toSurvey() {
         socket.emit("start-survey", { roomCode });
+        await updateStatus(roomCode, "survey");
         navigate("/admin/survey", { state: { roomCode } });
     }
 
@@ -132,7 +137,7 @@ export default function AdminInteraction(){
                     id: `llm-${round}`
                 });
             }
-            if (round === numRounds) {
+            if (parseInt(round) === parseInt(numRounds)) {
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",

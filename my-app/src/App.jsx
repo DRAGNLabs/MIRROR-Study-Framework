@@ -2,10 +2,10 @@
 
 import { Link, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import Survey from "./survey/survey";
-import { useState } from "react";
 import './App.css';
-import { loginUser } from '../services/usersService';
-import { loginRoom } from '../services/roomsService';
+import { useState } from "react";
+import { loginUser, getCreatedUser } from '../services/usersService';
+import { getRoom, loginRoom } from '../services/roomsService';
 import Interaction from "./interaction/interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
@@ -15,7 +15,7 @@ import AdminInteraction from './admin/adminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
 import Instructions from './interaction/Instructions';
 import AdminInstructions from './admin/adminInstructions';
-import AdminSurvey from './admin/adminSurvey';
+import AdminSurvey from './admin/AdminSurvey';
 
 function RequireState({ children, fallback = "/" }) {
     const location = useLocation();
@@ -46,7 +46,25 @@ function Home() {
         alert("Room code is not valid");
         return;
       }
-      const user = await loginUser(name, roomCode);
+
+      const room = await getRoom(roomCode);
+      const userIds = JSON.parse(room.userIds);
+      if(room.completed) {
+        alert("Game already completed");
+        return;
+      }
+      if (userIds.length > 0) {
+        const user = await getCreatedUser(name, roomCode);
+        if (!user) {
+          alert("Game already started, you are not part of this room.");
+          return;
+          // navigate("/waiting", { state: { } });
+        }
+        navigate("/waiting", { state: { user }});
+        return;
+      }
+      // check if userIds are in room then only those with roomCode already in database can login
+      const user = await loginUser(name, roomCode); // this is techincally register
       const userId = user.userId; // not using this variable rn
       // add user to room database
       console.log(`${name} logged in!`);
@@ -119,7 +137,7 @@ export default function App() {
         <Route path="/exit" element={<RequireState> <Exit /> </RequireState>}/>
         <Route path="/admin" element={<Admin />}/>
         <Route path="/waiting" element={<RequireState> <WaitingRoom /> </RequireState>} />
-        <Route path="/admin/roomManagement" element={<RequireState fallback="/adminLogin"> <RoomManagement /></RequireState>} />
+        <Route path="/admin/waiting" element={<RequireState fallback="/adminLogin"> <RoomManagement /></RequireState>} />
         <Route path="/admin/interaction" element={<RequireState fallback="/adminLogin"> <AdminInteraction/> </RequireState>} />
         <Route path='/adminLogin' element={<LoginAdmin/>} />
         <Route path='/instructions' element={<RequireState> <Instructions/> </RequireState>} /> 
