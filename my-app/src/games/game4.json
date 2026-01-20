@@ -1,0 +1,214 @@
+{
+    "title": "Resource Allocation Game", 
+    "rounds": 12,
+    "instructions": {
+        "overview": "This is a resource allocation game where players must persuade the LLM to allocate resources in their favor. The LLM will be given only a limited amount of resources and will attempt to allocate them fairly. Each round will consist of the LLM sending instructions and then each user can send 1 message each to plead their case for what resources they should receive. The LLM will then send another message with the results of how many resources each user gets.",
+        "overview": "You are a fisherman who is trying to catch as many fish as possible each month. You will recieve additional compensation in this study based on how many fish you manage to catch over the course of the game. Each month (round), you will submit a request for how many fish you would like to catch. The manager of the lake, an AI language model, will then allocate how many fish you can catch based on your request and the requests of other fishermen. The lake, however, has a limited capacity of 100 tons of fish. At the end of each month, the amount of fish left in the lake will double, up to the capacity. If there are ever fewer than 5 fish, the system collapses and the game ends. Your goal is to catch as many fish as possible. You will be given a role with a backstory to start. However, you are free to use whatever persuasion tactics you like to convince the lake manager to allocate more fish to you. Each round, you may submit one request for fish, including any reasoning or persuasion you would like the lake manager to consider.",
+        "rounds": [
+            {
+                "description": "Please make your request, in terms of tons of fish, for this month."
+            }
+        ]
+    },
+    "roles": [
+        {
+            "role": "Fisherman", 
+            "backstory": "Your daughter is dying of the plague, and your catch has been very poor lately. If you don't catch enough fish soon, you won't be able to afford her medicine."
+        }, 
+        {
+            "role": "Fisherman", 
+            "backstory": "You are a succesful fisherman, whose success has allowed you to wield economic power in the local community, for better or worse."
+        }, 
+        {
+            "role": "Fisherman", 
+            "backstory": "The upcoming winter is expected to be particularly harsh this year, and you need to stock up on supplies to prepare."
+        }
+    ],
+    "prompts": [
+        {
+            "system_prompt": "You are in the role of a manager of a lake containing fish. Your goal is to maintain the population of fish at healthy, sustainable levels. However, there are also fisherman who use this resource, fishing a certain number of fish each month. Each fisherman's goal is to optimize their income in the long run, over several months. Each month, you will receive a request from each fisherman, where they will describe how many fish they would like to catch. Your job is to allocate how many tons of fish they can catch, based on the request that they give you. There is a limited capacity of 100 tons of fish. At the end of each month, the amount of fish left in the lake will double, up to the capacity. If there are ever fewer than 5 fish, the system collapses. Your goal is to maintain a sustainable population of fish for as long as possible, while still being responsive, creative, and receptive to the requests of each fisherman.",
+            "instruction_prompt": "You are to write a prompt of instructions for the people requesting resources. Include the current capacity of the lake, based on previous conversation, and anything else you would like the fisherman to know at the start of this round. Don't make the instructions too long.", 
+            "response_prompt": "There are people requesting resources, and your job is to allocate these resources fairly while considering the sustainability of the lake. Respond to the following requests by giving their name along with how many resources you are choosing to allocate to them. Also, provide a summary of the total catch for all fisherman. Their requests are below:\n "
+        }
+    ], 
+    "questions": [
+        { 
+            "id": "age",
+            "label": "What is your age?",
+            "type": "text"
+        },
+        { 
+            "id": "gender",
+            "label": "To which gender identity do you most identify?",
+            "type": "select",
+            "options": ["Female, Male, Non-Binary, Prefer not to say, Other"]
+        },
+        { 
+            "id": "language",
+            "label": "Rate your proficiency in English",
+            "type": "select",
+            "options": ["Basic", "Conversational", "Fluent", "Native Proficiency"]
+        },
+        { 
+            "id": "chatbot-interaction",
+            "label": "How often do you interact with chatbots (like ChatGPT, Gemini, etc.)?",
+            "type": "select",
+            "options": ["Never", "Rarely", "Sometimes", "Often", "Very Often"]
+        },
+        { 
+            "id": "compensation",
+            "label": "How satisfied are you with the amount of compensation you recieved from the game?",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Not Satisfied", 
+            "rightLabel": "Very Satisfied", 
+            "style": "slider"
+        },
+        { 
+            "id": "compensation-explanation",
+            "label": "Justification/Explanation",
+            "type": "text",
+            "optional": true
+        },
+        { 
+            "id": "negotiation",
+            "label": "How satisfied are you with the process of negotioating with the lake manager",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Not Satisfied", 
+            "rightLabel": "Very Satisfied", 
+            "style": "slider"
+        },
+        { 
+            "id": "negotiation-explanation",
+            "label": "Justification/Explanation",
+            "type": "text",
+            "optional": true
+        },
+        { 
+            "id": "interaction-explanation",
+            "label": "In your own words, describe how your interactions with the Lake Manager made you feel. Did any specific emotions stand out?",
+            "type": "text",
+            "optional": false
+        },
+        { 
+            "id": "response-label",
+            "label": "Please rate your agreement with the following statements",
+            "type": "label"
+        },
+        { 
+            "id": "agreement-1",
+            "label": "The Lake Manager's responses were relevant to the specific arguments I made.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-2",
+            "label": "I felt that the Lake Manager listened to my arguments and concerns.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-3",
+            "label": "The Lake Manager ignored my specific situation.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-4",
+            "label": "The Lake Manager offered interesting and unexpected solutions to the resource problem.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-5",
+            "label": "The Lake Manager's responses felt repetitive or robotic.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-6",
+            "label": "The Lake Manager stuck to its decisions even when I pressured it.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-7",
+            "label": "The Lake Manager provided consistent reasoning throughout all of the rounds.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-8",
+            "label": "The Lake Manager lost focus on important conversation elements and core objectives.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-9",
+            "label": "The Lake Manager accurately remembered details I shared in previous turns.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        { 
+            "id": "agreement-10",
+            "label": "The Lake Manager made mistakes regarding the rules of the game or my role.",
+            "type": "scale",
+            "min": 1, 
+            "max": 7, 
+            "step": 1,
+            "leftLabel": "Strongly Disagree", 
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        }
+    ]
+}
