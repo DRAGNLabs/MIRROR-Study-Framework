@@ -104,7 +104,7 @@ io.on("connection", (socket) => {
    console.log("User connected:", socket.id);
     
     // when admin starts room or when user joins roomCode they are joined to this socket instance
-    socket.on("join-room", ({ roomCode, isAdmin, user }) => {
+    socket.on("join-room", async ({ roomCode, isAdmin, user }) => {
         if (!roomCode || typeof roomCode !== 'number') {
             console.warn("join-room missing or invalid roomCode", roomCode, user);
             return;
@@ -128,8 +128,10 @@ io.on("connection", (socket) => {
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
+        const room = await getRoom(roomCode);
+        console.log("room Status:", room.status);
         // send user/admin to correct status page
-        io.to(roomCode).emit("status", status[roomCode]);
+        io.to(roomCode).emit("status", room.status);
 
        console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode);
     });
@@ -220,7 +222,7 @@ io.on("connection", (socket) => {
 
       
         if(state.userMessages.size === state.userIds.size) {
-            await getLlmResponse(roomCode);
+            await getLlmResponse(roomCode); // if a user leaves in middle of round this is called before that user sends their message
         }
     });
 

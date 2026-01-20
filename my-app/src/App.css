@@ -63,7 +63,7 @@ body {
   text-align: center;
 }
 
-.login-container, .survey-container {
+.login-container {
   display: flex;
   flex-direction: column;
   justify-content: center;   /* vertical centering */
@@ -243,8 +243,8 @@ nav a:hover {
 
 /* === Chat Messages Area === */
 .chat-box {
-  height: 525px;
-  max-height: 525px;
+  height: 80%;
+  max-height: 550px;
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
@@ -971,19 +971,34 @@ for survey.jsx
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.25em; /* slight space below slider */
+  width: 100%;
+  max-width: 400px;
+  min-width: 250px;
+  margin: auto;
+  margin-top: 0.5em; /* slight space below slider */
   position: relative;
+  text-align: center;
 }
 
-/* Left label sticks left */
-.left-label {
-  text-align: left;
+.selected-number {
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: center;
+  min-width: 2ch; /* prevents jitter when numbers change */
 }
 
-/* Right label sticks right */
+.left-label,
 .right-label {
-  text-align: right;
+  font-size: 0.85rem;
+  color: #666;
 }
+
+input[type="range"] {
+  width: 60%;
+  max-width: 400px;
+  min-width: 250px;
+}
+
 
 /* Number centered below slider */
 .selected-number {
@@ -991,4 +1006,183 @@ for survey.jsx
   left: 50%;
   transform: translateX(-50%);
   font-weight: bold;
+}
+
+
+
+/*
+for instructions button on interactions page
+*/
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: white;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: none;
+  background: #7abed4;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.modal-card h2 {
+  text-align: center;
+}
+
+.info-icon-button {
+  width: 10px;
+  height: 36px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  font-weight: 600;
+  font-family: system-ui, sans-serif;
+
+  color: #2f4f5f;              /* muted blue-gray text */
+  background-color: #e6f4fa;   /* soft site-matching blue */
+  border: 1px solid #b8dce9;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+.info-icon-button:hover {
+  background-color: #d6edf7;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.info-icon-button:active {
+  transform: translateY(0);
+}
+
+.info-icon-button:focus {
+  outline: 2px solid #7abed4;
+  outline-offset: 2px;
+}
+
+.room-top-left {
+  position: fixed;
+  top: 2rem; /* below the nav bar */
+  left: 0rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  color: #2d3a40;
+}
+
+
+/*
+survey conversation thingy
+*/
+.conversation-log {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 16px;
+}
+
+.conversation-message {
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.conversation-message.llm {
+  color: #1f3a44;
+}
+
+.conversation-message.user {
+  color: #333;
+}
+
+
+.survey-container {
+  min-height: 100vh;
+  width: 100%;
+  padding: 2rem;
+
+  display: flex;
+  justify-content: center;
+  align-items: center; /* important: top-aligned, not centered */
+  background: linear-gradient(
+    180deg,
+    #eaf7fc 0%,
+    #d8f0f9 100%
+  );
+
+  /* animation: fadeIn 0.8s ease forwards; */
+}
+
+/* I was running into issues with the instructions box blocking off the message bar, this fixed it */
+.interactions-container {
+  min-height: 100vh;
+}
+
+.survey-card {
+  width: 75%;
+  /* max-width: 900px; wide, readable, professional */
+  background: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  padding: 2.5rem;
+  border-radius: 20px;
+
+  box-shadow: 0 10px 30px rgba(103, 184, 214, 0.25);
+}
+
+.survey-question {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.survey-question p {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;     /* centers input */
+  text-align: center;      /* centers label text */
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.form-group input,
+.form-group select {
+  width: 60%;
+  max-width: 400px;
+  min-width: 250px;
+
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 2px solid #b6dff0;
+  font-size: 1rem;
 }

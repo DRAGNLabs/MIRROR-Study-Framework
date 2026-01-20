@@ -1,10 +1,20 @@
 /*This page is where the users will interact with the llm*/
-
+import { Info } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
 import { getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
+import InstructionsModal from "./InstructionsModal";
+import game1 from "../games/game1.json";
+import game2 from "../games/game2.json";
+import game3 from "../games/game3.json"
+
+const gameMap = {
+    1: game1,
+    2: game2,
+    3: game3
+}
 
 
 export function Interaction(){
@@ -22,15 +32,18 @@ export function Interaction(){
     const { userId } = user;
     const roomCode = parseInt(user.roomCode); // to make sure sockets are connecting between user and admin
     const chatBoxRef = useRef(null);
+    const [showInstructions, setShowInstructions] = useState(false);
 
+    const game = gameMap[1]; // TEMP: replace with room.gameType
+    const role = {
+        role: "shepherd",
+        backstory: "people keep scattering your flock",
+        drawbacks: "you're allergic to sheep"
+    };
 
     useEffect(() => {
         socket.emit("join-room", { roomCode, isAdmin, user });
         socket.on("receive-message", (message) => {
-            // setMessages(prev => {
-            //     if (prev.some(m=>m.id === message.id)) return prev;
-            //     return [...prev, message];
-            // });
             setMessages((prev) => [...prev, message]); 
         });
 
@@ -228,8 +241,19 @@ export function Interaction(){
 
     return (
         <>
+        <div className="interactions-container">
         <div className="welcome-center">
             {user ? <h2>Welcome, {user.userName}!</h2> : <p>Loading...</p>}
+        </div>
+
+        <div className="room-top-left">
+            <button
+                className="info-icon-button"
+                title="Show instructions"
+                onClick={() => setShowInstructions(true)}
+                >
+                ⓘ
+            </button>
         </div>
 
         <div className="room-top-right">
@@ -266,11 +290,14 @@ export function Interaction(){
         <button type="submit" disabled={!canSend || hasSentThisRound}>Send</button>
         </form>
         </div>
-        {/* <div className="next-bottom-left">
-            <button onClick={() => navigate("/survey", { state: { userId } })}>
-            Next</button>
-           
-        </div> */}
+        <InstructionsModal
+            open={showInstructions}
+            onClose={() => setShowInstructions(false)}
+            game={game}
+            role={role}
+        />
+        </div>
+
 
         </>
     )

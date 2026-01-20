@@ -9,6 +9,8 @@ import { socket } from '../socket';
 import game1 from "../games/game1.json"
 import game2 from "../games/game2.json"
 import game3 from "../games/game3.json"
+import ConversationModal from "../interaction/ConversationModal";
+
 
 const surveyMap = {
     1: game1,
@@ -28,6 +30,9 @@ export function Survey() {
     const navigate = useNavigate();
     const inputRef = useRef();
     const surveyId = 1;
+    const [showConversation, setShowConversation] = useState(false);
+    const [conversationMessages, setConversationMessages] = useState([]);
+
 
     async function loadSurvey(){
         const roomInfo = await getRoom(roomCode);
@@ -38,21 +43,16 @@ export function Survey() {
 
     
     useEffect(() => {
-        if (roomCode){
-            loadSurvey();
+        async function loadData() {
+            if (!roomCode) return;
+
+            await loadSurvey();
+            const room = await getRoom(roomCode);
+            const msgs = await buildConversation(room);
+            setConversationMessages(msgs);
         }
 
-        // async function fetchUser() {
-        //     try {
-        //         const data = await getUser(userId);
-        //         setUser(data);
-        //     } catch (err) {
-        //         console.error("Failed to fetch user:", err);
-        //     }
-        // }
-        // fetchUser();
-
-
+        loadData();
     }, []);
 
 
@@ -72,7 +72,7 @@ export function Survey() {
         try {
             const response = await sendSurvey(1, userId, answers); // dummy surveyId, because I have no idea what surveyId is supposed to be anymore
             socket.emit("survey-complete", { roomCode, userId, surveyId });
-            navigate("/exit", { state: { userId }}); // right now I'm sending something in the state so it won't redirect you straight to home once you finish the survey
+            navigate("/exit", { state: { userId }}); 
         } catch (err) {
             console.error("Error:", err);
             setError(err.message || "Something went wrong.");
@@ -88,19 +88,67 @@ export function Survey() {
         );
     }
 
+    async function buildConversation(room) {
+        const llmInstructions = JSON.parse(room.llmInstructions);
+        const userMessages = JSON.parse(room.userMessages);
+        const llmResponses = JSON.parse(room.llmResponse);
+
+        const rounds = Object.keys(llmInstructions).sort((a, b) => a - b);
+        const messages = [];
+
+        for (const round of rounds) {
+            if (llmInstructions[round]) {
+            messages.push({
+                sender: "llm",
+                text: llmInstructions[round]
+            });
+            }
+
+            const roundMsgs = userMessages[round] || [];
+            for (const [uid, text] of roundMsgs) {
+            const user = await getUser(uid);
+            messages.push({
+                sender: "user",
+                userName: user.userName,
+                text
+            });
+            }
+
+            if (llmResponses[round]) {
+            messages.push({
+                sender: "llm",
+                text: llmResponses[round]
+            });
+            }
+        }
+
+        return messages;
+    }
+
 
     return (
-        //survey using dumby questions and dumby data that will be sent.
         <div className="survey-container">
+            <div className="survey-card">
+            <div className="room-top-left">
+                <button
+                    className="info-icon-button"
+                    title="View conversation history"
+                    onClick={() => setShowConversation(true)}
+                >
+                    ⓘ
+                </button>
+            </div>
             {user ? (
                 <p>{user.userName} please complete the following survey of your experience from room {user.roomCode}!</p> 
             ) : ( <p>User info is loading...</p> )}
+            
             {survey.questions.map(q => (
             <div key={q.id || q.label} className="survey-question">
 
             <p>{q.label}</p>
 
             {/* SELECT (yes/no etc.) */}
+            <div className="form-group">
             {q.type === "select" && (
                 <select
                 onChange={(e) => setAnswers(prev => ({
@@ -113,9 +161,11 @@ export function Survey() {
                 ))}
                 </select>
             )}
+            </div>
 
             {/* TEXT INPUT */}
             {q.type === "text" && (
+                <div className="form-group">
                 <input
                 type="text"
                 onChange={(e) => setAnswers(prev => ({
@@ -123,10 +173,12 @@ export function Survey() {
                 }))}
                 placeholder={q.placeholder || ""}
                 />
+                </div>
             )}
 
             {/* 1–10 LITERAL SCALE SLIDER */}
             {q.type === "scale" && q.style === "slider" && (
+                // <div className="form-group" >
                 <div className="scale-wrapper">
 
                 <input
@@ -146,6 +198,7 @@ export function Survey() {
                     <span className="right-label">{q.rightLabel}</span>
                 </div>
                 </div>
+                // </div>
             )}
             </div>
         ))}
@@ -156,7 +209,13 @@ export function Survey() {
                 </button>
                 </div>
 
-
+      
+            </div>
+        <ConversationModal
+            open={showConversation}
+            onClose={() => setShowConversation(false)}
+            messages={conversationMessages}
+        />
         </div>
     )
 }
