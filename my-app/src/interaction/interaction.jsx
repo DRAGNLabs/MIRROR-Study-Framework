@@ -1,5 +1,4 @@
 /*This page is where the users will interact with the llm*/
-import { Info } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
