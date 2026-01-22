@@ -1,12 +1,16 @@
-import sqlite3 from "sqlite3";
-sqlite3.verbose();
+import pg from "pg";
+const { Pool } = pg;
 
-const db = new sqlite3.Database("./mydatabase.db", (err) => {
-  if (err) {
-    console.error("Error opening database:", err.message);
-  } else {
-    console.log("✅ Connected to SQLite database");
-  }
-});
+const pool = new Pool();
 
-export default db;
+export default pool;
+
+// const db = new sqlite3.Database("./mydatabase.db", (err) => {
+//   if (err) {
+//     console.error("Error opening database:", err.message);
+//   } else {
+//     console.log("✅ Connected to SQLite database");
+//   }
+// });
+
+// export default db;

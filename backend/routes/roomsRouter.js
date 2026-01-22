@@ -1,249 +1,390 @@
 import express from "express";
 const router = express.Router();
 import db from "../db.js"; 
-import dotenv from "dotenv";
-dotenv.config();
+// import dotenv from "dotenv";
+// dotenv.config();
 
 // Creates room, puts roomCode, gameType, numRounds, usersNeeded, and modelType into table (rest of info will be updated later)
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
+  try{
   const { roomCode, gameType, numRounds, usersNeeded } = req.body;
-  if (!roomCode || !gameType || !numRounds || !usersNeeded) {
+  if (roomCode === undefined || gameType === undefined || numRounds === undefined || usersNeeded === undefined) {
     return res.status(400).json({message: "roomCode, gameType, numRounds, and usersNeeded are required"});
   }
   const modelType = process.env.OPENAI_MODEL;
-  const sql = 'INSERT INTO rooms (roomCode, gameType, numRounds, usersNeeded, modelType) VALUES (?, ?, ?, ?, ?)';
-  db.run(sql, [
-      roomCode,
-      gameType,
-      numRounds,
-      usersNeeded,
-      modelType
-    ],
-    function (err) {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: err.message });
-      }
 
-      res.status(201).json({
-        roomCode,
-        gameType,
-        numRounds,
-        usersNeeded,
-        modelType
-      });
-    }
-  )
+  const sql = `
+    INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType") 
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType";
+  `;
+
+  const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, modelType])
+  
+  return res.status(201).json(result.rows[0]);
+  // You can choose whichever return statement works best
+  // return res.status(201).json({
+  //       roomCode,
+  //       gameType,
+  //       numRounds,
+  //       usersNeeded,
+  //       modelType
+  //     });
+} catch (err) {
+  console.error(err);
+  return res.status(500).json({ error: err.message });
+}
 });
 
+
 // updates userIds and started to true, this will be used when admin directs users to interactions page
-router.patch("/:roomCode/userIds", (req, res) => {
+router.patch("/:roomCode/userIds", async (req, res) => {
+  try{
     const { userIds } = req.body;
     const { roomCode } = req.params;
-    if (!userIds) {
+    if (userIds === undefined) {
         return res.status(400).json({ error: "userIds is required"})
     }
-    db.run("UPDATE rooms SET userIds = ? WHERE roomCode = ?", [JSON.stringify(userIds), roomCode], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+    const result = await db.query(
+      'UPDATE rooms SET "userIds" = $1 WHERE "roomCode" = $2 RETURNING "roomCode", "userIds";', [userIds, roomCode]);
+     if (result.rowCount === 0){
+      return res.status(404).json({error: "Room not found"})
+     }  
+    return res.status(200).json({
+        roomCode: result.rows[0].roomCode,
+        userIds: result.rows[0].userIds,
+        message: "Room userIds successfully updated!"
+      });
+        
+  } catch (err){
+    console.log(err);
+    return res.status(500).json({ error: err.message });
 
-        res.status(200).json({
-          roomCode,
-          userIds,
-          message: "Room userIds successfully updated!"
-        });
-    })
+  }
 });
 
 // updates started when admin clicks start room
-router.patch("/:roomCode/started", (req, res) => {
+router.patch("/:roomCode/started", async (req, res) => {
+  try {
     // const { userIds } = req.body;
     const { roomCode } = req.params;
-    // if (!userIds) {
+    // if (userIds === undefined) {
     //     return res.status(400).json({ error: "userIds is required"})
     // }
-    db.run("UPDATE rooms SET started = 1 WHERE roomCode = ?", [roomCode], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+    const result = await db.query(
+      'UPDATE rooms SET started = TRUE WHERE "roomCode" = $1 RETURNING "roomCode", started;', 
+      [roomCode]);
+    
+      if (result.rowCount === 0){
+        return res.status(404).json({error: "Room not found"});
+      }
 
-        res.status(200).json({
-          roomCode,
-          message: "Started successfully updated to 1!"
-        });
-    })
-});
+    return res.status(200).json({
+      roomCode: result.rows[0].roomCode,
+      started: result.rows[0].started,
+      message: "Started successfully updated to true!"
+    });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: err.message });
+
+    }})
+
 
 // updates llmInstructions for specified room. This will be updated every round when LLM sends instructions
-router.patch("/:roomCode/llmInstructions", (req, res) => {
+router.patch("/:roomCode/llmInstructions", async (req, res) => {
+  try {
     const { llmInstructions } = req.body;
     const { roomCode } = req.params;
-    if (!llmInstructions) {
+    if (llmInstructions === undefined) {
         return res.status(400).json({ error: "llmInstructions is required"})
     }
-    db.run("UPDATE rooms SET llmInstructions = ? WHERE roomCode = ?", [JSON.stringify(llmInstructions), roomCode], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
 
-        res.status(200).json({
-          roomCode,
-          llmInstructions,
+    const result = await db.query(
+      'UPDATE rooms SET "llmInstructions" = $1 WHERE "roomCode" = $2 RETURNING "roomCode", "llmInstructions";', 
+      [llmInstructions, roomCode]
+    );
+
+    if (result.rowCount === 0){
+      return res.status(404).json({error: "Room not found"});
+    }
+        
+    return res.status(200).json({
+          roomCode: result.rows[0].roomCode,
+          llmInstructions: result.rows[0].llmInstructions,
           message: "llmInstructions successfully updated!"});
-    })
+    
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+
+
 });
 
 // updates userMessages for specified room. This will be updated every round once every user sends a message
-router.patch("/:roomCode/userMessages", (req, res) => {
+router.patch("/:roomCode/userMessages", async (req, res) => {
+  try {
     const { userMessages } = req.body;
     const { roomCode } = req.params;
-    if (!userMessages) {
+    if (userMessages === undefined) {
         return res.status(400).json({ error: "userMessages is required"})
     }
-    db.run("UPDATE rooms SET userMessages = ? WHERE roomCode = ?", [JSON.stringify(userMessages), roomCode], function (err) {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: "Database error" });
-        }
 
-        res.status(200).json({
-          roomCode,
-          userMessages,
+    const result = await db.query(
+      'UPDATE rooms SET "userMessages" = $1 WHERE "roomCode" = $2 RETURNING "userMessages", "roomCode";', 
+      [userMessages, roomCode]
+    );
+
+    if (result.rowCount === 0){
+      return res.status(404).json({error: "Room not found"});
+    }
+    
+    return res.status(200).json({
+          roomCode: result.rows[0].roomCode,
+          userMessages: result.rows[0].userMessages,
           message: "userMessages successfully updated!"
         });
-    })
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Database error" });
+  }
+
 });
 
 // updates llmResponse for specified room. This will be udpated every round once LLM sends response
-router.patch("/:roomCode/llmResponse", (req, res) => {
+router.patch("/:roomCode/llmResponse", async (req, res) => {
+  try {
     const { llmResponse } = req.body;
     const { roomCode } = req.params;
-    if (!llmResponse) {
+    if (llmResponse === undefined) {
         return res.status(400).json({ error: "llmResponse is required"})
     }
-    db.run("UPDATE rooms SET llmResponse = ? WHERE roomCode = ?", [JSON.stringify(llmResponse), roomCode], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
 
-        res.status(200).json({
-          roomCode,
-          llmResponse,
-          message: "llmResponse successfully updated!"
-        });
-    })
+    const result = await db.query(
+      'UPDATE rooms SET "llmResponse" = $1 WHERE "roomCode" = $2 RETURNING "llmResponse", "roomCode";', 
+      [llmResponse, roomCode]
+    );
+
+    if (result.rowCount === 0){
+      return res.status(404).json({error: "Room not found"});
+    }
+
+    return res.status(200).json({
+      roomCode: result.rows[0].roomCode,
+      llmResponse: result.rows[0].llmResponse,
+      message: "llmResponse successfully updated!"
+    });
+
+  } catch (err){
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+
 });
 
 // updates completed for specified room. Once admin directs users to survey page it will set the room as completed and those rooms won't show up on admin page anymore
-router.patch("/:roomCode/completed", (req, res) => {
+router.patch("/:roomCode/completed", async (req, res) => {
+  try {
     const { roomCode } = req.params;
 
-    db.run("UPDATE rooms SET completed = 1 WHERE roomCode = ?", [roomCode], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+    const result = await db.query(
+      'UPDATE rooms SET completed = TRUE WHERE "roomCode" = $1 RETURNING "roomCode", completed;', 
+      [roomCode]
+    );
 
-        res.status(200).json({
-          roomCode,
-          message: "Room is completed!"
-        });
-    })
+    if (result.rowCount === 0){
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json({
+      roomCode: result.rows[0].roomCode,
+      completed: result.rows[0].completed,
+      message: "Room is completed!"
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+
 });
 
 // gets all rooms in table
-router.get("/", (req, res) => {
-  db.all("SELECT * FROM rooms", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(200).json(rows);
-  });
+router.get("/", async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM rooms ORDER BY "roomCode" ASC;'
+    );
+    return res.status(200).json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 // gets all rooms that aren't completed in table. These rooms will be shown on /admin page
-router.get("/nonCompleted", (req, res) => {
-  db.all("SELECT * FROM rooms WHERE completed = 0", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(200).json(rows);
-  });
+router.get("/nonCompleted", async (req, res) => {
+
+  try {
+    const result = await db.query(
+      'SELECT * FROM rooms WHERE completed = FALSE ORDER BY "roomCode" ASC;'
+    );
+    return res.status(200).json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+
 });
 
 // Lets us know if roomCode is valid or not
-router.post("/valid", (req, res) => { //return false if found in database because its already taken and not valid
-  const roomCode = req.body.roomCode;
-  if(!roomCode) {
-    return res.status(400).json({ message: "roomCode is required" });
-  }
-  db.get("SELECT * FROM rooms WHERE roomCode = ?", [roomCode], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: "Error validating room in database"});
+router.post("/valid", async (req, res) => { //return false if found in database because its already taken and not valid
+  try {
+    const roomCode = req.body.roomCode;
+    if(!roomCode) {
+      return res.status(400).json({ message: "roomCode is required" });
     }
-    if(row){
+
+    const result = await db.query(
+      'SELECT 1 FROM rooms WHERE "roomCode" = $1 LIMIT 1', 
+      [roomCode]
+    );
+
+    if(result.rowCount > 0){ //this means it is taken
       return res.json(false);
     }
-
     return res.json(true);
 
-  });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Error validating room in database"});
+  }
+});
 
-})
 
-router.get("/:roomCode/login", (req, res) => {
-  const roomCode = req.params.roomCode;
-  db.get("SELECT * FROM rooms WHERE roomCode = ?", [parseInt(roomCode)], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: "Error validating room in database" });
-    }
-    if (row && row.started==1) {
+router.get("/:roomCode/login", async (req, res) => {
+  try {
+    const roomCode = req.params.roomCode;
+    const result = await db.query(
+      'SELECT * FROM rooms WHERE "roomCode" = $1', 
+      [parseInt(roomCode)]
+    );
+
+    const room = result.rows[0];
+
+    if (room && room.started === true) {
       return res.json(true);
     }
 
     return res.json(false);
-  })
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Error validating room in database" });
+  }
+
 })
 
 
 // deletes a room based off of roomCode
-router.delete("/delete/:roomCode", (req,res) => {
-  const roomCode = req.params.roomCode;
-  db.run("DELETE FROM rooms WHERE roomCode = ?", [roomCode], function(err) {
-    if (err) {
-      console.error("Error deleting room:", err);
-      return res.status(500).json({ success: false, message: "Error deleting room." });
-    }
-    res.status(200).json({ success: true, deleted: this.changes }); // this.changes says how many rows were deleted
-  });
+router.delete("/delete/:roomCode", async (req,res) => {
+  try {
+   const roomCode = req.params.roomCode;
+   const result = await db.query(
+    'DELETE FROM rooms WHERE "roomCode" = $1', [roomCode]
+   );
+   res.status(200).json({ 
+    success: true, 
+    deleted: result.rowCount }); // says how many rows were deleted
+ 
+  } catch (err) {
+    console.error("Error deleting room:", err);
+    return res.status(500).json({ success: false, message: "Error deleting room." });
+  }
+
 });
 
-router.get("/:roomCode", (req, res) => {
-  const { roomCode } = req.params;
-  if(!roomCode) {
-    return res.status(400).json({ message: "roomCode is required" });
-  }
-  db.get("SELECT * FROM rooms WHERE roomCode = ?", [roomCode], (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!row) return res.status(404).json({ message: "Room not found" });
+router.get("/:roomCode", async (req, res) => {
+  try {
 
-        res.status(200).json(row);
-    });
+    const { roomCode } = req.params;
+
+    if(!roomCode) {
+      return res.status(400).json({ message: "roomCode is required" });
+    }
+
+    const result = await db.query(
+      'SELECT * FROM rooms WHERE "roomCode" = $1', 
+      [roomCode]
+    );
+
+    const row = result.rows[0];
+
+    if (!row) return res.status(404).json({ message: "Room not found" });
+
+    return res.status(200).json(row);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+
 });
 
 // getting all users that are in room
 router.get("/:roomCode/users", async (req, res) => {
-  const { roomCode } = req.params;
-  if(!roomCode) {
-    return res.status(400).json({ message: "roomCode is required" });
-  }
-  const users = await db.all(
-    `SELECT * FROM users WHERE roomCode = ?`, [roomCode], (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!row) return res.status(404).json({ message: "users not found with corresponding roomCode" });
+  try {
+    const { roomCode } = req.params;
 
-        res.status(200).json(row);
-    });
+    if(!roomCode) {
+      return res.status(400).json({ message: "roomCode is required" });
+    }
+
+    const result = await db.query(
+      'SELECT * FROM users WHERE "roomCode" = $1 ORDER BY "userId" ASC;', 
+      [roomCode]
+    );
+  
+    if (result.rowCount === 0) return res.status(404).json({ message: "users not found with corresponding roomCode" });
+
+    res.status(200).json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
-router.patch("/:roomCode/status", async (req, res) => {
-  const { roomCode } = req.params;
-  const { status } = req.body;
-  db.run("UPDATE rooms SET status = ? WHERE roomCode = ?", [status, roomCode], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
 
-    res.status(200).json({
-      roomCode,
-      status,
+router.patch("/:roomCode/status", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { status } = req.body;
+
+    const result = await db.query(
+      'UPDATE rooms SET status = $1 WHERE "roomCode" = $2 RETURNING "roomCode", status',
+      [status, roomCode]
+    );
+
+    if (result.rowCount === 0){
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json({
+      roomCode: result.rows[0].roomCode,
+      status: result.rows[0].status,
       message: "status successfully updated!"
     });
-  })
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+
+  }
 
 })
 
