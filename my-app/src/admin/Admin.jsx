@@ -97,7 +97,10 @@ export function Admin() {
     async function startRoom(roomCode) {
         try {
             await roomStarted(roomCode);
-            await updateStatus(roomCode, "waiting");
+            const room = await getRoom(roomCode);
+            if(room.status !== "survey" && room.status !== "interaction" && room.status!== "instructions") {
+               await updateStatus(roomCode, "waiting"); 
+            }
             navigate("/admin/waiting", { state: { roomCode }}); // this is probably fine to pass room for now
         } catch(error) {
             console.error("Error:", error);

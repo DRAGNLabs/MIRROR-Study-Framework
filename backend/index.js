@@ -40,7 +40,9 @@ const socketUserMap = {};
 const roomState = {}; // this lets you know if game is started or not
 const gameState = {};
 const surveyStatus = {};
-const status = {}; // "waiting" || "instructions" || "interaction" || "survey"
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(roomCode) {
     const state = gameState[roomCode];
@@ -101,10 +103,10 @@ async function getLlmResponse(roomCode) {
 }
 
 io.on("connection", (socket) => {
-   console.log("User connected:", socket.id);
+//    console.log("User connected:", socket.id);
     
     // when admin starts room or when user joins roomCode they are joined to this socket instance
-    socket.on("join-room", ({ roomCode, isAdmin, user }) => {
+    socket.on("join-room", async ({ roomCode, isAdmin, user }) => {
         if (!roomCode || typeof roomCode !== 'number') {
             console.warn("join-room missing or invalid roomCode", roomCode, user);
             return;
@@ -112,7 +114,6 @@ io.on("connection", (socket) => {
 
         if(!rooms[roomCode]) {
              rooms[roomCode] = [];
-             status[roomCode] = "waiting";
         }
 
         socket.join(roomCode);
@@ -123,23 +124,19 @@ io.on("connection", (socket) => {
                 rooms[roomCode].push(user);
             } 
         }
-        // socket.join(roomCode);
-        // socketUserMap[socket.id] = { roomCode, isAdmin, user };
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
+        const room = await getRoom(roomCode);
         // send user/admin to correct status page
-        io.to(roomCode).emit("status", status[roomCode]);
+        io.to(roomCode).emit("status", room.status);
 
-       console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode);
+       console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
     });
 
     socket.on("show-instructions", async ({roomCode}) => {
-        if (!roomCode || !rooms[roomCode]) {
-            console.warn("show-instructions invalid roomCode:", roomCode);
-        }
-        
-        status[roomCode] = "instructions";
+        if (!roomCode) return;
+
         io.to(roomCode).emit("to-instructions");
     });
 
@@ -148,9 +145,9 @@ io.on("connection", (socket) => {
     socket.on("start-game", async ({roomCode}) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("start-game invalid roomCode:", roomCode);
+            return;
         }
         roomState[roomCode] = true;
-        status[roomCode] = "interaction";
         // this one will send users from waitingRoom to interactions page
         io.to(roomCode).emit("start-chat");
     });
@@ -181,6 +178,7 @@ io.on("connection", (socket) => {
         ]
 
         // getting instructions from LLM below
+        await delay(1000); // it keeps missing the ai-start socket this fixed it, probably not best way but it works
         io.to(roomCode).emit("ai-start");
 
         let buffer = "";
@@ -220,7 +218,7 @@ io.on("connection", (socket) => {
 
       
         if(state.userMessages.size === state.userIds.size) {
-            await getLlmResponse(roomCode);
+            await getLlmResponse(roomCode); // if a user leaves in middle of round this is called before that user sends their message
         }
     });
 
@@ -230,7 +228,6 @@ io.on("connection", (socket) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("startSurvey invalid roomCode:", roomCode);
         }
-        status[roomCode] = "survey";
         // this sends user from interaction page to survey page
         io.to(roomCode).emit("start-user-survey");
     });
@@ -246,10 +243,8 @@ io.on("connection", (socket) => {
             clients.forEach(clientId => {
                 const clientSocket = io.sockets.sockets.get(clientId);
                 clientSocket.leave(roomCode); // remove from room
-                clientSocket.disconnect(true); // optional: fully disconnect
             });
         }
-        delete status[roomCode];
         delete rooms[roomCode];
     })
 
@@ -266,7 +261,6 @@ io.on("connection", (socket) => {
         io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
         const currRoom = await getRoom(roomCode);
         if(surveyStatus[roomCode].size === JSON.parse(currRoom.userIds).length) {
-            console.log(`All surveys complete for room ${roomCode}`);
             await roomCompleted(roomCode);
             // io.to(roomCode).emit("all-surveys-complete")
         }    
@@ -276,22 +270,23 @@ io.on("connection", (socket) => {
     socket.on("leave-room", ({ roomCode, userId }) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("leave-room invalid roomCode:", roomCode);
+            return;
         }
+        const data = socketUserMap[socket.id]
+        if (!data)  return;
+
+        const { isAdmin, user } = data
 
         rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-
-        // if not enough users send back to waiting room
-        // need to fix this
-        // if (roomState[roomCode] && rooms[roomCode].length < 3) {
-        //     roomState[roomCode] = false;
-        //     io.to(roomCode).emit("force-return-to-waiting-room");
-        // }
-
-
         socket.leave(roomCode);
         delete socketUserMap[socket.id];
+        if (isAdmin) {
+            console.log("admin left room:", socket.id);
+        } else {
+            console.log("User left room:", socket.id, user.userName);
+        }
     });
 
     // also keeps track of users leaving a room
@@ -300,21 +295,22 @@ io.on("connection", (socket) => {
         if (!data)  return;
 
         const { roomCode, isAdmin, user } = data
+        if(!roomCode || !rooms[roomCode]) {
+            return;
+        }
         if(!isAdmin) {
             rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
             io.to(roomCode).emit("room-users", rooms[roomCode]);
         }
 
-        // If not enough users send back to waiting room
-        // need to fix this
-        // if (roomState[roomCode] && rooms[roomCode].length < 3) {
-        //     roomState[roomCode] = false;
-        //     io.to(roomCode).emit("force-return-to-waiting-room");
-        // }
-
         // Clean up mapping
+        socket.leave(roomCode);
         delete socketUserMap[socket.id];
-        console.log("User disconnected:", socket.id)
+        if (isAdmin) {
+            console.log("admin disconnected:", socket.id);
+        } else {
+            console.log("User disconnected:", socket.id, user.userName);
+        }
     });
 
     socket.on("connect_error", (err) => {

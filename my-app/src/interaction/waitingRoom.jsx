@@ -10,11 +10,11 @@ export default function WaitingRoom() {
   const { userId } = user;
   const roomCode = parseInt(user.roomCode);
   const [users, setUsers] = useState([]);
-  const isAdmin = false;
 
 
   useEffect(() => {
-    // socket.emit("join-room", { roomCode, isAdmin, user });
+    if (!socket.connected) socket.connect();
+    socket.emit("join-room", { roomCode, isAdmin: false, user});
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;
@@ -39,9 +39,6 @@ export default function WaitingRoom() {
       navigate("/");
     })
 
-    // moved this down here because it for some reason was messing with the user list being updated right if it was first
-    socket.emit("join-room", { roomCode, isAdmin, user });
-
     const handleUnload = () => {
       socket.emit("leave-room", { roomCode, userId });
     };
@@ -57,6 +54,11 @@ export default function WaitingRoom() {
     };
   }, [roomCode]);
 
+    useEffect(() => {
+      return () => {
+          socket.emit("leave-room", { roomCode });
+      };
+  }, []);
 
   return (
     <div className="waiting-container">

@@ -13,13 +13,10 @@ export default function RoomManagement() {
     const { roomCode } = location.state;
 
 
-    useEffect(() => {
-        retrieveRoom();
-    }, [roomCode]);
 
     useEffect(() => {
-
-        socket.emit("join-room", { roomCode, isAdmin});
+        if (!socket.conected) socket.connect();
+        socket.emit("join-room", {roomCode, isAdmin});
 
         socket.on("status", (status) => {
             const currentPath = location.pathname;
@@ -30,7 +27,10 @@ export default function RoomManagement() {
             }
         });
 
-        socket.on("room-users", setUsers);
+        // socket.on("room-users", setUsers);
+        socket.on("room-users", (userList) => {
+            setUsers(userList);
+        });
         
         socket.on("force-return-to-login", () => {
             navigate("/admin");
@@ -42,8 +42,18 @@ export default function RoomManagement() {
             socket.off("force-return-to-login");
         };
   
+    }, [roomCode]);
+
+    useEffect(() => {
+        return () => {
+            socket.emit("leave-room", { roomCode });
+        };
     }, []);
 
+
+    useEffect(() => {
+        retrieveRoom();
+    }, [roomCode]);
 
     async function retrieveRoom() { 
         try {
