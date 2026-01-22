@@ -33,6 +33,7 @@ export function Interaction(){
     const roomCode = parseInt(user.roomCode); // to make sure sockets are connecting between user and admin
     const chatBoxRef = useRef(null);
     const [showInstructions, setShowInstructions] = useState(false);
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     const game = gameMap[1]; // TEMP: replace with room.gameType
     const role = {
@@ -42,6 +43,7 @@ export function Interaction(){
     };
 
     useEffect(() => {
+        if (!socket.connected) socket.connect();
         socket.emit("join-room", { roomCode, isAdmin, user });
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
@@ -106,6 +108,12 @@ export function Interaction(){
             socket.off("game-complete");
             socket.off("force-return-to-login");
         };
+    }, [roomCode]);
+
+    useEffect(() => {
+        return () => {
+            socket.emit("leave-room", { roomCode });
+        };
     }, []);
 
     useEffect(() => {
@@ -143,6 +151,8 @@ export function Interaction(){
 
         const rounds = Object.keys(llmInstructions).sort((a,b) => a-b);
         for (const round of rounds) {
+            userSentThisRound = false;
+            llmResponded = false;
             lastRound = round;
             if (llmInstructions[round]) {
                 newMsgs.push({
@@ -154,7 +164,6 @@ export function Interaction(){
             const msgs = userMessages[round] || [];
             for (const [msgUserId, text] of msgs) {
                 const userTemp = await getUserName(msgUserId);
-                console.log("username:", userTemp);
                 newMsgs.push({
                     sender: "user",
                     msgUserId,
@@ -173,7 +182,7 @@ export function Interaction(){
                     id: `llm-${round}`
                 });
             }
-            if (parseInt(round) === parseInt(numRounds)) {
+            if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) {
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",
@@ -192,6 +201,7 @@ export function Interaction(){
     useEffect(() => {
         async function retrieveRoom() { 
             try {
+                await delay(1000);
                 const room = await getRoom(roomCode);
                 let llmInstructions = JSON.parse(room.llmInstructions);
                 let userMessages = JSON.parse(room.userMessages);

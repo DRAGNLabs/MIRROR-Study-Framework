@@ -19,9 +19,11 @@ export default function AdminInteraction(){
     const { roomCode } = location.state;
     const isStreamingRef = useRef(false);
     const isAdmin = true;
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
     useEffect(() => {
+        if (!socket.connected) socket.connect();
         socket.emit("join-room", { roomCode, isAdmin});
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
@@ -73,8 +75,13 @@ export default function AdminInteraction(){
             socket.off("round-complete");
             socket.off("force-return-to-login");
         };
-    }, []);
+    }, [roomCode]);
 
+    useEffect(() => {
+        return () => {
+            socket.emit("leave-room", { roomCode });
+        };
+    }, []);
 
     useEffect(() => {
         if (!streamingText) return;
@@ -137,7 +144,7 @@ export default function AdminInteraction(){
                     id: `llm-${round}`
                 });
             }
-            if (parseInt(round) === parseInt(numRounds)) {
+            if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) { // this check needs to change
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",
@@ -154,6 +161,7 @@ export default function AdminInteraction(){
 
         async function retrieveRoom() {
             try {
+                await delay(1000); // this makes sure the messages don't get reset before llmInstructions have sent
                 const room = await getRoom(roomCode);
                 let llmInstructions = JSON.parse(room.llmInstructions);
                 let userMessages = JSON.parse(room.userMessages);

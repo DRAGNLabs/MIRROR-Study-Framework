@@ -47,6 +47,13 @@ export default function AdminInstructions() {
       }
     }, []);
 
+    useEffect(() => {
+        return () => {
+            socket.emit("leave-room", { roomCode });
+        };
+    }, []);
+
+
     async function toInteractions() {
         socket.emit("start-game", { roomCode });
         socket.emit('start-round', {

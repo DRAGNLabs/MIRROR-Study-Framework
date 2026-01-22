@@ -38,6 +38,13 @@ export default function Instructions() {
         };
     }, [roomCode]);
 
+    useEffect(() => {
+        return () => {
+            socket.emit("leave-room", { roomCode });
+        };
+    }, []);
+
+
     // instructions are hardcoded for now since we don't have role functionality yet, will update that once we implement role functionality
         return (
         <div className="user-instruction-container">
