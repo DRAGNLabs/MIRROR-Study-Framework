@@ -31,7 +31,7 @@ router.post("/noData", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { surveyId, userId, data } = req.body;
-    if (surveyId === undefined || userId === undefined || data == undefined) {
+    if (surveyId === undefined || userId === undefined || data === undefined) {
       return res.status(400).json({ message: "surveyId, userId and data are required" });
     }
 
@@ -60,8 +60,12 @@ router.post("/", async (req, res) => {
 router.patch("/:surveyId/data", async (req, res) => {
   try{
     const { data } = req.body;
-    const { surveyId } = req.params.surveyId;
-    const { userId } = req.params.userId;
+    const surveyId = Number(req.params.surveyId);
+    const userId = Number(req.params.userId);
+
+    if (!Number.isFinite(surveyId) || !Number.isFinite(userId)) {
+      return res.status(400).json({ error: "surveyId and userId must be numbers" });
+    }
 
     if (data === undefined) {
         return res.status(400).json({ error: "Survey data is required"})
@@ -88,7 +92,7 @@ router.patch("/:surveyId/data", async (req, res) => {
 // returns all survey data
 router.get("/", async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM survey');
+    const result = await db.query('SELECT * FROM survey ORDER BY "surveyId", "userId";');
 
     return res.status(200).json(result.rows);
   } catch (err) {
