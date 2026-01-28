@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
 import { getRoom } from "../../services/roomsService";
-import { getUser } from "../../services/usersService";
+import { getUser, getUserRole } from "../../services/usersService";
 import InstructionsModal from "./InstructionsModal";
 import games from "../gameLoader";
 // import game1 from "../games/game1.json";
@@ -36,18 +36,22 @@ export function Interaction(){
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState(null);
 
     // const game = gameMap[1]; // TEMP: replace with room.gameType
-    const role = {
-        role: "shepherd",
-        backstory: "people keep scattering your flock",
-        drawbacks: "you're allergic to sheep"
-    };
+    // const role = {
+    //     role: "shepherd",
+    //     backstory: "people keep scattering your flock",
+    //     drawbacks: "you're allergic to sheep"
+    // };
     useEffect(() => {
 
-        async function fetchRoom() {
+        async function fetchData() {
             try {
                 const roomData = await getRoom(roomCode);
+                const gameData = games.find(g => parseInt(g.id) === roomData.gameType);
+                const { role } = await getUserRole(user.userId);
+                setUserRole(gameData.roles[parseInt(role) -1]);
                 setGame(games.find(g => parseInt(g.id) === roomData.gameType));
             } catch (err) {
                 console.error("Failed to fetch rom:", err);
@@ -56,13 +60,25 @@ export function Interaction(){
             }
         }
 
-        fetchRoom();
+        fetchData();
 
     }, [roomCode])
 
     useEffect(() => {
-        if (!socket.connected) socket.connect();
         socket.emit("join-room", { roomCode, isAdmin, user });
+        // if (!socket.connected) socket.connect();
+
+        // const handleConnect = () => {
+        //    socket.emit("join-room", { roomCode, isAdmin, user }); 
+        // }
+
+        // if (socket.connected) {
+        //     handleConnect();
+        // } else {
+        //     socket.once("connect", handleConnect);
+        // }
+        // socket.on("connect", handleConnect);
+
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
         });
@@ -114,7 +130,16 @@ export function Interaction(){
             navigate("/");
         })
 
+        // const handleLeaveRoom = () => {
+        //     socket.emit("leave-room", { roomCode });
+        // };
+
+        // window.addEventListener("beforeunload", handleLeaveRoom);
+
         return () => {
+            // handleLeaveRoom();
+            // window.removeEventListener("beforeunload", handleLeaveRoom);
+            // socket.off("connect", handleConnect);
             socket.off("receive-message");
             socket.off("room-users");
             socket.off("force-return-to-waiting-room");
@@ -128,11 +153,11 @@ export function Interaction(){
         };
     }, []);
 
-    useEffect(() => {
-        return () => {
-            socket.emit("leave-room", { roomCode });
-        };
-    }, []);
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (!streamingText || !currentStreamingId) return;
@@ -322,7 +347,7 @@ export function Interaction(){
             open={showInstructions}
             onClose={() => setShowInstructions(false)}
             game={game}
-            role={role}
+            role={userRole}
         />
         </div>
 

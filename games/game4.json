@@ -12,15 +12,18 @@
     },
     "roles": [
         {
-            "role": "Fisherman", 
+            "role": "Fisherman",
+            "id": 1, 
             "backstory": "Your daughter is dying of the plague, and your catch has been very poor lately. If you don't catch enough fish soon, you won't be able to afford her medicine."
         }, 
         {
             "role": "Fisherman", 
+            "id": 2,
             "backstory": "You are a succesful fisherman, whose success has allowed you to wield economic power in the local community, for better or worse."
         }, 
         {
             "role": "Fisherman", 
+            "id": 3,
             "backstory": "The upcoming winter is expected to be particularly harsh this year, and you need to stock up on supplies to prepare."
         }
     ],
@@ -41,7 +44,7 @@
             "id": "gender",
             "label": "To which gender identity do you most identify?",
             "type": "select",
-            "options": ["Female, Male, Non-Binary, Prefer not to say, Other"]
+            "options": ["Female", "Male", "Non-Binary", "Prefer not to say", "Other"]
         },
         { 
             "id": "language",

@@ -13,8 +13,21 @@ export default function WaitingRoom() {
 
 
   useEffect(() => {
-    if (!socket.connected) socket.connect();
     socket.emit("join-room", { roomCode, isAdmin: false, user});
+    // if (!socket.connected) socket.connect();
+
+    // const handleConnect = () => {
+    //   socket.emit("join-room", { roomCode, isAdmin: false, user});
+    // }
+
+    // if (socket.connected) {
+    //   handleConnect();
+    // } else {
+    //   socket.once("connect", handleConnect);
+    // }
+    // socket.emit("join-room", { roomCode, isAdmin: false, user});
+
+    // socket.on("connect", handleConnect);
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;
@@ -39,14 +52,21 @@ export default function WaitingRoom() {
       navigate("/");
     })
 
-    const handleUnload = () => {
-      socket.emit("leave-room", { roomCode, userId });
-    };
+    // const handleUnload = () => {
+    //   socket.emit("leave-room", { roomCode, userId });
+    // };
 
-    window.addEventListener("beforeunload", handleUnload);
+    // window.addEventListener("beforeunload", handleUnload);
+    // const handleLeaveRoom = () => {
+    //   socket.emit("leave-room", { roomCode });
+    // };
+
+    // window.addEventListener("beforeunload", handleLeaveRoom);
 
     return () => {
-      window.removeEventListener("beforeunload", handleUnload);
+      // handleLeaveRoom();
+      // socket.off("connect", handleConnect);
+      // window.removeEventListener("beforeunload", handleLeaveRoom);
       socket.off("status");
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);
@@ -54,11 +74,11 @@ export default function WaitingRoom() {
     };
   }, []);
 
-    useEffect(() => {
-      return () => {
-          socket.emit("leave-room", { roomCode });
-      };
-  }, []);
+  //   useEffect(() => {
+  //     return () => {
+  //         socket.emit("leave-room", { roomCode });
+  //     };
+  // }, []);
 
   return (
     <div className="waiting-container">

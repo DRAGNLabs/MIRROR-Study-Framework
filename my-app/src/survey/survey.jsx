@@ -60,8 +60,11 @@ export function Survey() {
         if (!survey) return;
 
         const missing = survey.questions.filter(
-            q => answers[q.id] == null || answers[q.id] === ""
+            q => q.type !== "label" && (answers[q.id] == null || answers[q.id] === "")
         );
+        console.log(survey.questions.filter(
+            q => answers[q.id] == null || answers[q.id] === ""
+        ));
 
         if (missing.length > 0) {
             alert("Please fill out all survey questions before submitting!");

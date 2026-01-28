@@ -40,22 +40,43 @@ export default function AdminInstructions() {
     }, [roomCode])
 
     useEffect(() => {
-      if (!socket.connected) socket.connect();
-      socket.emit("join-room", { roomCode, isAdmin});
+      socket.emit("join-room", { roomCode, isAdmin });
+      // if (!socket.connected) socket.connect();
+
+      // const handleConnect = () => {
+      //   socket.emit("join-room", { roomCode, isAdmin});
+      // }
+
+      // if (socket.connected) {
+      //   handleConnect();
+      // } else {
+      //   socket.once("connect", handleConnect);
+      // }
+      // socket.on("connect", handleConnect);
+
       socket.on("force-return-to-login", () => {
         navigate("/admin");
       })
 
+      // const handleLeaveRoom = () => {
+      //   socket.emit("leave-room", { roomCode });
+      // };
+
+      // window.addEventListener("beforeunload", handleLeaveRoom);
+
       return () => {
+        // handleLeaveRoom();
+        // window.removeEventListener("beforeunload", handleLeaveRoom);
+        // socket.off("connect", handleConnect);
         socket.off("force-return-to-login");
       }
     }, []);
 
-    useEffect(() => {
-        return () => {
-            socket.emit("leave-room", { roomCode });
-        };
-    }, []);
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
 
 
     async function toInteractions() {
@@ -82,8 +103,12 @@ export default function AdminInstructions() {
         {game.instructions.overview}
       </p>
 
-      <h3 className="section-title">Rounds</h3>
-
+      {/* <h3 className="section-title">Rounds</h3> */}
+      <h3 className="section-title">Your Task</h3>
+      <div className="round-content">
+        {game.instructions.rounds[0].description}
+      </div>
+{/* 
       <div className="rounds-container">
         {game.instructions.rounds.map((round, index) => (
           <div key={index} className="round-row">
@@ -93,7 +118,7 @@ export default function AdminInstructions() {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* <h3 className="section-title">Overall Goal</h3> */}
 

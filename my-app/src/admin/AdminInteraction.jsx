@@ -23,8 +23,15 @@ export default function AdminInteraction(){
 
 
     useEffect(() => {
-        if (!socket.connected) socket.connect();
         socket.emit("join-room", { roomCode, isAdmin});
+        // if (!socket.connected) socket.connect();
+
+        // const handleConnect = () => {
+        //    socket.emit("join-room", { roomCode, isAdmin}); 
+        // }
+
+        // socket.on("connect", handleConnect);
+
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
         });
@@ -66,7 +73,9 @@ export default function AdminInteraction(){
             navigate("/admin");
         });
 
+
         return () => {
+            // socket.off("connect", handleConnect);
             socket.off("receive-message");
             socket.off("room-users");
             socket.off("ai-token");
@@ -77,11 +86,11 @@ export default function AdminInteraction(){
         };
     }, [roomCode]);
 
-    useEffect(() => {
-        return () => {
-            socket.emit("leave-room", { roomCode });
-        };
-    }, []);
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (!streamingText) return;
