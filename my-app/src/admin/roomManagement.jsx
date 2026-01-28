@@ -2,6 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket"; 
 import { updateUserIds, getRoom, updateStatus } from "../../services/roomsService";
+import { setRole } from "../../services/usersService";
+import games from "../gameLoader";
 
 export default function RoomManagement() {
     const location = useLocation();
@@ -15,8 +17,20 @@ export default function RoomManagement() {
 
 
     useEffect(() => {
-        if (!socket.conected) socket.connect();
         socket.emit("join-room", {roomCode, isAdmin});
+        // if (!socket.conected) socket.connect();
+
+        // const handleConnect = () => {
+        //     socket.emit("join-room", {roomCode, isAdmin});
+        // }
+
+        // socket.on("connect", handleConnect);
+
+        // if (socket.connected) {
+        //     handleConnect();
+        // } else {
+        //     socket.once("connect", handleConnect);
+        // }
 
         socket.on("status", (status) => {
             const currentPath = location.pathname;
@@ -36,7 +50,16 @@ export default function RoomManagement() {
             navigate("/admin");
         })
 
+        // const handleLeaveRoom = () => {
+        //     socket.emit("leave-room", { roomCode });
+        // };
+
+        // window.addEventListener("beforeunload", handleLeaveRoom);
+
         return () => {
+            // handleLeaveRoom();
+            // window.removeEventListener("beforeunload", handleLeaveRoom);
+            // socket.off("connect", handleConnect);
             socket.off("status");
             socket.off("room-users");
             socket.off("force-return-to-login");
@@ -44,11 +67,11 @@ export default function RoomManagement() {
   
     }, [roomCode]);
 
-    useEffect(() => {
-        return () => {
-            socket.emit("leave-room", { roomCode });
-        };
-    }, []);
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
 
 
     useEffect(() => {
@@ -66,6 +89,10 @@ export default function RoomManagement() {
     }
 
     async function start() {
+        const roomData = await getRoom(roomCode);
+        const game = games.find(g => g.id === roomData.gameType)
+        const gameRoles = game.roles;
+        await assignRoles(users, gameRoles);
         socket.emit("show-instructions", { roomCode });
         let userIds = [];
         for (let i = 0; i < users.length; i++) {
@@ -75,6 +102,22 @@ export default function RoomManagement() {
         await updateStatus(roomCode, "instructions");
         navigate("/admin/instructions", { state: { roomCode }});
 
+    }
+
+    async function assignRoles(usersInRoom, gameRoles) {
+        const shuffledRoles = [...gameRoles].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < usersInRoom.length; i++) {
+            const user = usersInRoom[i];
+            console.log("User in assignRoles", user);
+            const roleToAssign = shuffledRoles[i];
+            console.log("Role for user at", i, roleToAssign);
+            try {
+                const response = await setRole(user.userId, roleToAssign.id);
+                console.log(response);
+            } catch(error) {
+                console.log(error.message);
+            }
+        }
     }
 
 

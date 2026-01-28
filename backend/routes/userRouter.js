@@ -54,6 +54,20 @@ router.get("/:userId", (req, res) => {
     });
 });
 
+// get user role with specified userId
+router.get("/:userId/getRole", (req, res) => {
+    const userId = req.params.userId;
+    if (!userId) {
+        return res.status(400).json({ error: "userId is required"});
+    }
+    db.get("SELECT role FROM users WHERE userId = ?", [userId], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ message: "User not found" });
+
+        res.status(200).json(row);
+    });
+});
+
 router.get("/:userName/:roomCode", (req, res) => {
     const userName = req.params.userName;
     const roomCode = req.params.roomCode;

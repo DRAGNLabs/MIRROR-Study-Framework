@@ -4,6 +4,7 @@ import { socket } from "../socket";
 import games from "../gameLoader"
 import { getRoom } from "../../services/roomsService";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getUserRole } from "../../services/usersService";
 
 export default function Instructions() {
     const location = useLocation();
@@ -12,28 +13,43 @@ export default function Instructions() {
     const roomCode = parseInt(user.roomCode);
     const isAdmin = false;
     const [game, setGame] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
 
-        async function fetchRoom() {
+        async function fetchData() {
             try {
                 const roomData = await getRoom(roomCode);
-                setGame(games.find(g => parseInt(g.id) === roomData.gameType));
+                const { role } = await getUserRole(user.userId);
+                const gameData = games.find(g => parseInt(g.id) === roomData.gameType);
+                setUserRole(gameData.roles[parseInt(role) -1]);
+                setGame(gameData);
             } catch (err) {
-                console.error("Failed to fetch rom:", err);
+                console.error("Failed to fetch data:", err);
             } finally {
                 setLoading(false);
             }
         }
 
-        fetchRoom();
+        fetchData();
 
     }, [roomCode])
 
     useEffect(() => {
-        if (!socket.connected) socket.connect();
         socket.emit("join-room", { roomCode, isAdmin, user });
+        // if (!socket.connected) socket.connect();
+        
+        // const handleConnect = () => {
+        //    socket.emit("join-room", { roomCode, isAdmin, user }); 
+        // }
+
+        // if (socket.connected) {
+        //     handleConnect();
+        // } else {
+        //     socket.once("connect", handleConnect);
+        // }
+        // socket.on("connect", handleConnect);
 
         const onStart = () => {
             navigate("/interaction", { state: { user }});
@@ -45,19 +61,28 @@ export default function Instructions() {
             navigate("/");
         });
 
+        // const handleLeaveRoom = () => {
+        //     socket.emit("leave-room", { roomCode });
+        // };
+
+        // window.addEventListener("beforeunload", handleLeaveRoom);
+
         return () => {
+            // handleLeaveRoom();
+            // window.removeEventListener("beforeunload", handleLeaveRoom);
+            // socket.off("connect", handleConnect);
             socket.off("start-chat", onStart);
             socket.off("force-return-to-login");
         };
     }, []);
 
-    useEffect(() => {
-        return () => {
-            socket.emit("leave-room", { roomCode });
-        };
-    }, []);
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
 
-
+        if (loading) return <p>Loading your role...</p>;
     // instructions are hardcoded for now since we don't have role functionality yet, will update that once we implement role functionality
         return (
         <div className="user-instruction-container">
@@ -69,15 +94,17 @@ export default function Instructions() {
                 </p>
 
                 <div className="role-box">
-                    <h1>Role: Shepherd</h1>
+                    <h1>Role: {userRole.role}</h1>
+                    {/* <h1>Role: Shepherd</h1> */}
 
                     <p>
-                        <strong>Backstory:</strong> People keep scattering your flock.
+                        <strong>Backstory:</strong> {userRole.backstory}
+                        {/* <strong>Backstory:</strong> People keep scattering your flock. */}
                     </p>
 
-                    <p>
+                    {/* <p>
                         <strong>Drawbacks:</strong> You’re allergic to sheep.
-                    </p>
+                    </p> */}
                 </div>
             </div>
         </div>
