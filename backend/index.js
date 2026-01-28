@@ -9,17 +9,10 @@ import "./initDB.js";
 import { streamLLM } from "./llm.js";
 import { createServer } from 'http';
 import { Server } from 'socket.io'
-
-import game1 from "../my-app/src/games/game1.json" with { type: "json" };
-import game2 from "../my-app/src/games/game2.json" with { type: "json" };
-import game3 from "../my-app/src/games/game3.json" with { type: "json" };
+import { loadGames } from "./services/gameLoader.js";
+const games = loadGames();
 import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, roomCompleted } from "../backend/services/roomsService.js"
 
-const gameMap = {
-    1: game1,
-    2: game2, 
-    3: game3
-}
 
 dotenv.config();
 
@@ -52,7 +45,7 @@ async function getLlmResponse(roomCode) {
     const room = await getRoom(roomCode);
     const instructions = JSON.parse(room.llmInstructions)[round];
 
-    const game = gameMap[room.gameType];
+    const game = games.find(g => parseInt(g.id) === room.gameType)
     const totalRounds = game.rounds; // totalRounds needs to equal the length of prompts in game file
     const responsePrompt = game.prompts[round-1].response_prompt; 
     const instructionsPrompt = game.prompts[round-1].instruction_prompt;
@@ -103,14 +96,21 @@ async function getLlmResponse(roomCode) {
 }
 
 io.on("connection", (socket) => {
-//    console.log("User connected:", socket.id);
-    
+//    console.log("Client connected:", socket.id);
+    // console.log("Client connected:", socket.id, "Current connections:", io.engine.clientsCount);
+
     // when admin starts room or when user joins roomCode they are joined to this socket instance
     socket.on("join-room", async ({ roomCode, isAdmin, user }) => {
         if (!roomCode || typeof roomCode !== 'number') {
             console.warn("join-room missing or invalid roomCode", roomCode, user);
             return;
         }
+
+        // if (socket.rooms.has(roomCode)) {
+        //     console.log("Socket already in room:", roomCode);
+        //     return;
+
+        // }
 
         if(!rooms[roomCode]) {
              rooms[roomCode] = [];
@@ -157,8 +157,8 @@ io.on("connection", (socket) => {
         const roomUsers = rooms[roomCode];
         if (!roomUsers) return;
 
-        const room = await getRoom(roomCode);
-        const userIds = Array.isArray(room.userIds) ? room.userIds : JSON.parse(room.userIds);
+        const roomData = await getRoom(roomCode);
+        const userIds = Array.isArray(roomData.userIds) ? roomData.userIds : JSON.parse(roomData.userIds);
         if (!gameState[roomCode]) {
             gameState[roomCode] = {
                 round,
@@ -168,7 +168,7 @@ io.on("connection", (socket) => {
             };
         }
     
-        const game = gameMap[room.gameType];
+        const game = games.find(g => parseInt(g.id) === roomData.gameType)
         const userPrompt = game.prompts[round-1].instruction_prompt;
         const systemPrompt = game.prompts[round-1].system_prompt;
 
@@ -199,7 +199,8 @@ io.on("connection", (socket) => {
     socket.on("submit-round-message", async ({ roomCode, userId, userName, text }) => {
         const state = gameState[roomCode];
 
-        if (state.userMessages.has(userId)) return;
+        //need to check into this
+        if (!state.userMessages || state.userMessages.has(userId)) return;
 
         state.userMessages.set(userId, text);
         state.userNames.set(userId, userName);

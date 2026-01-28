@@ -5,15 +5,16 @@ import { socket } from '../socket';
 import { getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import InstructionsModal from "./InstructionsModal";
-import game1 from "../games/game1.json";
-import game2 from "../games/game2.json";
-import game3 from "../games/game3.json"
+import games from "../gameLoader";
+// import game1 from "../games/game1.json";
+// import game2 from "../games/game2.json";
+// import game3 from "../games/game3.json"
 
-const gameMap = {
-    1: game1,
-    2: game2,
-    3: game3
-}
+// const gameMap = {
+//     1: game1,
+//     2: game2,
+//     3: game3
+// }
 
 
 export function Interaction(){
@@ -33,13 +34,31 @@ export function Interaction(){
     const chatBoxRef = useRef(null);
     const [showInstructions, setShowInstructions] = useState(false);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const [game, setGame] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const game = gameMap[1]; // TEMP: replace with room.gameType
+    // const game = gameMap[1]; // TEMP: replace with room.gameType
     const role = {
         role: "shepherd",
         backstory: "people keep scattering your flock",
         drawbacks: "you're allergic to sheep"
     };
+    useEffect(() => {
+
+        async function fetchRoom() {
+            try {
+                const roomData = await getRoom(roomCode);
+                setGame(games.find(g => parseInt(g.id) === roomData.gameType));
+            } catch (err) {
+                console.error("Failed to fetch rom:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchRoom();
+
+    }, [roomCode])
 
     useEffect(() => {
         if (!socket.connected) socket.connect();
@@ -107,7 +126,7 @@ export function Interaction(){
             socket.off("game-complete");
             socket.off("force-return-to-login");
         };
-    }, [roomCode]);
+    }, []);
 
     useEffect(() => {
         return () => {

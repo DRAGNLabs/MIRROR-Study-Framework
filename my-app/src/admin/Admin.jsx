@@ -1,16 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket"; 
-import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus } from "../../services/roomsService";
-import game1 from "../games/game1.json";
-import game2 from "../games/game2.json";
-import game3 from "../games/game3.json"
-
-const gameMap = {
-    1: game1,
-    2: game2, 
-    3: game3
-}
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus } from "../../services/roomsService";
+import games from "../gameLoader";
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -57,7 +49,7 @@ export function Admin() {
 
     async function buildRoom() { //sends the room into the backend
         try {
-            const gameData = gameMap[selectedGame];
+            const gameData = games.find(g => g.id === selectedGame);
             const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count); // this should be updated to right values now
             const rooms = await getOpenRooms();
             setRooms(rooms);
@@ -173,7 +165,21 @@ export function Admin() {
 
                     <div className="games-options">
 
-                        <label className="custom-radio">
+                        {games.map((game) => (
+                            <label key={game.id} className="custom-radio">
+                                <input
+                                    type="radio"
+                                    name="game"
+                                    value={game.id}
+                                    checked={selectedGame === game.id}
+                                    onChange={() => setSelectedGame(game.id)}
+                                />
+                                <span className="radio-mark"></span>
+                                <span>{game.title}</span>
+                            </label>
+                        ))}
+
+                        {/* <label className="custom-radio">
                             <input
                                 type="radio"
                                 name="game"
@@ -207,7 +213,7 @@ export function Admin() {
                             />
                             <span className="radio-mark"></span>
                             <span>Three</span>
-                        </label>
+                        </label> */}
 
                     </div>
                 </div>

@@ -36,6 +36,8 @@ export default function AdminSurvey() {
 
 
     useEffect(() => {
+        if (!socket.connected) socket.connect();
+        socket.emit("join-room", { roomCode, isAdmin: true});
         socket.on("user-survey-complete", ({ userId, surveyId }) => {
             setUsers(prev =>
                 prev.map(u => 
@@ -49,7 +51,11 @@ export default function AdminSurvey() {
         };
     }, []);
 
-
+    useEffect(() => {
+        return () => {
+            socket.emit("leave-room", { roomCode });
+        };
+    }, []);
 
     return (
         <div className="admin-container">

@@ -2,15 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
 import { getRoom, updateStatus } from "../../services/roomsService";
-import game1 from "../games/game1.json";
-import game2 from "../games/game2.json";
-import game3 from "../games/game3.json";
+import games from "../gameLoader"
+// import game1 from "../games/game1.json";
+// import game2 from "../games/game2.json";
+// import game3 from "../games/game3.json";
+// import game4 from "../games/game4.json"
 
-const gameMap = { // we need to find a better way to access the games then just doing this multiple times also having to import each game individually is not a good idea
-    1: game1,
-    2: game2, 
-    3: game3
-}
+// const gameMap = { // we need to find a better way to access the games then just doing this multiple times also having to import each game individually is not a good idea
+//     1: game1,
+//     2: game2, 
+//     3: game4
+// }
 
 export default function AdminInstructions() {
     const navigate = useNavigate();
@@ -21,11 +23,11 @@ export default function AdminInstructions() {
     const isAdmin = true;
 
     useEffect(() => {
-        socket.emit("join-room", { roomCode, isAdmin});
+
         async function fetchRoom() {
             try {
                 const roomData = await getRoom(roomCode);
-                setGame(gameMap[roomData.gameType]);
+                setGame(games.find(g => parseInt(g.id) === roomData.gameType));
             } catch (err) {
                 console.error("Failed to fetch rom:", err);
             } finally {
@@ -38,6 +40,8 @@ export default function AdminInstructions() {
     }, [roomCode])
 
     useEffect(() => {
+      if (!socket.connected) socket.connect();
+      socket.emit("join-room", { roomCode, isAdmin});
       socket.on("force-return-to-login", () => {
         navigate("/admin");
       })
@@ -72,7 +76,7 @@ export default function AdminInstructions() {
   <div className="admin-container">
     <div className="instructions-card">
 
-    {<h3 className="section-title">Instructions</h3>}
+    <h3 className="section-title">Instructions</h3>
 
       <p className="instructions-overview">
         {game.instructions.overview}
@@ -82,7 +86,7 @@ export default function AdminInstructions() {
 
       <div className="rounds-container">
         {game.instructions.rounds.map((round, index) => (
-          <div key={round.round} className="round-row">
+          <div key={index} className="round-row">
             <div className="round-badge">{index + 1}</div>
             <div className="round-content">
               {round.description}
@@ -91,11 +95,11 @@ export default function AdminInstructions() {
         ))}
       </div>
 
-      <h3 className="section-title">Overall Goal</h3>
+      {/* <h3 className="section-title">Overall Goal</h3> */}
 
-      <p className="instructions-overview">
+      {/* <p className="instructions-overview">
         {game.instructions.goal}
-      </p>
+      </p> */}
 
     </div>
         <div className="admin-next-bottom-left">

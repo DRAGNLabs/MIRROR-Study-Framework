@@ -6,17 +6,18 @@ import { getUser } from '../../services/usersService';
 import { sendSurvey  } from "../../services/surveyService";
 import { getRoom } from "../../services/roomsService"
 import { socket } from '../socket';
-import game1 from "../games/game1.json"
-import game2 from "../games/game2.json"
-import game3 from "../games/game3.json"
+import games from "../gameLoader";
+// import game1 from "../games/game1.json"
+// import game2 from "../games/game2.json"
+// import game3 from "../games/game3.json"
 import ConversationModal from "../interaction/ConversationModal";
 
 
-const surveyMap = {
-    1: game1,
-    2: game2, 
-    3: game3
-}
+// const surveyMap = {
+//     1: game1,
+//     2: game2, 
+//     3: game3
+// }
 
 export function Survey() {
     const location = useLocation();
@@ -35,9 +36,8 @@ export function Survey() {
 
 
     async function loadSurvey(){
-        const roomInfo = await getRoom(roomCode);
-        const gameNumber = roomInfo.gameType; 
-        const selectedSurvey = surveyMap[gameNumber];
+        const roomData = await getRoom(roomCode);
+        const selectedSurvey = games.find(g => parseInt(g.id) === roomData.gameType);
         setSurvey(selectedSurvey);
     }
 
@@ -71,7 +71,7 @@ export function Survey() {
 
         try {
             const response = await sendSurvey(1, userId, answers); // dummy surveyId, because I have no idea what surveyId is supposed to be anymore
-            socket.emit("survey-complete", { roomCode, userId, surveyId });
+            socket.emit("survey-complete", { roomCode, userId, surveyId }); //socket should be connected by this time but might want to think about adding a useEffect which will reconnect socket automatically just in case
             navigate("/exit", { state: { userId }}); 
         } catch (err) {
             console.error("Error:", err);

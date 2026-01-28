@@ -1,16 +1,9 @@
 // main instructions will be on admin page but here we will have a page for the users with the role info
 import { useState, useEffect, useRef } from "react";
-import { socket } from "../socket"; 
-import game1 from "../games/game1.json";
-import game2 from "../games/game2.json";
-import game3 from "../games/game3.json";
+import { socket } from "../socket";
+import games from "../gameLoader"
+import { getRoom } from "../../services/roomsService";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const gameMap = { // we need to find a better way to access the games then just doing this multiple times also having to import each game individually is not a good idea
-    1: game1,
-    2: game2, 
-    3: game3
-}
 
 export default function Instructions() {
     const location = useLocation();
@@ -18,8 +11,28 @@ export default function Instructions() {
     const { user } = location.state;
     const roomCode = parseInt(user.roomCode);
     const isAdmin = false;
+    const [game, setGame] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+
+        async function fetchRoom() {
+            try {
+                const roomData = await getRoom(roomCode);
+                setGame(games.find(g => parseInt(g.id) === roomData.gameType));
+            } catch (err) {
+                console.error("Failed to fetch rom:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchRoom();
+
+    }, [roomCode])
+
+    useEffect(() => {
+        if (!socket.connected) socket.connect();
         socket.emit("join-room", { roomCode, isAdmin, user });
 
         const onStart = () => {
@@ -36,7 +49,7 @@ export default function Instructions() {
             socket.off("start-chat", onStart);
             socket.off("force-return-to-login");
         };
-    }, [roomCode]);
+    }, []);
 
     useEffect(() => {
         return () => {
