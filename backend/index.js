@@ -40,29 +40,49 @@ function delay(ms) {
 async function getLlmResponse(roomCode) {
     const state = gameState[roomCode];
     const round = state.round;
+    // console.log("get llm response round", round);
     // const currUserMessages = Array.from(state.userMessages.entries());
 
     const room = await getRoom(roomCode);
-    const instructions = JSON.parse(room.llmInstructions)[round];
+    // const instructions = JSON.parse(room.llmInstructions)[round];
 
     const game = games.find(g => parseInt(g.id) === room.gameType)
     const totalRounds = game.rounds; // totalRounds needs to equal the length of prompts in game file
-    const responsePrompt = game.prompts[round-1].response_prompt; 
-    const instructionsPrompt = game.prompts[round-1].instruction_prompt;
-    const systemPrompt = game.prompts[round-1].system_prompt;
+    const responsePrompt = game.prompts[0].response_prompt; 
+    const instructionsPrompt = game.prompts[0].instruction_prompt;
+    const systemPrompt = game.prompts[0].system_prompt;
+    const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
+    const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
+    const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
 
-    // right now when a new round starts the LLM isn't given the messages of the previous round(s), I'm not sure if we want it this way or want the LLM to have context of previous rounds this depends on how we set up the game
-    // if we want to give the LLM all the messages from previous rounds we might want to save this in the rooms database
-    const currUserNames = Array.from(state.userNames.entries());
+    const userNames = Array.from(state.userNames.entries())
+        .reduce((acc, [id, name]) => {
+        acc[id] = name;
+        return acc;
+    }, {});
+    // const messages = [
+    //     { "role": "system", "content": systemPrompt },
+    //     { "role": "user", "content": instructionsPrompt },
+    //     { "role": "assistant", "content": instructions },
+    //     { "role": "user", "content": `${responsePrompt} \n ${currUserNames.map(([id, userName]) => `User ${id}: ${userName} : ${state.userMessages.get(id)}`).join("\n")}` }
+    // ] 
     const messages = [
         { "role": "system", "content": systemPrompt },
-        { "role": "user", "content": instructionsPrompt },
-        { "role": "assistant", "content": instructions },
-        { "role": "user", "content": `${responsePrompt} \n ${currUserNames.map(([id, userName]) => `User ${id}: ${userName} : ${state.userMessages.get(id)}`).join("\n")}` }
-    ] 
-    // we might want to change the format we are inputting the userMessage, I'm inputting the userId but it is probably not needed for now
+    ]
+    // loop through rounds:
+    for (let i = 1; i <= round; i++) {
+        messages.push({ "role": "user", "content": instructionsPrompt })
+        messages.push({ "role": "assistant", "content": llmInstructions[i] });
+        // const roundMessages = userMessages[i] || [];
+        const formattedUserMessages = userMessages[i].map(([userId, text]) => {
+            const name = userNames[userId] || `User ${userId}`;
+            return `${name}: ${text}`;
+        }).join("\n");
+        messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
+        if(!llmResponses[i]) break;
+        messages.push({ "role": "assistant", "content": llmResponses[i] })
+    }
 
-    // here we are getting the llmResponse for the current round
     // ai-start just lets the interaction and adminInteraction pages know to create a new message for LLM that will be added to as tokens come in
     io.to(roomCode).emit("ai-start");
 
@@ -157,8 +177,8 @@ io.on("connection", (socket) => {
         const roomUsers = rooms[roomCode];
         if (!roomUsers) return;
 
-        const roomData = await getRoom(roomCode);
-        const userIds = Array.isArray(roomData.userIds) ? roomData.userIds : JSON.parse(roomData.userIds);
+        const room = await getRoom(roomCode);
+        const userIds = Array.isArray(room.userIds) ? room.userIds : JSON.parse(room.userIds);
         if (!gameState[roomCode]) {
             gameState[roomCode] = {
                 round,
@@ -167,18 +187,51 @@ io.on("connection", (socket) => {
                 userNames: new Map()
             };
         }
-    
-        const game = games.find(g => parseInt(g.id) === roomData.gameType)
-        const userPrompt = game.prompts[round-1].instruction_prompt;
-        const systemPrompt = game.prompts[round-1].system_prompt;
 
+        const state = gameState[roomCode];
+        const currRound = state.round;
+        console.log("start round", currRound);
+    
+        const game = games.find(g => parseInt(g.id) === room.gameType)
+        const instructionsPrompt = game.prompts[0].instruction_prompt;
+        const systemPrompt = game.prompts[0].system_prompt;
+        const responsePrompt = game.prompts[0].response_prompt; 
+        const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
+        const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
+        const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
+
+        const userNames = Array.from(state.userNames.entries())
+            .reduce((acc, [id, name]) => {
+            acc[id] = name;
+            return acc;
+        }, {});
+
+        // also change this we need the context of either the previous round or all of them
         const messages = [
             { "role": "system", "content": systemPrompt },
-            { "role": "user", "content": userPrompt }
         ]
+        // loop through rounds:
+        for (let i = 1; i <= currRound; i++) {
+            messages.push({ "role": "user", "content": instructionsPrompt });
+            if (!llmInstructions[i]) break;
+            messages.push({ "role": "assistant", "content": llmInstructions[i] });
+            // const roundMessages = userMessages[i] || [];
+            const formattedUserMessages = userMessages[i].map(([userId, text]) => {
+            const name = userNames[userId] || `User ${userId}`;
+                return `${name}: ${text}`;
+            }).join("\n");
+            messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
+            messages.push({ "role": "assistant", "content": llmResponses[i] })
+        }
+
+        // console.log("Messages in start round: ", messages);
+        // const messages = [
+        //     { "role": "system", "content": systemPrompt },
+        //     { "role": "user", "content": userPrompt }
+        // ]
 
         // getting instructions from LLM below
-        await delay(1000); // it keeps missing the ai-start socket this fixed it, probably not best way but it works
+        await delay(2000); // it keeps missing the ai-start socket this fixed it, probably not best way but it works
         io.to(roomCode).emit("ai-start");
 
         let buffer = "";
