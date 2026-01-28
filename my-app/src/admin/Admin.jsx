@@ -50,7 +50,7 @@ export function Admin() {
     async function buildRoom() { //sends the room into the backend
         try {
             const gameData = games.find(g => g.id === selectedGame);
-            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count); // this should be updated to right values now
+            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count); 
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
@@ -178,42 +178,6 @@ export function Admin() {
                                 <span>{game.title}</span>
                             </label>
                         ))}
-
-                        {/* <label className="custom-radio">
-                            <input
-                                type="radio"
-                                name="game"
-                                value="1"
-                                checked={selectedGame === 1}
-                                onChange={() => setSelectedGame(1)}
-                            />
-                            <span className="radio-mark"></span>
-                            <span>One</span>
-                        </label>
-
-                        <label className="custom-radio">
-                            <input
-                                type="radio"
-                                name="game"
-                                value="2"
-                                checked={selectedGame === 2}
-                                onChange={() => setSelectedGame(2)}
-                            />
-                            <span className="radio-mark"></span>
-                            <span>Two</span>
-                        </label>
-
-                        <label className="custom-radio">
-                            <input
-                                type="radio"
-                                name="game"
-                                value="3"
-                                checked={selectedGame === 3}
-                                onChange={() => setSelectedGame(3)}
-                            />
-                            <span className="radio-mark"></span>
-                            <span>Three</span>
-                        </label> */}
 
                     </div>
                 </div>

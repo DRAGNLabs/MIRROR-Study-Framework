@@ -40,11 +40,8 @@ function delay(ms) {
 async function getLlmResponse(roomCode) {
     const state = gameState[roomCode];
     const round = state.round;
-    // console.log("get llm response round", round);
-    // const currUserMessages = Array.from(state.userMessages.entries());
 
     const room = await getRoom(roomCode);
-    // const instructions = JSON.parse(room.llmInstructions)[round];
 
     const game = games.find(g => parseInt(g.id) === room.gameType)
     const totalRounds = game.rounds; // totalRounds needs to equal the length of prompts in game file
@@ -60,12 +57,7 @@ async function getLlmResponse(roomCode) {
         acc[id] = name;
         return acc;
     }, {});
-    // const messages = [
-    //     { "role": "system", "content": systemPrompt },
-    //     { "role": "user", "content": instructionsPrompt },
-    //     { "role": "assistant", "content": instructions },
-    //     { "role": "user", "content": `${responsePrompt} \n ${currUserNames.map(([id, userName]) => `User ${id}: ${userName} : ${state.userMessages.get(id)}`).join("\n")}` }
-    // ] 
+
     const messages = [
         { "role": "system", "content": systemPrompt },
     ]
@@ -117,7 +109,6 @@ async function getLlmResponse(roomCode) {
 
 io.on("connection", (socket) => {
 //    console.log("Client connected:", socket.id);
-    // console.log("Client connected:", socket.id, "Current connections:", io.engine.clientsCount);
 
     // when admin starts room or when user joins roomCode they are joined to this socket instance
     socket.on("join-room", async ({ roomCode, isAdmin, user }) => {
@@ -190,7 +181,6 @@ io.on("connection", (socket) => {
 
         const state = gameState[roomCode];
         const currRound = state.round;
-        console.log("start round", currRound);
     
         const game = games.find(g => parseInt(g.id) === room.gameType)
         const instructionsPrompt = game.prompts[0].instruction_prompt;
@@ -223,12 +213,6 @@ io.on("connection", (socket) => {
             messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
             messages.push({ "role": "assistant", "content": llmResponses[i] })
         }
-
-        // console.log("Messages in start round: ", messages);
-        // const messages = [
-        //     { "role": "system", "content": systemPrompt },
-        //     { "role": "user", "content": userPrompt }
-        // ]
 
         // getting instructions from LLM below
         await delay(2000); // it keeps missing the ai-start socket this fixed it, probably not best way but it works
