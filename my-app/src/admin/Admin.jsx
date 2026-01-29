@@ -11,12 +11,12 @@ export function Admin() {
     const [selectedGame, setSelectedGame] = useState(null);
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
-    const [ error, setError] = useState("");
+    // const [ error, setError] = useState("");
     const [ rooms, setRooms ] = useState([]);
-    const [deletingRoom, setDeletingRoom] = useState(null);
-    const [valid, setValid] = useState(false);
-    const location = useLocation();
-    const validLogin = location.state?.isValid;
+    // const [deletingRoom, setDeletingRoom] = useState(null);
+    // const [valid, setValid] = useState(false);
+    // const location = useLocation();
+    // const validLogin = location.state?.isValid;
     const navigate = useNavigate();
     const isAdmin = true;
 
@@ -35,7 +35,7 @@ export function Admin() {
             navigate("/adminLogin");
         } else {
             init();
-            setValid(true);
+            // setValid(true);
         }
     }, []);
 
@@ -57,7 +57,7 @@ export function Admin() {
             setRoomCreated(false); // what is the point of setRoomCreated?
         } catch (error){
             console.error("Error:", error);
-            setError(error.message || "Something went wrong."); // at what point is there not going to be error.message, also why setError?
+            // setError(error.message || "Something went wrong."); // at what point is there not going to be error.message, also why setError?
 
         }
 
@@ -70,7 +70,6 @@ export function Admin() {
             return;
         }
         try {
-            setDeletingRoom(roomCode);
             const response = await closeARoom(roomCode);
             socket.emit("close-room", { roomCode });
             setRooms(await getOpenRooms());
@@ -79,7 +78,7 @@ export function Admin() {
 
         } catch (error) {
             console.error("Error:", error);
-            setError(error.message || "Something went wrong.");
+            // setError(error.message || "Something went wrong.");
         }
         setRoomCreated(false);
         setSelectedGame(null);
@@ -96,7 +95,7 @@ export function Admin() {
             navigate("/admin/waiting", { state: { roomCode }}); // this is probably fine to pass room for now
         } catch(error) {
             console.error("Error:", error);
-            setError(error.message || "Something went wrong.");
+            // setError(error.message || "Something went wrong.");
         }
     }
 
@@ -106,7 +105,6 @@ export function Admin() {
         while (true){
             const roomCode = Math.floor(100000 + Math.random() * 900000);
             if(await validRoomCode(roomCode)){
-                console.log(roomCode);
                 return roomCode
             }
         }
@@ -130,10 +128,9 @@ export function Admin() {
                     {rooms.map(room => (
                         <div className="room-display" key={room.roomCode}>
                             <p>Room Code: {room.roomCode}</p>
-                            <p>Users needed per room: {room.usersNeeded}</p>
-                            <p>Selected Game: {room.gameType}</p>
-                            <p>Started: {room.started}</p>
-                            {/* <p>Users in room: {JSON.parse(room.users).length}</p> */}
+                            <p>Users needed for room: {room.usersNeeded}</p>
+                            <p>Selected Game: {room.gameType}</p> 
+                            <p>Started: {room.started}</p> 
                             <button onClick={() => startRoom(room.roomCode)}>Start Room</button>
                             <button onClick={() => closeRoom(room.roomCode)}>Close Room</button>
                         </div>

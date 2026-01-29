@@ -9,16 +9,16 @@ import { getUser } from '../../services/usersService.js'
 export default function AdminInteraction(){
     const location = useLocation();
     const navigate = useNavigate();
-    const [users, setUsers] =useState([]);
+    const { roomCode } = location.state;
+    const isAdmin = true;
+
     const [messages, setMessages] = useState([]); 
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
-    const [room, setRoom] = useState();
-    const [error, setError] = useState("");
+
+    // const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
-    const { roomCode } = location.state;
     const isStreamingRef = useRef(false);
-    const isAdmin = true;
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -59,10 +59,8 @@ export default function AdminInteraction(){
             setStreamingText("");
         });
 
-        socket.on("room-users", setUsers);
 
         socket.on("round-complete", (nextRound) => {
-            // console.log("Next round from server:", nextRound);
             socket.emit('start-round', {
                 roomCode,
                 round: nextRound
@@ -77,7 +75,6 @@ export default function AdminInteraction(){
         return () => {
             // socket.off("connect", handleConnect);
             socket.off("receive-message");
-            socket.off("room-users");
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
@@ -120,7 +117,7 @@ export default function AdminInteraction(){
             return user.userName;
         } catch (error) {
             console.error("Error:", error);
-            setError(error.message || "something went wrong.");
+            // setError(error.message || "something went wrong.");
         }
     }
 
@@ -183,11 +180,9 @@ export default function AdminInteraction(){
                     return;
                 }
                 setMessages(newMsgs);
-                // hasInitialized.current = true;
-                setRoom(room);
             } catch (error){
                 console.error("Error:", error);
-                setError(error.message || "Something went wrong.");
+                // setError(error.message || "Something went wrong.");
             }
         }
 

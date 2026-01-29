@@ -7,12 +7,12 @@ import games from "../gameLoader";
 
 export default function RoomManagement() {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { roomCode } = location.state;
+    const isAdmin = true;
     const [users, setUsers] = useState([]);
     const [room, setRoom] = useState("");
-    const [error, setError] = useState("");
-    const navigate = useNavigate();
-    const isAdmin = true;
-    const { roomCode } = location.state;
+    // const [error, setError] = useState("");
 
 
 
@@ -84,7 +84,7 @@ export default function RoomManagement() {
             setRoom(response);
         } catch (error){
             console.error("Error:", error);
-            setError(error.message || "Something went wrong.");
+            // setError(error.message || "Something went wrong.");
         }
     }
 

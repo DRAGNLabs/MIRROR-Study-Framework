@@ -6,20 +6,16 @@ import { getRoom } from "../../services/roomsService";
 import { getUser, getUserRole } from "../../services/usersService";
 import InstructionsModal from "./InstructionsModal";
 import games from "../gameLoader";
-// import game1 from "../games/game1.json";
-// import game2 from "../games/game2.json";
-// import game3 from "../games/game3.json"
-
-// const gameMap = {
-//     1: game1,
-//     2: game2,
-//     3: game3
-// }
 
 
 export function Interaction(){
     const location = useLocation();
     const navigate = useNavigate();
+    const isAdmin = false;
+    const { user } = location.state
+    const { userId } = user;
+    const roomCode = parseInt(user.roomCode);
+    
     const [prompt, setPrompt] = useState("");
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
@@ -27,23 +23,13 @@ export function Interaction(){
     const [canSend, setCanSend] = useState(false);
     const [hasSentThisRound, setHasSentThisRound] = useState(false);
     const isStreamingRef = useRef(false);
-    const isAdmin = false;
-    const { user } = location.state
-    const { userId } = user;
-    const roomCode = parseInt(user.roomCode); // to make sure sockets are connecting between user and admin
-    const chatBoxRef = useRef(null);
     const [showInstructions, setShowInstructions] = useState(false);
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
+    const chatBoxRef = useRef(null);
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    // const game = gameMap[1]; // TEMP: replace with room.gameType
-    // const role = {
-    //     role: "shepherd",
-    //     backstory: "people keep scattering your flock",
-    //     drawbacks: "you're allergic to sheep"
-    // };
     useEffect(() => {
 
         async function fetchData() {
@@ -259,7 +245,6 @@ export function Interaction(){
                 setMessages(messages);
                 setCanSend(canSend);
                 setHasSentThisRound(hasSentThisRound);
-                // setRoom(room);
             } catch (error){
                 console.error("Error:", error);
                 setError(error.message || "Something went wrong.");

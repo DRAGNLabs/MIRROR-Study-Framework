@@ -6,8 +6,7 @@ import { socket } from "../socket";
 export default function WaitingRoom() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = location.state
-  const { userId } = user;
+  const { user } = location.state;
   const roomCode = parseInt(user.roomCode);
   const [users, setUsers] = useState([]);
 

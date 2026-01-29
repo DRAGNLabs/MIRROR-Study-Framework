@@ -12,7 +12,6 @@ export default function Instructions() {
     const { user } = location.state;
     const roomCode = parseInt(user.roomCode);
     const isAdmin = false;
-    const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
 
@@ -24,7 +23,6 @@ export default function Instructions() {
                 const { role } = await getUserRole(user.userId);
                 const gameData = games.find(g => parseInt(g.id) === roomData.gameType);
                 setUserRole(gameData.roles[parseInt(role) -1]);
-                setGame(gameData);
             } catch (err) {
                 console.error("Failed to fetch data:", err);
             } finally {
@@ -95,16 +93,9 @@ export default function Instructions() {
 
                 <div className="role-box">
                     <h1>Role: {userRole.role}</h1>
-                    {/* <h1>Role: Shepherd</h1> */}
-
                     <p>
                         <strong>Backstory:</strong> {userRole.backstory}
-                        {/* <strong>Backstory:</strong> People keep scattering your flock. */}
                     </p>
-
-                    {/* <p>
-                        <strong>Drawbacks:</strong> You’re allergic to sheep.
-                    </p> */}
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 {
     "title": "Resource Allocation Game",
     "id": 4, 
-    "rounds": 12,
+    "rounds": 2,
     "instructions": {
         "overview": "You are a fisherman who is trying to catch as many fish as possible each month. You will recieve additional compensation in this study based on how many fish you manage to catch over the course of the game. Each month (round), you will submit a request for how many fish you would like to catch. The manager of the lake, an AI language model, will then allocate how many fish you can catch based on your request and the requests of other fishermen. The lake, however, has a limited capacity of 100 tons of fish. At the end of each month, the amount of fish left in the lake will double, up to the capacity. If there are ever fewer than 5 fish, the system collapses and the game ends. Your goal is to catch as many fish as possible. You will be given a role with a backstory to start. However, you are free to use whatever persuasion tactics you like to convince the lake manager to allocate more fish to you. Each round, you may submit one request for fish, including any reasoning or persuasion you would like the lake manager to consider.",
         "rounds": [

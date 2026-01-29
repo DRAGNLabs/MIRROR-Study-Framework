@@ -6,10 +6,9 @@ import { socket } from '../socket';
 
 export default function AdminSurvey() {
     const location = useLocation();
-    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const { roomCode } = location.state;
-    const [error, setError]= useState("");
+    // const [error, setError]= useState("");
 
     // this basically rerenders survey status if you refresh
     useEffect(() => {
@@ -28,7 +27,7 @@ export default function AdminSurvey() {
                 setUsers(usersWithStatus);
             } catch (err) {
                 console.error(err);
-                setError(err.message || "failed to fetch users");
+                // setError(err.message || "failed to fetch users");
             }
         }
         fetchUsers();

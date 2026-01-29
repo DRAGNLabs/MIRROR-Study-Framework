@@ -7,17 +7,7 @@ import { sendSurvey  } from "../../services/surveyService";
 import { getRoom } from "../../services/roomsService"
 import { socket } from '../socket';
 import games from "../gameLoader";
-// import game1 from "../games/game1.json"
-// import game2 from "../games/game2.json"
-// import game3 from "../games/game3.json"
-import ConversationModal from "../interaction/ConversationModal";
-
-
-// const surveyMap = {
-//     1: game1,
-//     2: game2, 
-//     3: game3
-// }
+import ConversationModal from "./ConversationModal";
 
 export function Survey() {
     const location = useLocation();
