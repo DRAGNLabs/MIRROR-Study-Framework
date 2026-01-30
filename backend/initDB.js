@@ -4,12 +4,12 @@ import db from "./db.js";
 async function init() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS users (
-      "userId" SERIAL PRIMARY KEY,
+      "userId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
       "userName" TEXT NOT NULL,
       "roomCode" INTEGER NOT NULL,
-      "role" TEXT NOT NULL DEFAULT ''
+      "role" INTEGER NOT NULL DEFAULT 0 
     )
-  `);
+  `); //make default of role 0
 
 /*
  * =====================================
@@ -52,13 +52,13 @@ async function init() {
       "gameType" INTEGER NOT NULL, 
       "numRounds" INTEGER NOT NULL,
       "usersNeeded" INTEGER NOT NULL,
-      "modelType" TEXT NOT NULL,
+      "modelType" TEXT NOT NULL DEFAULT 'default',
       started BOOLEAN NOT NULL DEFAULT FALSE,
-      "userIds" TEXT NOT NULL DEFAULT '[]'::jsonb,
-      "userMessages" TEXT NOT NULL DEFAULT '{}'::jsonb,
-      "llmInstructions" TEXT NOT NULL DEFAULT '{}'::jsonb,
-      "llmResponse" TEXT NOT NULL DEFAULT '{}'::jsonb,
-      status TEXT NOT NULL DEFAULT '',
+      "userIds" jsonb NOT NULL DEFAULT '[]'::jsonb,
+      "userMessages" jsonb NOT NULL DEFAULT '{}'::jsonb,
+      "llmInstructions" jsonb NOT NULL DEFAULT '{}'::jsonb,
+      "llmResponse" jsonb NOT NULL DEFAULT '{}'::jsonb,
+      status TEXT NOT NULL DEFAULT 'waiting',
       completed BOOLEAN NOT NULL DEFAULT FALSE
     )
   `)
