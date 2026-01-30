@@ -84,6 +84,28 @@ router.patch("/:userId/role", async (req, res) => {
 
 });
 
+// get user role with specified userId
+router.get("/:userId/getRole", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        if (!userId) {
+            return res.status(400).json({ error: "userId is required"});
+        }
+
+        const result = await db.query(
+            'SELECT "userId", role FROM users WHERE "userId" = $1;',
+            [userId]
+        )
+        const row = result.rows[0];
+        if (!row) return res.status(404).json
+        ({ message: "User not found" });
+        return res.status(200).json(row);
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+
+});
+
 // get user with specified userId
 router.get("/:userId", async (req, res) => {
     try {
@@ -110,27 +132,7 @@ router.get("/:userId", async (req, res) => {
 
 });
 
-// get user role with specified userId
-router.get("/:userId/getRole", async (req, res) => {
-    try {
-        const userId = req.params.userId;
-        if (!userId) {
-            return res.status(400).json({ error: "userId is required"});
-        }
 
-        const result = await db.query(
-            'SELECT "userId", role FROM users WHERE "userId" = $1;',
-            [userId]
-        )
-        const row = result.rows[0];
-        if (!row) return res.status(404).jsono
-        ({ message: "User not found" });
-        return res.status(200).json(row);
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
-    }
-
-});
 
 router.get("/:userName/:roomCode", async (req, res) => {
     try {
