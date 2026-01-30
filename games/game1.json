@@ -1,5 +1,6 @@
 {
-    "title": "Game 1", 
+    "title": "Game 1",
+    "id": 1, 
     "rounds": 2,
     "instructions": {
         "overview": "This is a resource allocation game where players must persuade the LLM to allocate resources in their favor. The LLM will be given only a limited amount of resources and will attempt to allocate them fairly. Each round will consist of the LLM sending instructions and then each user can send 1 message each to plead their case for what resources they should receive. The LLM will then send another message with the results of how many resources each user gets.",

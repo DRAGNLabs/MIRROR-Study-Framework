@@ -6,15 +6,27 @@ import { socket } from "../socket";
 export default function WaitingRoom() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = location.state
-  const { userId } = user;
+  const { user } = location.state;
   const roomCode = parseInt(user.roomCode);
   const [users, setUsers] = useState([]);
 
 
   useEffect(() => {
-    if (!socket.connected) socket.connect();
     socket.emit("join-room", { roomCode, isAdmin: false, user});
+    // if (!socket.connected) socket.connect();
+
+    // const handleConnect = () => {
+    //   socket.emit("join-room", { roomCode, isAdmin: false, user});
+    // }
+
+    // if (socket.connected) {
+    //   handleConnect();
+    // } else {
+    //   socket.once("connect", handleConnect);
+    // }
+    // socket.emit("join-room", { roomCode, isAdmin: false, user});
+
+    // socket.on("connect", handleConnect);
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;
@@ -39,26 +51,33 @@ export default function WaitingRoom() {
       navigate("/");
     })
 
-    const handleUnload = () => {
-      socket.emit("leave-room", { roomCode, userId });
-    };
+    // const handleUnload = () => {
+    //   socket.emit("leave-room", { roomCode, userId });
+    // };
 
-    window.addEventListener("beforeunload", handleUnload);
+    // window.addEventListener("beforeunload", handleUnload);
+    // const handleLeaveRoom = () => {
+    //   socket.emit("leave-room", { roomCode });
+    // };
+
+    // window.addEventListener("beforeunload", handleLeaveRoom);
 
     return () => {
-      window.removeEventListener("beforeunload", handleUnload);
+      // handleLeaveRoom();
+      // socket.off("connect", handleConnect);
+      // window.removeEventListener("beforeunload", handleLeaveRoom);
       socket.off("status");
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);
       socket.off("force-return-to-login");
     };
-  }, [roomCode]);
-
-    useEffect(() => {
-      return () => {
-          socket.emit("leave-room", { roomCode });
-      };
   }, []);
+
+  //   useEffect(() => {
+  //     return () => {
+  //         socket.emit("leave-room", { roomCode });
+  //     };
+  // }, []);
 
   return (
     <div className="waiting-container">

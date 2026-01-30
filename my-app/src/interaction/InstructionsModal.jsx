@@ -15,21 +15,16 @@ export default function InstructionsModal({ open, onClose, game, role }) {
 
         <p>{game.instructions.overview}</p>
 
-        <h3>Rounds</h3>
-        <ul>
-          {game.instructions.rounds.map((r, i) => (
-            <li key={i}>{r.description}</li>
-          ))}
-        </ul>
-
-        <h3>Goal</h3>
-        <p>{game.instructions.goal}</p>
+        <h3>Your Task for Each Round</h3>
+        <p>
+          {game.instructions.rounds[0].description}
+        </p>
 
         {role && (
           <>
             <h3>Your Role: {role.role}</h3>
             <p><strong>Backstory:</strong> {role.backstory}</p>
-            <p><strong>Drawbacks:</strong> {role.drawbacks}</p>
+            {/* <p><strong>Drawbacks:</strong> {role.drawbacks}</p> */}
           </>
         )}
       </div>

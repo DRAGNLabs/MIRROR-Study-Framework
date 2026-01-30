@@ -7,7 +7,7 @@ db.serialize(() => {
       userId INTEGER PRIMARY KEY AUTOINCREMENT,
       userName TEXT NOT NULL,
       roomCode INTEGER NOT NULL,
-      role TEXT NOT NULL DEFAULT ''
+      role INTEGER NOT NULL DEFAULT 0
     )
   `);
 
