@@ -46,7 +46,7 @@ router.patch("/:roomCode/userIds", async (req, res) => {
         return res.status(400).json({ error: "userIds is required"})
     }
     const result = await db.query(
-      'UPDATE rooms SET "userIds" = $1 WHERE "roomCode" = $2 RETURNING "roomCode", "userIds";', [userIds, roomCode]);
+      'UPDATE rooms SET "userIds" = $1::jsonb WHERE "roomCode" = $2 RETURNING "roomCode", "userIds";', [JSON.stringify(userIds), roomCode]);
      if (result.rowCount === 0){
       return res.status(404).json({error: "Room not found"})
      }  
@@ -102,8 +102,8 @@ router.patch("/:roomCode/llmInstructions", async (req, res) => {
     }
 
     const result = await db.query(
-      'UPDATE rooms SET "llmInstructions" = $1 WHERE "roomCode" = $2 RETURNING "roomCode", "llmInstructions";', 
-      [llmInstructions, roomCode]
+      'UPDATE rooms SET "llmInstructions" = $1::jsonb WHERE "roomCode" = $2 RETURNING "roomCode", "llmInstructions";', 
+      [JSON.stringify(llmInstructions), roomCode]
     );
 
     if (result.rowCount === 0){
