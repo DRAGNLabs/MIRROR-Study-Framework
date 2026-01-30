@@ -48,7 +48,7 @@ function Home() {
       }
 
       const room = await getRoom(roomCode);
-      const userIds = JSON.parse(room.userIds);
+      const userIds = Array.isArray(room.userIds) ? room.userIds : JSON.parse(room.userIds);
       if(room.completed) {
         alert("Game already completed");
         return;
