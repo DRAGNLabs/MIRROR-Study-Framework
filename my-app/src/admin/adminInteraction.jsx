@@ -155,10 +155,10 @@ export default function AdminInteraction(){
         async function retrieveRoom() {
             try {
                 const room = await getRoom(roomCode);
-                let llmInstructions = JSON.parse(room.llmInstructions);
-                let userMessages = JSON.parse(room.userMessages);
-                let llmResponse = JSON.parse(room.llmResponse);
-                let numRounds = JSON.parse(room.numRounds);
+                const llmInstructions = room.llmInstructions;
+                const userMessages = room.userMessages;
+                const llmResponse = room.llmResponse;
+                const numRounds = room.numRounds;
                 const newMsgs =  await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
                 if (isStreamingRef.current) {
                     console.log("SKIP database");
