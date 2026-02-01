@@ -2,30 +2,7 @@ import express from "express";
 import db from "../db.js"; 
  
 const router = express.Router();
-// I am adding some critiques from chat because sometimes he's dumb on the reordering
-// but also since I haven't used these endpoints yet it might be helpful for Tessa to see 
-// and decide if they're worth the worry.
-/**
- * ✅ Fix: reorder your GET routes like this:
 
-router.get("/", ...)
-
-router.get("/:userName/:roomCode", ...)
-
-router.get("/:userId", ...)
-
-2) /create or login is not actually “login”
-
-Your POST / always inserts a new row. If the same user hits it twice, you’ll create duplicates. Not an error, just misleading.
-
-If you want true “create or login”, you need a rule like:
-
-a unique constraint on ("roomCode","userName")
-
-then ON CONFLICT ... DO UPDATE ... RETURNING ...
-
-(If you don’t want that, rename the comment to “create user”.)
- */
 
 // create or login a user
 router.post("/", async (req, res) => {

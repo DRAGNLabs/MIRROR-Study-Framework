@@ -22,14 +22,7 @@ router.post('/', async (req, res) => {
   const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, modelType])
   
   return res.status(201).json(result.rows[0]);
-  // You can choose whichever return statement works best
-  // return res.status(201).json({
-  //       roomCode,
-  //       gameType,
-  //       numRounds,
-  //       usersNeeded,
-  //       modelType
-  //     });
+
 } catch (err) {
   console.error(err);
   return res.status(500).json({ error: err.message });

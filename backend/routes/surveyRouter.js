@@ -53,41 +53,7 @@ router.post("/", async (req, res) => {
 
 });
 
-// honestly we might not need this function, it depends on if we save data to survey table before users have submitted the survey, but idk
-// this updates survey value with the data from user
 
-//ngl I am confused on what this endpoint does so it might need to be edited.
-router.patch("/:surveyId/data", async (req, res) => {
-  try{
-    const { data } = req.body;
-    const surveyId = Number(req.params.surveyId);
-    const userId = Number(req.params.userId);
-
-    if (!Number.isFinite(surveyId) || !Number.isFinite(userId)) {
-      return res.status(400).json({ error: "surveyId and userId must be numbers" });
-    }
-
-    if (data === undefined) {
-        return res.status(400).json({ error: "Survey data is required"})
-    }
-
-    const result = await db.query(
-      'UPDATE survey SET data = $1 WHERE "surveyId" = $2 AND "userId" = $3 RETURNING "surveyId", "userId", data;',
-      [data, surveyId, userId]
-    )
-
-    return res.status(200).json({
-          surveyId: result.rows[0].surveyId,
-          userId: result.rows[0].userId,
-          data: result.rows[0].data,
-          message: "Survey data successfully updated!"});
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: err.message });
-  }
-
-})
 
 // returns all survey data
 router.get("/", async (req, res) => {
