@@ -80,7 +80,25 @@ export default function Instructions() {
     //     };
     // }, []);
 
-        if (loading) return <p>Loading your role...</p>;
+        if (loading) {
+            return (
+                <div className="user-instruction-container">
+                    <p>Loading your role...</p>
+                </div>
+            );
+        }
+        if (!userRole) {
+            return (
+                <div className="user-instruction-container">
+                    <div className="user-instruction-card">
+                        <h2>Look at Admin's Screen for General Instructions</h2>
+                        <p className="subtext">
+                            Follow the admin's instructions carefully. Your role could not be loaded—check with the admin if this persists.
+                        </p>
+                    </div>
+                </div>
+            );
+        }
     // instructions are hardcoded for now since we don't have role functionality yet, will update that once we implement role functionality
         return (
         <div className="user-instruction-container">

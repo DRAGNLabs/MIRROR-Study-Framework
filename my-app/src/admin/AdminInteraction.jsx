@@ -192,31 +192,43 @@ export default function AdminInteraction(){
 
     return (
         <>
-        <div className="admin-message-container">
-            <h1>Welcome Admin!</h1>
-        <div className="room-top-right">
-            <p>Room: {roomCode}</p>
-        </div>
-        <div className="admin-chat-container">
+        <div className="admin-interaction-page">
+            <header className="admin-interaction-header">
+                <h1 className="admin-interaction-header-title">Admin</h1>
+                <span className="admin-interaction-room-badge">Room {roomCode}</span>
+                <span className="admin-interaction-header-spacer" aria-hidden="true" />
+            </header>
 
-
-            <div className="admin-chat-box" ref={chatBoxRef}>
-                {messages.map((msg, i) => (
-                    <div
-                        key={i}
-                        className={`message ${msg.sender === "user" ? "user" : "bot"}`}
-                    >
-                    {msg.sender === "user"
-                        ? `${msg?.userName || "You"}: ${msg.text}`
-                        : `LLM: ${msg.text}`}
-                    </div>
-                ))}
-            </div> 
-
-        </div>
-            <div className="admin-next-bottom-left">
-                <button onClick={toSurvey}>Next</button>
+            <div className="admin-interaction-chat-container">
+                <div className="admin-interaction-chat-box" ref={chatBoxRef}>
+                    {messages.length === 0 && (
+                        <div className="chat-placeholder">
+                            <p>Conversation will appear here as participants and the LLM respond.</p>
+                        </div>
+                    )}
+                    {messages.map((msg, i) => (
+                        <div
+                            key={msg.id ?? i}
+                            className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
+                        >
+                            <span className="message-sender">
+                                {msg.sender === "user" ? (msg?.userName || "Participant") : "LLM"}
+                            </span>
+                            <span className="message-text">{msg.text}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
+
+            <footer className="admin-interaction-footer">
+                <button
+                    type="button"
+                    className="admin-interaction-next-btn"
+                    onClick={toSurvey}
+                >
+                    Next → Survey
+                </button>
+            </footer>
         </div>
      </>
     )

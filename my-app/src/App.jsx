@@ -36,43 +36,37 @@ function Home() {
  */
   async function handleClick(){
     try {
+      setError("");
       if (!name || !roomCode){
-        console.log("You need both a name and a roomcode!");
+        setError("Please enter your name and room code.");
         return;
       }
       const canLogin = await loginRoom(roomCode);
       if (!canLogin) {
-        console.log("Not a valid room Code");
-        alert("Room code is not valid");
+        setError("Invalid room code.");
         return;
       }
 
       const room = await getRoom(roomCode);
       const userIds = JSON.parse(room.userIds);
       if(room.completed) {
-        alert("Game already completed");
+        setError("This session has already ended.");
         return;
       }
       if (userIds.length > 0) {
         const user = await getCreatedUser(name, roomCode);
         if (!user) {
-          alert("Game already started, you are not part of this room.");
+          setError("This room has already started. You are not part of this session.");
           return;
-          // navigate("/waiting", { state: { } });
         }
         navigate("/waiting", { state: { user }});
         return;
       }
-      // check if userIds are in room then only those with roomCode already in database can login
-      const user = await loginUser(name, roomCode); // this is techincally register
-      const userId = user.userId; // not using this variable rn
-      // add user to room database
-      console.log(`${name} logged in!`);
+      const user = await loginUser(name, roomCode);
       navigate("/waiting", { state: { user } }); 
-    } catch (error) {
-      setError(error.message);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
     }
-      
   };
 
   /** This allows the enter button to be hit and send it to the function above to login */
@@ -84,30 +78,40 @@ function Home() {
   };
 
   return(
-    <div className="login-container">
-        <h1>Welcome!</h1>
-        <p>Enter your name:</p>
-        <input 
-          type="text"
-          value={name} 
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="ex: Katie Smith"
-          required
-          />
-        <p>Enter a room code:</p>
-        <input 
-          type="text" 
-          value={roomCode}
-          onChange={(e) => setRoomCode(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="ex: 675435"
-          required
-        />
-        <div className="button-group">
-            <button onClick={handleClick} disabled={!name.trim() || !roomCode.trim()}>Login</button>
-            
-        </div>
+    <div className="login-page">
+      <div className="login-card">
+        <h1 className="login-title">Join your session</h1>
+        <p className="login-subtitle">Enter your details to join the room</p>
+        <form className="login-form" onSubmit={(e) => { e.preventDefault(); handleClick(); }}>
+          <div className="form-field">
+            <label htmlFor="name">Your name</label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="e.g. Alex Johnson"
+              autoComplete="name"
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="roomCode">Room code</label>
+            <input
+              id="roomCode"
+              type="text"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="e.g. 675435"
+            />
+          </div>
+          {error && <p className="form-error">{error}</p>}
+          <button type="submit" className="btn-primary" disabled={!name.trim() || !roomCode.trim()}>
+            Enter room
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
@@ -115,19 +119,26 @@ function Home() {
 
 export default function App() {
   const location = useLocation();
-  const hideHomeOn = ["/interaction", "/waiting", "/survey"];
-  const shouldHideHome = hideHomeOn.includes(location.pathname)
+  const navigate = useNavigate();
   const isAdminPage = location.pathname.startsWith("/admin");
+  const isAdminLogin = location.pathname === "/adminLogin";
+
+  function handleLogout() {
+    sessionStorage.removeItem("admin");
+    navigate("/adminLogin");
+  }
 
   return (
-    
     <>
       <header>
-        {!shouldHideHome && (
         <nav>
-          <Link to={isAdminPage ? "/admin" : "/"}>Home</Link>
+          <Link to={isAdminPage && !isAdminLogin ? "/admin" : "/"}>Home</Link>
+          {isAdminPage && !isAdminLogin && (
+            <button type="button" className="nav-logout" onClick={handleLogout}>
+              Logout
+            </button>
+          )}
         </nav>
-        )}
       </header>
 
       <Routes>
