@@ -108,6 +108,7 @@ async function getLlmResponse(roomCode) {
 }
 
 io.on("connection", (socket) => {
+    // only listen to events on connection
 //    console.log("Client connected:", socket.id);
 
     // when admin starts room or when user joins roomCode they are joined to this socket instance

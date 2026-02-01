@@ -71,7 +71,7 @@ export default function WaitingRoom() {
       socket.off("to-instructions", toInstructions);
       socket.off("force-return-to-login");
     };
-  }, []);
+  }, [socket]);
 
   //   useEffect(() => {
   //     return () => {

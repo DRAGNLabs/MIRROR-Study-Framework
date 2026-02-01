@@ -65,7 +65,7 @@ export default function RoomManagement() {
             socket.off("force-return-to-login");
         };
   
-    }, [roomCode]);
+    }, [socket]);
 
     // useEffect(() => {
     //     return () => {

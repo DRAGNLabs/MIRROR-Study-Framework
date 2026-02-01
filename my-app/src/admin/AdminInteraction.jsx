@@ -81,7 +81,7 @@ export default function AdminInteraction(){
             socket.off("round-complete");
             socket.off("force-return-to-login");
         };
-    }, [roomCode]);
+    }, [socket]);
 
     // useEffect(() => {
     //     return () => {

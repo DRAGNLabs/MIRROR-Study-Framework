@@ -137,7 +137,7 @@ export function Interaction(){
             socket.off("game-complete");
             socket.off("force-return-to-login");
         };
-    }, []);
+    }, [socket]);
 
     // useEffect(() => {
     //     return () => {

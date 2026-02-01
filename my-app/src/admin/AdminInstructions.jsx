@@ -60,7 +60,7 @@ export default function AdminInstructions() {
         // socket.off("connect", handleConnect);
         socket.off("force-return-to-login");
       }
-    }, []);
+    }, [socket]);
 
     // useEffect(() => {
     //     return () => {

@@ -72,7 +72,7 @@ export default function Instructions() {
             socket.off("start-chat", onStart);
             socket.off("force-return-to-login");
         };
-    }, []);
+    }, [socket]);
 
     // useEffect(() => {
     //     return () => {

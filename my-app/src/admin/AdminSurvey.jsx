@@ -55,7 +55,7 @@ export default function AdminSurvey() {
             // socket.off("connect", handleConnect);
             socket.off("user-survey-complete");
         };
-    }, []);
+    }, [socket]);
 
     // useEffect(() => {
     //     return () => {
