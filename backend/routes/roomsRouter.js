@@ -126,7 +126,7 @@ router.patch("/:roomCode/userMessages", async (req, res) => {
     }
 
     const result = await db.query(
-      'UPDATE rooms SET "userMessages" = $1 WHERE "roomCode" = $2 RETURNING "userMessages", "roomCode";', 
+      'UPDATE rooms SET "userMessages" = $1::jsonb WHERE "roomCode" = $2 RETURNING "userMessages", "roomCode";', 
       [userMessages, roomCode]
     );
 
@@ -156,7 +156,7 @@ router.patch("/:roomCode/llmResponse", async (req, res) => {
     }
 
     const result = await db.query(
-      'UPDATE rooms SET "llmResponse" = $1 WHERE "roomCode" = $2 RETURNING "llmResponse", "roomCode";', 
+      'UPDATE rooms SET "llmResponse" = $1::jsonb WHERE "roomCode" = $2 RETURNING "llmResponse", "roomCode";', 
       [llmResponse, roomCode]
     );
 

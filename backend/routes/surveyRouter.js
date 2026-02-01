@@ -36,7 +36,7 @@ router.post("/", async (req, res) => {
     }
 
     const result = await db.query(`INSERT INTO survey ("surveyId", "userId", data) 
-      VALUES ($1, $2, $3)
+      VALUES ($1, $2, $3::jsonb)
       ON CONFLICT ("surveyId", "userId")
       DO UPDATE SET data = EXCLUDED.data
       RETURNING "surveyId", "userId", data;
