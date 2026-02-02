@@ -47,21 +47,3 @@ export async function getCreatedUser(userName, roomCode) {
 
   return response.json();
 }
-
-// get userRole with specified userId
-export async function getUserRole(userId) {
-  const response = await fetch(`${API_BASE}/users/${userId}/getRole`);
-  if (!response.ok) throw new Error("Can't get user.");
-
-  return response.json();
-}
-
-export async function setRole(userId, role) {
-  const response = await fetch(`${API_BASE}/users/${userId}/role`, {
-    method: "PATCH",
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ role }) 
-  });
-  if(!response.ok) throw new Error("Failed to update role.");
-  return response.json();
-}

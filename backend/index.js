@@ -49,9 +49,9 @@ async function getLlmResponse(roomCode) {
     const responsePrompt = game.prompts[0].response_prompt; 
     const instructionsPrompt = game.prompts[0].instruction_prompt;
     const systemPrompt = game.prompts[0].system_prompt;
-    const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
-    const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
-    const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
+    const llmInstructions = room.llmInstructions ?? {};
+    const llmResponses = room.llmResponse ?? {};
+    const userMessages = room.userMessages ?? {};
 
     const userNames = Array.from(state.userNames.entries())
         .reduce((acc, [id, name]) => {
@@ -187,9 +187,9 @@ io.on("connection", (socket) => {
         const instructionsPrompt = game.prompts[0].instruction_prompt;
         const systemPrompt = game.prompts[0].system_prompt;
         const responsePrompt = game.prompts[0].response_prompt; 
-        const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
-        const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
-        const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
+        const llmInstructions = room.llmInstructions ?? {};
+        const llmResponses = room.llmResponse ?? {};
+        const userMessages = room.userMessages ?? {};
 
         const userNames = Array.from(state.userNames.entries())
             .reduce((acc, [id, name]) => {
