@@ -1,16 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket"; 
-import { getCreatedRooms, sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus } from "../../services/roomsService";
-import game1 from "../games/game1.json";
-import game2 from "../games/game2.json";
-import game3 from "../games/game3.json"
-
-const gameMap = {
-    1: game1,
-    2: game2, 
-    3: game3
-}
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus } from "../../services/roomsService";
+import games from "../gameLoader";
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -19,12 +11,12 @@ export function Admin() {
     const [selectedGame, setSelectedGame] = useState(null);
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
-    const [ error, setError] = useState("");
+    // const [ error, setError] = useState("");
     const [ rooms, setRooms ] = useState([]);
-    const [deletingRoom, setDeletingRoom] = useState(null);
-    const [valid, setValid] = useState(false);
-    const location = useLocation();
-    const validLogin = location.state?.isValid;
+    // const [deletingRoom, setDeletingRoom] = useState(null);
+    // const [valid, setValid] = useState(false);
+    // const location = useLocation();
+    // const validLogin = location.state?.isValid;
     const navigate = useNavigate();
     const isAdmin = true;
 
@@ -43,7 +35,7 @@ export function Admin() {
             navigate("/adminLogin");
         } else {
             init();
-            setValid(true);
+            // setValid(true);
         }
     }, []);
 
@@ -57,15 +49,15 @@ export function Admin() {
 
     async function buildRoom() { //sends the room into the backend
         try {
-            const gameData = gameMap[selectedGame];
-            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count); // this should be updated to right values now
+            const gameData = games.find(g => g.id === selectedGame);
+            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count); 
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?
         } catch (error){
             console.error("Error:", error);
-            setError(error.message || "Something went wrong."); // at what point is there not going to be error.message, also why setError?
+            // setError(error.message || "Something went wrong."); // at what point is there not going to be error.message, also why setError?
 
         }
 
@@ -78,7 +70,6 @@ export function Admin() {
             return;
         }
         try {
-            setDeletingRoom(roomCode);
             const response = await closeARoom(roomCode);
             socket.emit("close-room", { roomCode });
             setRooms(await getOpenRooms());
@@ -87,7 +78,7 @@ export function Admin() {
 
         } catch (error) {
             console.error("Error:", error);
-            setError(error.message || "Something went wrong.");
+            // setError(error.message || "Something went wrong.");
         }
         setRoomCreated(false);
         setSelectedGame(null);
@@ -97,11 +88,14 @@ export function Admin() {
     async function startRoom(roomCode) {
         try {
             await roomStarted(roomCode);
-            await updateStatus(roomCode, "waiting");
+            const room = await getRoom(roomCode);
+            if(room.status !== "survey" && room.status !== "interaction" && room.status!== "instructions") {
+               await updateStatus(roomCode, "waiting"); 
+            }
             navigate("/admin/waiting", { state: { roomCode }}); // this is probably fine to pass room for now
         } catch(error) {
             console.error("Error:", error);
-            setError(error.message || "Something went wrong.");
+            // setError(error.message || "Something went wrong.");
         }
     }
 
@@ -111,7 +105,6 @@ export function Admin() {
         while (true){
             const roomCode = Math.floor(100000 + Math.random() * 900000);
             if(await validRoomCode(roomCode)){
-                console.log(roomCode);
                 return roomCode
             }
         }
@@ -135,10 +128,9 @@ export function Admin() {
                     {rooms.map(room => (
                         <div className="room-display" key={room.roomCode}>
                             <p>Room Code: {room.roomCode}</p>
-                            <p>Users needed per room: {room.usersNeeded}</p>
-                            <p>Selected Game: {room.gameType}</p>
-                            <p>Started: {room.started}</p>
-                            {/* <p>Users in room: {JSON.parse(room.users).length}</p> */}
+                            <p>Users needed for room: {room.usersNeeded}</p>
+                            <p>Selected Game: {room.gameType}</p> 
+                            <p>Started: {room.started}</p> 
                             <button onClick={() => startRoom(room.roomCode)}>Start Room</button>
                             <button onClick={() => closeRoom(room.roomCode)}>Close Room</button>
                         </div>
@@ -170,41 +162,19 @@ export function Admin() {
 
                     <div className="games-options">
 
-                        <label className="custom-radio">
-                            <input
-                                type="radio"
-                                name="game"
-                                value="1"
-                                checked={selectedGame === 1}
-                                onChange={() => setSelectedGame(1)}
-                            />
-                            <span className="radio-mark"></span>
-                            <span>One</span>
-                        </label>
-
-                        <label className="custom-radio">
-                            <input
-                                type="radio"
-                                name="game"
-                                value="2"
-                                checked={selectedGame === 2}
-                                onChange={() => setSelectedGame(2)}
-                            />
-                            <span className="radio-mark"></span>
-                            <span>Two</span>
-                        </label>
-
-                        <label className="custom-radio">
-                            <input
-                                type="radio"
-                                name="game"
-                                value="3"
-                                checked={selectedGame === 3}
-                                onChange={() => setSelectedGame(3)}
-                            />
-                            <span className="radio-mark"></span>
-                            <span>Three</span>
-                        </label>
+                        {games.map((game) => (
+                            <label key={game.id} className="custom-radio">
+                                <input
+                                    type="radio"
+                                    name="game"
+                                    value={game.id}
+                                    checked={selectedGame === game.id}
+                                    onChange={() => setSelectedGame(game.id)}
+                                />
+                                <span className="radio-mark"></span>
+                                <span>{game.title}</span>
+                            </label>
+                        ))}
 
                     </div>
                 </div>

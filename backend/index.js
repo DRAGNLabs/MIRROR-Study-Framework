@@ -9,17 +9,10 @@ import "./initDB.js";
 import { streamLLM } from "./llm.js";
 import { createServer } from 'http';
 import { Server } from 'socket.io'
-
-import game1 from "../my-app/src/games/game1.json" with { type: "json" };
-import game2 from "../my-app/src/games/game2.json" with { type: "json" };
-import game3 from "../my-app/src/games/game3.json" with { type: "json" };
+import { loadGames } from "./services/gameLoader.js";
+const games = loadGames();
 import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, roomCompleted } from "../backend/services/roomsService.js"
 
-const gameMap = {
-    1: game1,
-    2: game2, 
-    3: game3
-}
 
 dotenv.config();
 
@@ -40,34 +33,49 @@ const socketUserMap = {};
 const roomState = {}; // this lets you know if game is started or not
 const gameState = {};
 const surveyStatus = {};
-const status = {}; // "waiting" || "instructions" || "interaction" || "survey"
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(roomCode) {
     const state = gameState[roomCode];
     const round = state.round;
-    // const currUserMessages = Array.from(state.userMessages.entries());
 
     const room = await getRoom(roomCode);
     const instructions = room.llmInstructions[round];
 
-    const game = gameMap[room.gameType];
+    const game = games.find(g => parseInt(g.id) === room.gameType)
     const totalRounds = game.rounds; // totalRounds needs to equal the length of prompts in game file
-    const responsePrompt = game.prompts[round-1].response_prompt; 
-    const instructionsPrompt = game.prompts[round-1].instruction_prompt;
-    const systemPrompt = game.prompts[round-1].system_prompt;
+    const responsePrompt = game.prompts[0].response_prompt; 
+    const instructionsPrompt = game.prompts[0].instruction_prompt;
+    const systemPrompt = game.prompts[0].system_prompt;
+    const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
+    const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
+    const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
 
-    // right now when a new round starts the LLM isn't given the messages of the previous round(s), I'm not sure if we want it this way or want the LLM to have context of previous rounds this depends on how we set up the game
-    // if we want to give the LLM all the messages from previous rounds we might want to save this in the rooms database
-    const currUserNames = Array.from(state.userNames.entries());
+    const userNames = Array.from(state.userNames.entries())
+        .reduce((acc, [id, name]) => {
+        acc[id] = name;
+        return acc;
+    }, {});
+
     const messages = [
         { "role": "system", "content": systemPrompt },
-        { "role": "user", "content": instructionsPrompt },
-        { "role": "assistant", "content": instructions },
-        { "role": "user", "content": `${responsePrompt} \n ${currUserNames.map(([id, userName]) => `User ${id}: ${userName} : ${state.userMessages.get(id)}`).join("\n")}` }
-    ] 
-    // we might want to change the format we are inputting the userMessage, I'm inputting the userId but it is probably not needed for now
+    ]
+    // loop through rounds:
+    for (let i = 1; i <= round; i++) {
+        messages.push({ "role": "user", "content": instructionsPrompt })
+        messages.push({ "role": "assistant", "content": llmInstructions[i] });
+        // const roundMessages = userMessages[i] || [];
+        const formattedUserMessages = userMessages[i].map(([userId, text]) => {
+            const name = userNames[userId] || `User ${userId}`;
+            return `${name}: ${text}`;
+        }).join("\n");
+        messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
+        if(!llmResponses[i]) break;
+        messages.push({ "role": "assistant", "content": llmResponses[i] })
+    }
 
-    // here we are getting the llmResponse for the current round
     // ai-start just lets the interaction and adminInteraction pages know to create a new message for LLM that will be added to as tokens come in
     io.to(roomCode).emit("ai-start");
 
@@ -101,18 +109,23 @@ async function getLlmResponse(roomCode) {
 }
 
 io.on("connection", (socket) => {
-   console.log("User connected:", socket.id);
-    
+//    console.log("Client connected:", socket.id);
+
     // when admin starts room or when user joins roomCode they are joined to this socket instance
-    socket.on("join-room", ({ roomCode, isAdmin, user }) => {
+    socket.on("join-room", async ({ roomCode, isAdmin, user }) => {
         if (!roomCode || typeof roomCode !== 'number') {
             console.warn("join-room missing or invalid roomCode", roomCode, user);
             return;
         }
 
+        // if (socket.rooms.has(roomCode)) {
+        //     console.log("Socket already in room:", roomCode);
+        //     return;
+
+        // }
+
         if(!rooms[roomCode]) {
              rooms[roomCode] = [];
-             status[roomCode] = "waiting";
         }
 
         socket.join(roomCode);
@@ -123,23 +136,19 @@ io.on("connection", (socket) => {
                 rooms[roomCode].push(user);
             } 
         }
-        // socket.join(roomCode);
-        // socketUserMap[socket.id] = { roomCode, isAdmin, user };
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
+        const room = await getRoom(roomCode);
         // send user/admin to correct status page
-        io.to(roomCode).emit("status", status[roomCode]);
+        io.to(roomCode).emit("status", room.status);
 
-       console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode);
+       console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
     });
 
     socket.on("show-instructions", async ({roomCode}) => {
-        if (!roomCode || !rooms[roomCode]) {
-            console.warn("show-instructions invalid roomCode:", roomCode);
-        }
-        
-        status[roomCode] = "instructions";
+        if (!roomCode) return;
+
         io.to(roomCode).emit("to-instructions");
     });
 
@@ -148,9 +157,9 @@ io.on("connection", (socket) => {
     socket.on("start-game", async ({roomCode}) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("start-game invalid roomCode:", roomCode);
+            return;
         }
         roomState[roomCode] = true;
-        status[roomCode] = "interaction";
         // this one will send users from waitingRoom to interactions page
         io.to(roomCode).emit("start-chat");
     });
@@ -170,17 +179,44 @@ io.on("connection", (socket) => {
                 userNames: new Map()
             };
         }
-    
-        const game = gameMap[room.gameType];
-        const userPrompt = game.prompts[round-1].instruction_prompt;
-        const systemPrompt = game.prompts[round-1].system_prompt;
 
+        const state = gameState[roomCode];
+        const currRound = state.round;
+    
+        const game = games.find(g => parseInt(g.id) === room.gameType)
+        const instructionsPrompt = game.prompts[0].instruction_prompt;
+        const systemPrompt = game.prompts[0].system_prompt;
+        const responsePrompt = game.prompts[0].response_prompt; 
+        const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
+        const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
+        const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
+
+        const userNames = Array.from(state.userNames.entries())
+            .reduce((acc, [id, name]) => {
+            acc[id] = name;
+            return acc;
+        }, {});
+
+        // also change this we need the context of either the previous round or all of them
         const messages = [
             { "role": "system", "content": systemPrompt },
-            { "role": "user", "content": userPrompt }
         ]
+        // loop through rounds:
+        for (let i = 1; i <= currRound; i++) {
+            messages.push({ "role": "user", "content": instructionsPrompt });
+            if (!llmInstructions[i]) break;
+            messages.push({ "role": "assistant", "content": llmInstructions[i] });
+            // const roundMessages = userMessages[i] || [];
+            const formattedUserMessages = userMessages[i].map(([userId, text]) => {
+            const name = userNames[userId] || `User ${userId}`;
+                return `${name}: ${text}`;
+            }).join("\n");
+            messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
+            messages.push({ "role": "assistant", "content": llmResponses[i] })
+        }
 
         // getting instructions from LLM below
+        await delay(2000); // it keeps missing the ai-start socket this fixed it, probably not best way but it works
         io.to(roomCode).emit("ai-start");
 
         let buffer = "";
@@ -201,7 +237,8 @@ io.on("connection", (socket) => {
     socket.on("submit-round-message", async ({ roomCode, userId, userName, text }) => {
         const state = gameState[roomCode];
 
-        if (state.userMessages.has(userId)) return;
+        //need to check into this
+        if (!state.userMessages || state.userMessages.has(userId)) return;
 
         state.userMessages.set(userId, text);
         state.userNames.set(userId, userName);
@@ -220,7 +257,7 @@ io.on("connection", (socket) => {
 
       
         if(state.userMessages.size === state.userIds.size) {
-            await getLlmResponse(roomCode);
+            await getLlmResponse(roomCode); // if a user leaves in middle of round this is called before that user sends their message
         }
     });
 
@@ -230,7 +267,6 @@ io.on("connection", (socket) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("startSurvey invalid roomCode:", roomCode);
         }
-        status[roomCode] = "survey";
         // this sends user from interaction page to survey page
         io.to(roomCode).emit("start-user-survey");
     });
@@ -246,10 +282,8 @@ io.on("connection", (socket) => {
             clients.forEach(clientId => {
                 const clientSocket = io.sockets.sockets.get(clientId);
                 clientSocket.leave(roomCode); // remove from room
-                clientSocket.disconnect(true); // optional: fully disconnect
             });
         }
-        delete status[roomCode];
         delete rooms[roomCode];
     })
 
@@ -276,22 +310,23 @@ io.on("connection", (socket) => {
     socket.on("leave-room", ({ roomCode, userId }) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("leave-room invalid roomCode:", roomCode);
+            return;
         }
+        const data = socketUserMap[socket.id]
+        if (!data)  return;
+
+        const { isAdmin, user } = data
 
         rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-
-        // if not enough users send back to waiting room
-        // need to fix this
-        // if (roomState[roomCode] && rooms[roomCode].length < 3) {
-        //     roomState[roomCode] = false;
-        //     io.to(roomCode).emit("force-return-to-waiting-room");
-        // }
-
-
         socket.leave(roomCode);
         delete socketUserMap[socket.id];
+        if (isAdmin) {
+            console.log("admin left room:", socket.id);
+        } else {
+            console.log("User left room:", socket.id, user.userName);
+        }
     });
 
     // also keeps track of users leaving a room
@@ -300,21 +335,22 @@ io.on("connection", (socket) => {
         if (!data)  return;
 
         const { roomCode, isAdmin, user } = data
+        if(!roomCode || !rooms[roomCode]) {
+            return;
+        }
         if(!isAdmin) {
             rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
             io.to(roomCode).emit("room-users", rooms[roomCode]);
         }
 
-        // If not enough users send back to waiting room
-        // need to fix this
-        // if (roomState[roomCode] && rooms[roomCode].length < 3) {
-        //     roomState[roomCode] = false;
-        //     io.to(roomCode).emit("force-return-to-waiting-room");
-        // }
-
         // Clean up mapping
+        socket.leave(roomCode);
         delete socketUserMap[socket.id];
-        console.log("User disconnected:", socket.id)
+        if (isAdmin) {
+            console.log("admin disconnected:", socket.id);
+        } else {
+            console.log("User disconnected:", socket.id, user.userName);
+        }
     });
 
     socket.on("connect_error", (err) => {

@@ -1,15 +1,21 @@
 /*This page is where the users will interact with the llm*/
-
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket';
 import { getRoom } from "../../services/roomsService";
-import { getUser } from "../../services/usersService";
+import { getUser, getUserRole } from "../../services/usersService";
+import InstructionsModal from "./InstructionsModal";
+import games from "../gameLoader";
 
 
 export function Interaction(){
     const location = useLocation();
     const navigate = useNavigate();
+    const isAdmin = false;
+    const { user } = location.state
+    const { userId } = user;
+    const roomCode = parseInt(user.roomCode);
+    
     const [prompt, setPrompt] = useState("");
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
@@ -17,20 +23,49 @@ export function Interaction(){
     const [canSend, setCanSend] = useState(false);
     const [hasSentThisRound, setHasSentThisRound] = useState(false);
     const isStreamingRef = useRef(false);
-    const isAdmin = false;
-    const { user } = location.state
-    const { userId } = user;
-    const roomCode = parseInt(user.roomCode); // to make sure sockets are connecting between user and admin
+    const [showInstructions, setShowInstructions] = useState(false);
+    const [game, setGame] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState(null);
     const chatBoxRef = useRef(null);
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+    useEffect(() => {
+
+        async function fetchData() {
+            try {
+                const roomData = await getRoom(roomCode);
+                const gameData = games.find(g => parseInt(g.id) === roomData.gameType);
+                const { role } = await getUserRole(user.userId);
+                setUserRole(gameData.roles[parseInt(role) -1]);
+                setGame(games.find(g => parseInt(g.id) === roomData.gameType));
+            } catch (err) {
+                console.error("Failed to fetch rom:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchData();
+
+    }, [roomCode])
 
     useEffect(() => {
         socket.emit("join-room", { roomCode, isAdmin, user });
+        // if (!socket.connected) socket.connect();
+
+        // const handleConnect = () => {
+        //    socket.emit("join-room", { roomCode, isAdmin, user }); 
+        // }
+
+        // if (socket.connected) {
+        //     handleConnect();
+        // } else {
+        //     socket.once("connect", handleConnect);
+        // }
+        // socket.on("connect", handleConnect);
+
         socket.on("receive-message", (message) => {
-            // setMessages(prev => {
-            //     if (prev.some(m=>m.id === message.id)) return prev;
-            //     return [...prev, message];
-            // });
             setMessages((prev) => [...prev, message]); 
         });
 
@@ -81,7 +116,16 @@ export function Interaction(){
             navigate("/");
         })
 
+        // const handleLeaveRoom = () => {
+        //     socket.emit("leave-room", { roomCode });
+        // };
+
+        // window.addEventListener("beforeunload", handleLeaveRoom);
+
         return () => {
+            // handleLeaveRoom();
+            // window.removeEventListener("beforeunload", handleLeaveRoom);
+            // socket.off("connect", handleConnect);
             socket.off("receive-message");
             socket.off("room-users");
             socket.off("force-return-to-waiting-room");
@@ -94,6 +138,12 @@ export function Interaction(){
             socket.off("force-return-to-login");
         };
     }, []);
+
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (!streamingText || !currentStreamingId) return;
@@ -130,6 +180,8 @@ export function Interaction(){
 
         const rounds = Object.keys(llmInstructions).sort((a,b) => a-b);
         for (const round of rounds) {
+            userSentThisRound = false;
+            llmResponded = false;
             lastRound = round;
             if (llmInstructions[round]) {
                 newMsgs.push({
@@ -141,7 +193,6 @@ export function Interaction(){
             const msgs = userMessages[round] || [];
             for (const [msgUserId, text] of msgs) {
                 const userTemp = await getUserName(msgUserId);
-                console.log("username:", userTemp);
                 newMsgs.push({
                     sender: "user",
                     msgUserId,
@@ -160,7 +211,7 @@ export function Interaction(){
                     id: `llm-${round}`
                 });
             }
-            if (parseInt(round) === parseInt(numRounds)) {
+            if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) {
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",
@@ -179,6 +230,7 @@ export function Interaction(){
     useEffect(() => {
         async function retrieveRoom() { 
             try {
+                await delay(1000);
                 const room = await getRoom(roomCode);
                 const llmInstructions = room.llmInstructions;
                 const userMessages = room.userMessages;
@@ -193,7 +245,6 @@ export function Interaction(){
                 setMessages(messages);
                 setCanSend(canSend);
                 setHasSentThisRound(hasSentThisRound);
-                // setRoom(room);
             } catch (error){
                 console.error("Error:", error);
                 setError(error.message || "Something went wrong.");
@@ -228,8 +279,19 @@ export function Interaction(){
 
     return (
         <>
+        <div className="interactions-container">
         <div className="welcome-center">
             {user ? <h2>Welcome, {user.userName}!</h2> : <p>Loading...</p>}
+        </div>
+
+        <div className="room-top-left">
+            <button
+                className="info-icon-button"
+                title="Show instructions"
+                onClick={() => setShowInstructions(true)}
+                >
+                ⓘ
+            </button>
         </div>
 
         <div className="room-top-right">
@@ -266,11 +328,14 @@ export function Interaction(){
         <button type="submit" disabled={!canSend || hasSentThisRound}>Send</button>
         </form>
         </div>
-        {/* <div className="next-bottom-left">
-            <button onClick={() => navigate("/survey", { state: { userId } })}>
-            Next</button>
-           
-        </div> */}
+        <InstructionsModal
+            open={showInstructions}
+            onClose={() => setShowInstructions(false)}
+            game={game}
+            role={userRole}
+        />
+        </div>
+
 
         </>
     )

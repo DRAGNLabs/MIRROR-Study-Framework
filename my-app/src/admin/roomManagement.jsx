@@ -2,24 +2,35 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../socket"; 
 import { updateUserIds, getRoom, updateStatus } from "../../services/roomsService";
+import { setRole } from "../../services/usersService";
+import games from "../gameLoader";
 
 export default function RoomManagement() {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { roomCode } = location.state;
+    const isAdmin = true;
     const [users, setUsers] = useState([]);
     const [room, setRoom] = useState("");
-    const [error, setError] = useState("");
-    const navigate = useNavigate();
-    const isAdmin = true;
-    const { roomCode } = location.state;
+    // const [error, setError] = useState("");
+
 
 
     useEffect(() => {
-        retrieveRoom();
-    }, [roomCode]);
+        socket.emit("join-room", {roomCode, isAdmin});
+        // if (!socket.conected) socket.connect();
 
-    useEffect(() => {
+        // const handleConnect = () => {
+        //     socket.emit("join-room", {roomCode, isAdmin});
+        // }
 
-        socket.emit("join-room", { roomCode, isAdmin});
+        // socket.on("connect", handleConnect);
+
+        // if (socket.connected) {
+        //     handleConnect();
+        // } else {
+        //     socket.once("connect", handleConnect);
+        // }
 
         socket.on("status", (status) => {
             const currentPath = location.pathname;
@@ -30,20 +41,42 @@ export default function RoomManagement() {
             }
         });
 
-        socket.on("room-users", setUsers);
+        // socket.on("room-users", setUsers);
+        socket.on("room-users", (userList) => {
+            setUsers(userList);
+        });
         
         socket.on("force-return-to-login", () => {
             navigate("/admin");
         })
 
+        // const handleLeaveRoom = () => {
+        //     socket.emit("leave-room", { roomCode });
+        // };
+
+        // window.addEventListener("beforeunload", handleLeaveRoom);
+
         return () => {
+            // handleLeaveRoom();
+            // window.removeEventListener("beforeunload", handleLeaveRoom);
+            // socket.off("connect", handleConnect);
             socket.off("status");
             socket.off("room-users");
             socket.off("force-return-to-login");
         };
   
-    }, []);
+    }, [roomCode]);
 
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
+
+
+    useEffect(() => {
+        retrieveRoom();
+    }, [roomCode]);
 
     async function retrieveRoom() { 
         try {
@@ -51,11 +84,15 @@ export default function RoomManagement() {
             setRoom(response);
         } catch (error){
             console.error("Error:", error);
-            setError(error.message || "Something went wrong.");
+            // setError(error.message || "Something went wrong.");
         }
     }
 
     async function start() {
+        const roomData = await getRoom(roomCode);
+        const game = games.find(g => g.id === roomData.gameType)
+        const gameRoles = game.roles;
+        await assignRoles(users, gameRoles);
         socket.emit("show-instructions", { roomCode });
         let userIds = [];
         for (let i = 0; i < users.length; i++) {
@@ -65,6 +102,22 @@ export default function RoomManagement() {
         await updateStatus(roomCode, "instructions");
         navigate("/admin/instructions", { state: { roomCode }});
 
+    }
+
+    async function assignRoles(usersInRoom, gameRoles) {
+        const shuffledRoles = [...gameRoles].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < usersInRoom.length; i++) {
+            const user = usersInRoom[i];
+            console.log("User in assignRoles", user);
+            const roleToAssign = shuffledRoles[i];
+            console.log("Role for user at", i, roleToAssign);
+            try {
+                const response = await setRole(user.userId, roleToAssign.id);
+                console.log(response);
+            } catch(error) {
+                console.log(error.message);
+            }
+        }
     }
 
 

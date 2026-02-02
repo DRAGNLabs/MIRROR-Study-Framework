@@ -6,10 +6,9 @@ import { socket } from '../socket';
 
 export default function AdminSurvey() {
     const location = useLocation();
-    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const { roomCode } = location.state;
-    const [error, setError]= useState("");
+    // const [error, setError]= useState("");
 
     // this basically rerenders survey status if you refresh
     useEffect(() => {
@@ -28,7 +27,7 @@ export default function AdminSurvey() {
                 setUsers(usersWithStatus);
             } catch (err) {
                 console.error(err);
-                setError(err.message || "failed to fetch users");
+                // setError(err.message || "failed to fetch users");
             }
         }
         fetchUsers();
@@ -36,6 +35,14 @@ export default function AdminSurvey() {
 
 
     useEffect(() => {
+        socket.emit("join-room", {roomCode, isAdmin: true});
+        // if (!socket.connected) socket.connect();
+
+        // const handleConnect = () => {
+        //    socket.emit("join-room", { roomCode, isAdmin: true}); 
+        // }
+        // socket.on("connect", handleConnect);
+
         socket.on("user-survey-complete", ({ userId, surveyId }) => {
             setUsers(prev =>
                 prev.map(u => 
@@ -45,11 +52,16 @@ export default function AdminSurvey() {
         });
 
         return () => {
+            // socket.off("connect", handleConnect);
             socket.off("user-survey-complete");
         };
     }, []);
 
-
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
 
     return (
         <div className="admin-container">

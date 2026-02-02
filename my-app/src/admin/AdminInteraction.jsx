@@ -9,20 +9,29 @@ import { getUser } from '../../services/usersService.js'
 export default function AdminInteraction(){
     const location = useLocation();
     const navigate = useNavigate();
-    const [users, setUsers] =useState([]);
+    const { roomCode } = location.state;
+    const isAdmin = true;
+
     const [messages, setMessages] = useState([]); 
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
-    const [room, setRoom] = useState();
-    const [error, setError] = useState("");
+
+    // const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
-    const { roomCode } = location.state;
     const isStreamingRef = useRef(false);
-    const isAdmin = true;
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
     useEffect(() => {
         socket.emit("join-room", { roomCode, isAdmin});
+        // if (!socket.connected) socket.connect();
+
+        // const handleConnect = () => {
+        //    socket.emit("join-room", { roomCode, isAdmin}); 
+        // }
+
+        // socket.on("connect", handleConnect);
+
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
         });
@@ -50,10 +59,8 @@ export default function AdminInteraction(){
             setStreamingText("");
         });
 
-        socket.on("room-users", setUsers);
 
         socket.on("round-complete", (nextRound) => {
-            // console.log("Next round from server:", nextRound);
             socket.emit('start-round', {
                 roomCode,
                 round: nextRound
@@ -64,17 +71,23 @@ export default function AdminInteraction(){
             navigate("/admin");
         });
 
+
         return () => {
+            // socket.off("connect", handleConnect);
             socket.off("receive-message");
-            socket.off("room-users");
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
             socket.off("round-complete");
             socket.off("force-return-to-login");
         };
-    }, []);
+    }, [roomCode]);
 
+    // useEffect(() => {
+    //     return () => {
+    //         socket.emit("leave-room", { roomCode });
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (!streamingText) return;
@@ -104,7 +117,7 @@ export default function AdminInteraction(){
             return user.userName;
         } catch (error) {
             console.error("Error:", error);
-            setError(error.message || "something went wrong.");
+            // setError(error.message || "something went wrong.");
         }
     }
 
@@ -137,7 +150,7 @@ export default function AdminInteraction(){
                     id: `llm-${round}`
                 });
             }
-            if (parseInt(round) === parseInt(numRounds)) {
+            if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) { // this check needs to change
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",
@@ -154,6 +167,7 @@ export default function AdminInteraction(){
 
         async function retrieveRoom() {
             try {
+                await delay(1000); // this makes sure the messages don't get reset before llmInstructions have sent
                 const room = await getRoom(roomCode);
                 const llmInstructions = room.llmInstructions;
                 const userMessages = room.userMessages;
@@ -166,11 +180,9 @@ export default function AdminInteraction(){
                     return;
                 }
                 setMessages(newMsgs);
-                // hasInitialized.current = true;
-                setRoom(room);
             } catch (error){
                 console.error("Error:", error);
-                setError(error.message || "Something went wrong.");
+                // setError(error.message || "Something went wrong.");
             }
         }
 

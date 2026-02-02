@@ -1,20 +1,20 @@
 /* This is the home page where users will login to the room using a given roomCode*/
 
 import { Link, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import Survey from "./survey/survey";
+import Survey from "./survey/Survey";
 import './App.css';
 import { useState } from "react";
 import { loginUser, getCreatedUser } from '../services/usersService';
 import { getRoom, loginRoom } from '../services/roomsService';
-import Interaction from "./interaction/interaction";
+import Interaction from "./interaction/Interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
-import WaitingRoom from './interaction/waitingRoom';
-import RoomManagement from './admin/roomManagement'
-import AdminInteraction from './admin/adminInteraction'
+import WaitingRoom from './interaction/WaitingRoom';
+import RoomManagement from './admin/RoomManagement'
+import AdminInteraction from './admin/AdminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
 import Instructions from './interaction/Instructions';
-import AdminInstructions from './admin/adminInstructions';
+import AdminInstructions from './admin/AdminInstructions';
 import AdminSurvey from './admin/AdminSurvey';
 
 function RequireState({ children, fallback = "/" }) {
