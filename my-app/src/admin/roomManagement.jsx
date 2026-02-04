@@ -24,6 +24,7 @@ export default function RoomManagement() {
         // if (!socket.conected) socket.connect();
 
         const handleConnect = () => {
+            sessionStorage.setItem("roomCode", roomCode);
             socket.emit("join-room", {roomCode, isAdmin});
         }
 

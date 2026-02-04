@@ -27,7 +27,8 @@ export default function AdminInteraction(){
         // if (!socket.connected) socket.connect();
 
         const handleConnect = () => {
-           socket.emit("join-room", { roomCode, isAdmin}); 
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", { roomCode, isAdmin}); 
         }
 
         if (socket.connected) {

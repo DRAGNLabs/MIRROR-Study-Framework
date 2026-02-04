@@ -13,6 +13,7 @@ export default function WaitingRoom() {
 
   useEffect(() => {
     const handleJoinRoom = () => {
+      sessionStorage.setItem("roomCode", roomCode);
       socket.emit("join-room", { roomCode, isAdmin: false, user});
     }
 

@@ -34,6 +34,7 @@ export default function AdminInstructions() {
       // if (!socket.connected) socket.connect();
 
       const handleConnect = () => {
+        sessionStorage.setItem("roomCode", roomCode);
         socket.emit("join-room", { roomCode, isAdmin});
       }
 

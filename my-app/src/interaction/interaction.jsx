@@ -55,7 +55,8 @@ export function Interaction(){
         // if (!socket.connected) socket.connect();
 
         const handleConnect = () => {
-           socket.emit("join-room", { roomCode, isAdmin, user }); 
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", { roomCode, isAdmin, user }); 
         }
 
         if (socket.connected) {

@@ -39,7 +39,8 @@ export default function AdminSurvey() {
         // if (!socket.connected) socket.connect();
 
         const handleConnect = () => {
-           socket.emit("join-room", { roomCode, isAdmin: true}); 
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", { roomCode, isAdmin: true}); 
         }
 
         if (socket.connected) {

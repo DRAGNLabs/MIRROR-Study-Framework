@@ -29,6 +29,7 @@ const io = new Server(httpServer, {
 
 
 const rooms = {};
+const usersInRoom = {}
 const socketUserMap = {}; 
 const currRounds = {} // I want to change this to rely on database (more secure)
 function delay(ms) {
@@ -104,13 +105,12 @@ async function getLlmResponse(roomCode) {
 }
 
 io.on("connection", (socket) => {
-    // only listen to events on connection
 //    console.log("Client connected:", socket.id);
 
     // when admin starts room or when user joins roomCode they are joined to this socket instance
     socket.on("join-room", async ({ roomCode, isAdmin, user }) => {
         if (!roomCode || typeof roomCode !== 'number') {
-            console.warn("join-room missing or invalid roomCode", roomCode, user);
+            console.warn("join-room missing or invalid roomCode", roomCode, isAdmin, user);
             return;
         }
 
@@ -124,6 +124,13 @@ io.on("connection", (socket) => {
              rooms[roomCode] = [];
         }
 
+        const currSocket = socketUserMap[socket.id];
+        if (currSocket) {
+            const socketRoomCode = currSocket.roomCode;
+            if (socketRoomCode == roomCode) {
+                return;
+            }
+        }
         socket.join(roomCode);
         socketUserMap[socket.id] = { roomCode, isAdmin, user }; // should I track admin here?
         if (!isAdmin) {
@@ -293,7 +300,7 @@ io.on("connection", (socket) => {
     });
 
     // this is for if someone leaves the room while they're waiting
-    socket.on("leave-room", ({ roomCode, userId }) => {
+    socket.on("leave-room", ({ roomCode }) => {
         if (!roomCode || !rooms[roomCode]) {
             console.warn("leave-room invalid roomCode:", roomCode);
             return;
@@ -302,14 +309,15 @@ io.on("connection", (socket) => {
         if (!data)  return;
 
         const { isAdmin, user } = data
-
-        rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== userId);
+        if (!isAdmin) {
+            rooms[roomCode] = rooms[roomCode].filter(u => u.userId !== user.userId);
+        }
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
         socket.leave(roomCode);
         delete socketUserMap[socket.id];
         if (isAdmin) {
-            console.log("admin left room:", socket.id);
+            console.log("Admin left room:", socket.id);
         } else {
             console.log("User left room:", socket.id, user.userName);
         }
@@ -318,14 +326,14 @@ io.on("connection", (socket) => {
     // also keeps track of users leaving a room
     socket.on("disconnect", () => {
         const data = socketUserMap[socket.id]
-        if (!data)  return;
+        if (!data)  return; //basically if not part of a room
 
         const { roomCode, isAdmin, user } = data
-        if(!roomCode || !rooms[roomCode]) {
-            console.warn("disconnect invalid roomCode");
-            return;
-        }
-        if(!isAdmin) {
+        // if(!rooms[roomCode]) {
+        //     return;
+        // }
+        
+        if(!isAdmin && user) {
             rooms[roomCode] = rooms[roomCode].filter((u) => u.userId !== user.userId);
             io.to(roomCode).emit("room-users", rooms[roomCode]);
         }
@@ -334,7 +342,7 @@ io.on("connection", (socket) => {
         socket.leave(roomCode);
         delete socketUserMap[socket.id];
         if (isAdmin) {
-            console.log("admin disconnected:", socket.id);
+            console.log("Admin disconnected:", socket.id);
         } else {
             console.log("User disconnected:", socket.id, user.userName);
         }
