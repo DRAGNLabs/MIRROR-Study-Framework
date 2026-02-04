@@ -35,12 +35,18 @@ export default function AdminSurvey() {
 
 
     useEffect(() => {
-        socket.emit("join-room", {roomCode, isAdmin: true});
+        // socket.emit("join-room", {roomCode, isAdmin: true});
         // if (!socket.connected) socket.connect();
 
-        // const handleConnect = () => {
-        //    socket.emit("join-room", { roomCode, isAdmin: true}); 
-        // }
+        const handleConnect = () => {
+           socket.emit("join-room", { roomCode, isAdmin: true}); 
+        }
+
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
         // socket.on("connect", handleConnect);
 
         socket.on("user-survey-complete", ({ userId, surveyId }) => {
@@ -52,7 +58,7 @@ export default function AdminSurvey() {
         });
 
         return () => {
-            // socket.off("connect", handleConnect);
+            socket.off("connect", handleConnect);
             socket.off("user-survey-complete");
         };
     }, [socket]);

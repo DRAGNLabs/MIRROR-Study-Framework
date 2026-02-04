@@ -216,8 +216,16 @@ io.on("connection", (socket) => {
         }
 
         // getting instructions from LLM below
-        await delay(2000); // it keeps missing the ai-start socket this fixed it, probably not best way but it works
-        io.to(roomCode).emit("ai-start");
+        await delay(500); // it keeps missing the ai-start socket this fixed it, probably not best way but it works
+        io.to(roomCode).emit("ai-start"); 
+        // io.to(roomCode).timeout(6000).emit("ai-start", (err, response) => {
+        //     if (err) {
+        //         console.log("ai-start ack timed out or failed", err);
+        //         return;
+        //     }
+
+        //     console.log("client acknowledged ai-start:", response);
+        // });
 
         let buffer = "";
         await streamLLM(messages, token => {

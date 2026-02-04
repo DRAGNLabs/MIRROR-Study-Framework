@@ -35,18 +35,18 @@ export default function Instructions() {
     }, [roomCode])
 
     useEffect(() => {
-        socket.emit("join-room", { roomCode, isAdmin, user });
+        // socket.emit("join-room", { roomCode, isAdmin, user });
         // if (!socket.connected) socket.connect();
         
-        // const handleConnect = () => {
-        //    socket.emit("join-room", { roomCode, isAdmin, user }); 
-        // }
+        const handleConnect = () => {
+           socket.emit("join-room", { roomCode, isAdmin, user }); 
+        }
 
-        // if (socket.connected) {
-        //     handleConnect();
-        // } else {
-        //     socket.once("connect", handleConnect);
-        // }
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
         // socket.on("connect", handleConnect);
 
         const onStart = () => {
@@ -59,6 +59,13 @@ export default function Instructions() {
             navigate("/");
         });
 
+        socket.on("status", (status) => {
+            const currentPath = location.pathname;
+            if(!currentPath.includes(status)) {
+                navigate(`/admin/${status}`, { state: { roomCode } });
+            }
+        });
+
         // const handleLeaveRoom = () => {
         //     socket.emit("leave-room", { roomCode });
         // };
@@ -68,9 +75,10 @@ export default function Instructions() {
         return () => {
             // handleLeaveRoom();
             // window.removeEventListener("beforeunload", handleLeaveRoom);
-            // socket.off("connect", handleConnect);
+            socket.off("connect", handleConnect);
             socket.off("start-chat", onStart);
             socket.off("force-return-to-login");
+            socket.off("status");
         };
     }, [socket]);
 

@@ -12,7 +12,15 @@ export default function WaitingRoom() {
 
 
   useEffect(() => {
-    socket.emit("join-room", { roomCode, isAdmin: false, user});
+    const handleJoinRoom = () => {
+      socket.emit("join-room", { roomCode, isAdmin: false, user});
+    }
+
+    if (socket.connected) {
+      handleJoinRoom();
+    } else {
+      socket.once("connect", handleJoinRoom);
+    }
     // if (!socket.connected) socket.connect();
 
     // const handleConnect = () => {
@@ -30,10 +38,8 @@ export default function WaitingRoom() {
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;
-        if(currentPath.includes(status)) {
-            return;
-        } else {
-            navigate(`/${status}`, { state: { user } });
+        if(!currentPath.includes(status)) {
+            navigate(`/admin/${status}`, { state: { roomCode } });
         }
     });
 
@@ -66,6 +72,7 @@ export default function WaitingRoom() {
       // handleLeaveRoom();
       // socket.off("connect", handleConnect);
       // window.removeEventListener("beforeunload", handleLeaveRoom);
+      socket.off("connect", handleJoinRoom);
       socket.off("status");
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);

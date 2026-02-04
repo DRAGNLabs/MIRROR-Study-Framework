@@ -17,26 +17,27 @@ export default function RoomManagement() {
 
 
     useEffect(() => {
-        socket.emit("join-room", {roomCode, isAdmin});
+        // if (!hasJoinedRoom.current) {
+        // socket.emit("join-room", {roomCode, isAdmin});
+        //     hasJoinedRoom.current = true;
+        // }
         // if (!socket.conected) socket.connect();
 
-        // const handleConnect = () => {
-        //     socket.emit("join-room", {roomCode, isAdmin});
-        // }
+        const handleConnect = () => {
+            socket.emit("join-room", {roomCode, isAdmin});
+        }
 
         // socket.on("connect", handleConnect);
 
-        // if (socket.connected) {
-        //     handleConnect();
-        // } else {
-        //     socket.once("connect", handleConnect);
-        // }
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
 
         socket.on("status", (status) => {
             const currentPath = location.pathname;
-            if(currentPath.includes(status)) {
-                return;
-            } else {
+            if(!currentPath.includes(status)) {
                 navigate(`/admin/${status}`, { state: { roomCode } });
             }
         });
@@ -59,7 +60,7 @@ export default function RoomManagement() {
         return () => {
             // handleLeaveRoom();
             // window.removeEventListener("beforeunload", handleLeaveRoom);
-            // socket.off("connect", handleConnect);
+            socket.off("connect", handleConnect);
             socket.off("status");
             socket.off("room-users");
             socket.off("force-return-to-login");

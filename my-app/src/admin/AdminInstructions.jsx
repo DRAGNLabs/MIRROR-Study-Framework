@@ -33,15 +33,15 @@ export default function AdminInstructions() {
       socket.emit("join-room", { roomCode, isAdmin });
       // if (!socket.connected) socket.connect();
 
-      // const handleConnect = () => {
-      //   socket.emit("join-room", { roomCode, isAdmin});
-      // }
+      const handleConnect = () => {
+        socket.emit("join-room", { roomCode, isAdmin});
+      }
 
-      // if (socket.connected) {
-      //   handleConnect();
-      // } else {
-      //   socket.once("connect", handleConnect);
-      // }
+      if (socket.connected) {
+        handleConnect();
+      } else {
+        socket.once("connect", handleConnect);
+      }
       // socket.on("connect", handleConnect);
 
       socket.on("force-return-to-login", () => {
@@ -57,7 +57,7 @@ export default function AdminInstructions() {
       return () => {
         // handleLeaveRoom();
         // window.removeEventListener("beforeunload", handleLeaveRoom);
-        // socket.off("connect", handleConnect);
+        socket.off("connect", handleConnect);
         socket.off("force-return-to-login");
       }
     }, [socket]);

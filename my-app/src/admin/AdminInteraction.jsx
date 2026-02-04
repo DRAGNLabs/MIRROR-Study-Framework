@@ -23,13 +23,18 @@ export default function AdminInteraction(){
 
 
     useEffect(() => {
-        socket.emit("join-room", { roomCode, isAdmin});
+        // socket.emit("join-room", { roomCode, isAdmin});
         // if (!socket.connected) socket.connect();
 
-        // const handleConnect = () => {
-        //    socket.emit("join-room", { roomCode, isAdmin}); 
-        // }
+        const handleConnect = () => {
+           socket.emit("join-room", { roomCode, isAdmin}); 
+        }
 
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
         // socket.on("connect", handleConnect);
 
         socket.on("receive-message", (message) => {
@@ -38,9 +43,7 @@ export default function AdminInteraction(){
 
 
         socket.on("ai-start", () => {
-            console.log("HERE in ai-start");
             isStreamingRef.current = true;
-
             const newId = Date.now();
             setCurrentStreamingId(newId);
             setStreamingText("");
@@ -55,6 +58,7 @@ export default function AdminInteraction(){
         });
 
         socket.on("ai-end", () => {
+            isStreamingRef.current = false;
             setCurrentStreamingId(null);
             setStreamingText("");
         });
@@ -73,7 +77,7 @@ export default function AdminInteraction(){
 
 
         return () => {
-            // socket.off("connect", handleConnect);
+            socket.off("connect", handleConnect);
             socket.off("receive-message");
             socket.off("ai-token");
             socket.off("ai-start");
@@ -175,8 +179,8 @@ export default function AdminInteraction(){
                 let numRounds = JSON.parse(room.numRounds);
                 const newMsgs =  await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
                 if (isStreamingRef.current) {
-                    console.log("SKIP database");
-                    console.warn("Skipping DB fetch during stream");
+                    // console.log("SKIP database");
+                    console.log("Skipping database fetch during stream");
                     return;
                 }
                 setMessages(newMsgs);
