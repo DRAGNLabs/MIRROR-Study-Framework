@@ -11,7 +11,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io'
 import { loadGames } from "./services/gameLoader.js";
 const games = loadGames();
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, roomCompleted } from "../backend/services/roomsService.js"
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, roomCompleted, getUser, getSurveyStatus } from "../backend/services/roomsService.js"
 
 
 dotenv.config();
@@ -29,17 +29,14 @@ const io = new Server(httpServer, {
 
 
 const rooms = {};
-const socketUserMap = {};
-const roomState = {}; // this lets you know if game is started or not
-const gameState = {};
-const surveyStatus = {};
+const socketUserMap = {}; 
+const currRounds = {} // I want to change this to rely on database (more secure)
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(roomCode) {
-    const state = gameState[roomCode];
-    const round = state.round;
+    const round = currRounds[roomCode];
 
     const room = await getRoom(roomCode);
 
@@ -52,11 +49,6 @@ async function getLlmResponse(roomCode) {
     const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
     const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
 
-    const userNames = Array.from(state.userNames.entries())
-        .reduce((acc, [id, name]) => {
-        acc[id] = name;
-        return acc;
-    }, {});
 
     const messages = [
         { "role": "system", "content": systemPrompt },
@@ -65,11 +57,16 @@ async function getLlmResponse(roomCode) {
     for (let i = 1; i <= round; i++) {
         messages.push({ "role": "user", "content": instructionsPrompt })
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        // const roundMessages = userMessages[i] || [];
-        const formattedUserMessages = userMessages[i].map(([userId, text]) => {
-            const name = userNames[userId] || `User ${userId}`;
-            return `${name}: ${text}`;
-        }).join("\n");
+        const formattedUserMessages =  ( 
+            await Promise.all(
+                userMessages[i].map(async ([userId, text]) => {
+                    const user = await getUser(userId) 
+                    const name = user?.userName || `User ${userId}`;
+                    return `${name}: ${text}`;
+                })
+            )
+        ).join("\n");
+
         messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
@@ -91,7 +88,6 @@ async function getLlmResponse(roomCode) {
     existingResponses[round] = buffer;
     await updateLlmResponse(existingResponses, roomCode);
 
-    state.userMessages.clear();
 
     if (round >= totalRounds) {
         io.to(roomCode).emit("game-complete");
@@ -102,9 +98,9 @@ async function getLlmResponse(roomCode) {
         console.log(`Round ${round} completed, waiting for next round...`);
     }
 
-    state.round += 1;
+    currRounds[roomCode] += 1;
 
-    io.to(roomCode).emit("round-complete", state.round);
+    io.to(roomCode).emit("round-complete", currRounds[roomCode]);
 }
 
 io.on("connection", (socket) => {
@@ -155,33 +151,21 @@ io.on("connection", (socket) => {
 
     // this triggers when admin starts game in roomManagement
     socket.on("start-game", async ({roomCode}) => {
-        if (!roomCode || !rooms[roomCode]) {
+        if (!roomCode) {
             console.warn("start-game invalid roomCode:", roomCode);
             return;
         }
-        roomState[roomCode] = true;
         // this one will send users from waitingRoom to interactions page
         io.to(roomCode).emit("start-chat");
     });
 
     // when admin clicks start on roomManagment page it triggers the round to start and generate the instructions from the LLM
     socket.on("start-round", async ({ roomCode, round }) => {
-        const roomUsers = rooms[roomCode];
-        if (!roomUsers) return;
 
         const room = await getRoom(roomCode);
-        const userIds = Array.isArray(room.userIds) ? room.userIds : JSON.parse(room.userIds);
-        if (!gameState[roomCode]) {
-            gameState[roomCode] = {
-                round,
-                userIds: new Set(userIds),
-                userMessages: new Map(),
-                userNames: new Map()
-            };
+        if (!currRounds[roomCode]) {
+            currRounds[roomCode] = round
         }
-
-        const state = gameState[roomCode];
-        const currRound = state.round;
     
         const game = games.find(g => parseInt(g.id) === room.gameType)
         const instructionsPrompt = game.prompts[0].instruction_prompt;
@@ -191,26 +175,25 @@ io.on("connection", (socket) => {
         const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
         const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
 
-        const userNames = Array.from(state.userNames.entries())
-            .reduce((acc, [id, name]) => {
-            acc[id] = name;
-            return acc;
-        }, {});
-
         // also change this we need the context of either the previous round or all of them
         const messages = [
             { "role": "system", "content": systemPrompt },
         ]
         // loop through rounds:
-        for (let i = 1; i <= currRound; i++) {
+        for (let i = 1; i <= round; i++) {
             messages.push({ "role": "user", "content": instructionsPrompt });
             if (!llmInstructions[i]) break;
             messages.push({ "role": "assistant", "content": llmInstructions[i] });
             // const roundMessages = userMessages[i] || [];
-            const formattedUserMessages = userMessages[i].map(([userId, text]) => {
-            const name = userNames[userId] || `User ${userId}`;
-                return `${name}: ${text}`;
-            }).join("\n");
+            const formattedUserMessages =  ( 
+                await Promise.all(
+                    userMessages[i].map(async ([userId, text]) => {
+                        const user = await getUser(userId) 
+                        const name = user?.userName || `User ${userId}`;
+                        return `${name}: ${text}`;
+                    })
+                )
+            ).join("\n");
             messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
             messages.push({ "role": "assistant", "content": llmResponses[i] })
         }
@@ -218,14 +201,6 @@ io.on("connection", (socket) => {
         // getting instructions from LLM below
         await delay(500); // it keeps missing the ai-start socket this fixed it, probably not best way but it works
         io.to(roomCode).emit("ai-start"); 
-        // io.to(roomCode).timeout(6000).emit("ai-start", (err, response) => {
-        //     if (err) {
-        //         console.log("ai-start ack timed out or failed", err);
-        //         return;
-        //     }
-
-        //     console.log("client acknowledged ai-start:", response);
-        // });
 
         let buffer = "";
         await streamLLM(messages, token => {
@@ -243,28 +218,31 @@ io.on("connection", (socket) => {
 
         // this is called when user submits message on interaction page
     socket.on("submit-round-message", async ({ roomCode, userId, userName, text }) => {
-        const state = gameState[roomCode];
-
-        //need to check into this
-        if (!state.userMessages || state.userMessages.has(userId)) return;
-
-        state.userMessages.set(userId, text);
-        state.userNames.set(userId, userName);
+        const round = currRounds[roomCode];
         const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
-
-        const round = state.round;
-        const currUserMessages = Array.from(state.userMessages.entries());
 
         const room = await getRoom(roomCode);
         const existingUserMessages = JSON.parse(room.userMessages);
-        existingUserMessages[round] = currUserMessages;
+        const roundMessages = existingUserMessages[round] ?? [];
+        const alreadySubmitted = roundMessages.some(
+            ([existingUserId]) => existingUserId === userId
+        );
+
+        if (alreadySubmitted) return;
+
+        if(existingUserMessages) {
+            if (!existingUserMessages[round]) {
+                existingUserMessages[round] = [[userId, text]];
+            } else {
+                existingUserMessages[round].push([userId, text]);
+            }
+        }
         await updateUserMessages(existingUserMessages, roomCode);
 
         // this sends the sent message to all users and admin interaction pages so it shows up on the chat box
         io.to(roomCode).emit("receive-message", userMsg);
 
-      
-        if(state.userMessages.size === state.userIds.size) {
+        if(existingUserMessages[round].length === JSON.parse(room.userIds).length) {
             await getLlmResponse(roomCode); // if a user leaves in middle of round this is called before that user sends their message
         }
     });
@@ -272,8 +250,9 @@ io.on("connection", (socket) => {
 
     // this triggers when admin clicks next on adminInteraction page
     socket.on("start-survey", ({roomCode}) => {
-        if (!roomCode || !rooms[roomCode]) {
+        if (!roomCode) {
             console.warn("startSurvey invalid roomCode:", roomCode);
+            return;
         }
         // this sends user from interaction page to survey page
         io.to(roomCode).emit("start-user-survey");
@@ -283,7 +262,6 @@ io.on("connection", (socket) => {
     socket.on("close-room", ({ roomCode }) => {
         if(!roomCode) return;
 
-        roomState[roomCode] = false;
         io.to(roomCode).emit("force-return-to-login");
         const clients = io.sockets.adapter.rooms.get(roomCode);
         if (clients) {
@@ -296,21 +274,22 @@ io.on("connection", (socket) => {
     })
 
     socket.on("survey-complete", async ({ roomCode, userId, surveyId }) => {
-        if (!roomCode || !rooms[roomCode]) {
+        if (!roomCode) {
             console.warn("survey complete invalid roomCode:", roomCode);
         }
-        if (!surveyStatus[roomCode]) {
-            surveyStatus[roomCode] = new Set();
-        }
-
-        surveyStatus[roomCode].add(userId);
 
         io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
         const currRoom = await getRoom(roomCode);
-        if(surveyStatus[roomCode].size === JSON.parse(currRoom.userIds).length) {
+
+        let surveyCompleted = true;
+        for (const id of JSON.parse(currRoom.userIds)) {
+            const { completed } = await getSurveyStatus(userId)
+            if (completed == 0) surveyCompleted = false;
+        }
+
+        if(surveyCompleted) {
             await roomCompleted(roomCode);
-            // io.to(roomCode).emit("all-surveys-complete")
-        }    
+        }
     });
 
     // this is for if someone leaves the room while they're waiting
@@ -343,6 +322,7 @@ io.on("connection", (socket) => {
 
         const { roomCode, isAdmin, user } = data
         if(!roomCode || !rooms[roomCode]) {
+            console.warn("disconnect invalid roomCode");
             return;
         }
         if(!isAdmin) {

@@ -61,8 +61,10 @@ export default function Instructions() {
 
         socket.on("status", (status) => {
             const currentPath = location.pathname;
+            console.log("Current path name in instructions", currentPath);
+            console.log("status", status);
             if(!currentPath.includes(status)) {
-                navigate(`/admin/${status}`, { state: { roomCode } });
+                navigate(`/${status}`, { state: { user } });
             }
         });
 

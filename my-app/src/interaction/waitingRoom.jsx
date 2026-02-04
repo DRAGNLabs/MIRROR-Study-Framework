@@ -38,8 +38,10 @@ export default function WaitingRoom() {
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;
+        console.log("Current path name in waiting room", currentPath);
+        console.log("status", status);
         if(!currentPath.includes(status)) {
-            navigate(`/admin/${status}`, { state: { roomCode } });
+            navigate(`/${status}`, { state: { user } });
         }
     });
 
@@ -48,6 +50,7 @@ export default function WaitingRoom() {
     });
 
     const toInstructions = () => {
+
       navigate("/instructions", { state: { user }});
     }
 
