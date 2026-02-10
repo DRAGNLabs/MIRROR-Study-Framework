@@ -58,24 +58,11 @@ export default function WaitingRoom() {
     socket.on("to-instructions", toInstructions);
 
     socket.on("force-return-to-login", () => {
+      socket.emit("leave-room");
       navigate("/");
     })
 
-    // const handleUnload = () => {
-    //   socket.emit("leave-room", { roomCode, userId });
-    // };
-
-    // window.addEventListener("beforeunload", handleUnload);
-    // const handleLeaveRoom = () => {
-    //   socket.emit("leave-room", { roomCode });
-    // };
-
-    // window.addEventListener("beforeunload", handleLeaveRoom);
-
     return () => {
-      // handleLeaveRoom();
-      // socket.off("connect", handleConnect);
-      // window.removeEventListener("beforeunload", handleLeaveRoom);
       socket.off("connect", handleJoinRoom);
       socket.off("status");
       socket.off("room-users");
@@ -84,11 +71,6 @@ export default function WaitingRoom() {
     };
   }, [socket]);
 
-  //   useEffect(() => {
-  //     return () => {
-  //         socket.emit("leave-room", { roomCode });
-  //     };
-  // }, []);
 
   return (
     <div className="waiting-container">

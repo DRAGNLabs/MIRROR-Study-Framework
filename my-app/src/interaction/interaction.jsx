@@ -70,10 +70,6 @@ export function Interaction(){
             setMessages((prev) => [...prev, message]); 
         });
 
-        socket.on("force-return-to-waiting-room", () => {
-            navigate("/waiting", { state: { user } });
-        });
-
         socket.on("start-user-survey", () => {
             navigate("/survey", { state: { user }});
         });
@@ -115,6 +111,7 @@ export function Interaction(){
         });
 
         socket.on("force-return-to-login", () => {
+            socket.emit("leave-room");
             navigate("/");
         })
 

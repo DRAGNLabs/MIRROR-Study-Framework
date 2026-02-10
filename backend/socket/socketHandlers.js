@@ -49,7 +49,7 @@ export async function handleDisconnect(io, socket) {
         //     return;
         // }
         
-        if(!isAdmin && user) {
+        if(!isAdmin && user && usersInRoom[roomCode]) {
             usersInRoom[roomCode] = usersInRoom[roomCode].filter((u) => u.userId !== user.userId);
             io.to(roomCode).emit("room-users", usersInRoom[roomCode]);
         }

@@ -57,6 +57,7 @@ export default function Instructions() {
         socket.on("start-chat", onStart);
 
         socket.on("force-return-to-login", () => {
+            socket.emit("leave-room");
             navigate("/");
         });
 
