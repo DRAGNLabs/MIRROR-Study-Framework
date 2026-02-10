@@ -66,3 +66,13 @@ export async function roomCompleted(roomCode) {
     if (!response.ok) throw new Error(`Error updating start and userIds in room ${roomCode}`);
     return response.json();
 }
+
+export async function updateResourceAllocations(resourceAllocations, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/resourceAllocations`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceAllocations })
+    });
+    if (!response.ok) throw new Error(`Error updating resourceAllocations in room ${roomCode}`);
+    return response.json();
+}

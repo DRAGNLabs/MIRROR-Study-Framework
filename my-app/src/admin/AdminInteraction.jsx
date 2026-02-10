@@ -15,11 +15,17 @@ export default function AdminInteraction(){
     const [messages, setMessages] = useState([]); 
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
+    const [resourceHistory, setResourceHistory] = useState([]);
 
     // const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
     const isStreamingRef = useRef(false);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    const currentRoundAllocations =
+        resourceHistory.length > 0
+            ? resourceHistory[resourceHistory.length - 1]
+            : null;
 
 
     useEffect(() => {
@@ -65,6 +71,8 @@ export default function AdminInteraction(){
                 roomCode,
                 round: nextRound
             });
+            // Refresh room state so latest allocations and messages are visible.
+            loadRoomState();
         });
 
         socket.on("force-return-to-login", () => {
@@ -162,32 +170,67 @@ export default function AdminInteraction(){
         return newMsgs;
     }
 
+    // Load full room state: chat history + resource allocations
+    async function loadRoomState() {
+        try {
+            const room = await getRoom(roomCode);
+            const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
+            const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
+            const llmResponse = room.llmResponse ? JSON.parse(room.llmResponse) : {};
+            const numRounds = room.numRounds != null
+                ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
+                : 1;
+
+            const newMsgs = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
+
+            // Parse resourceAllocations if present
+            if (room.resourceAllocations) {
+                try {
+                    const parsed = typeof room.resourceAllocations === "string"
+                        ? JSON.parse(room.resourceAllocations)
+                        : room.resourceAllocations;
+
+                    const history = Object.keys(parsed)
+                        .sort((a, b) => Number(a) - Number(b))
+                        .map((roundKey) => {
+                            const roundNumber = Number(roundKey);
+                            const entry = parsed[roundKey] || {};
+                            const allocationByUserId = entry.allocationByUserId || {};
+                            return {
+                                round: roundNumber,
+                                allocations: allocationByUserId
+                            };
+                        });
+
+                    setResourceHistory(history);
+                } catch (err) {
+                    console.error("Error parsing resourceAllocations (admin):", err);
+                    setResourceHistory([]);
+                }
+            } else {
+                setResourceHistory([]);
+            }
+
+            if (isStreamingRef.current) {
+                return;
+            }
+            setMessages(newMsgs);
+        } catch (error) {
+            console.error("Error loading admin room state:", error);
+        }
+    }
 
     useEffect(() => {
-
-        async function retrieveRoom() {
+        async function initialLoad() {
             try {
-                await delay(1000); // this makes sure the messages don't get reset before llmInstructions have sent
-                const room = await getRoom(roomCode);
-                let llmInstructions = JSON.parse(room.llmInstructions);
-                let userMessages = JSON.parse(room.userMessages);
-                let llmResponse = JSON.parse(room.llmResponse);
-                let numRounds = JSON.parse(room.numRounds);
-                const newMsgs =  await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
-                if (isStreamingRef.current) {
-                    console.log("SKIP database");
-                    console.warn("Skipping DB fetch during stream");
-                    return;
-                }
-                setMessages(newMsgs);
-            } catch (error){
-                console.error("Error:", error);
-                // setError(error.message || "Something went wrong.");
+                await delay(1000); // wait for initial LLM instructions to land
+                await loadRoomState();
+            } catch (error) {
+                console.error("Error loading admin conversation history:", error);
             }
         }
 
-        retrieveRoom();
-
+        initialLoad();
     }, [roomCode]);
 
     return (
@@ -199,25 +242,110 @@ export default function AdminInteraction(){
                 <span className="admin-interaction-header-spacer" aria-hidden="true" />
             </header>
 
-            <div className="admin-interaction-chat-container">
-                <div className="admin-interaction-chat-box" ref={chatBoxRef}>
-                    {messages.length === 0 && (
-                        <div className="chat-placeholder">
-                            <p>Conversation will appear here as participants and the LLM respond.</p>
+            <div className="admin-interaction-main-layout">
+                <div className="admin-interaction-chat-container">
+                    <div className="admin-interaction-chat-box" ref={chatBoxRef}>
+                        {messages.length === 0 && (
+                            <div className="chat-placeholder">
+                                <p>Conversation will appear here as participants and the LLM respond.</p>
+                            </div>
+                        )}
+                        {messages.map((msg, i) => {
+                            const rawText = typeof msg.text === "string" ? msg.text : "";
+                            const isJsonLike =
+                                rawText.trim().startsWith("{") &&
+                                rawText.includes("allocationByUserId");
+                            const safeText = isJsonLike
+                                ? "An internal allocation update occurred."
+                                : rawText;
+                            return (
+                                <div
+                                    key={msg.id ?? i}
+                                    className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
+                                >
+                                    <span className="message-sender">
+                                        {msg.sender === "user" ? (msg?.userName || "Participant") : "LLM"}
+                                    </span>
+                                    <span className="message-text">{safeText}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <aside className="admin-resources-panel" aria-label="Fish resource split (admin)">
+                    <div className="resources-header">
+                        <div>
+                            <h2 className="resources-title">Resource Split (Fish)</h2>
+                            <p className="resources-subtitle">Per-user allocations by round</p>
+                        </div>
+                        {currentRoundAllocations && (
+                            <span className="resources-round-pill">
+                                Round {currentRoundAllocations.round}
+                            </span>
+                        )}
+                    </div>
+
+                    {currentRoundAllocations ? (
+                        <>
+                            <div className="resources-section-label">Current round</div>
+                            <ul className="resources-list">
+                                {Object.entries(currentRoundAllocations.allocations).map(
+                                    ([allocationUserId, details]) => {
+                                        const fishCount = details?.fish ?? 0;
+                                        return (
+                                            <li
+                                                key={allocationUserId}
+                                                className="resources-row"
+                                            >
+                                                <div className="resources-row-main">
+                                                    <span className="resources-row-name">
+                                                        User {allocationUserId}
+                                                    </span>
+                                                </div>
+                                                <span className="resources-row-fish">
+                                                    {fishCount} fish
+                                                </span>
+                                            </li>
+                                        );
+                                    }
+                                )}
+                            </ul>
+                        </>
+                    ) : (
+                        <div className="resources-empty">
+                            <p>Fish allocations will appear here after the first round.</p>
                         </div>
                     )}
-                    {messages.map((msg, i) => (
-                        <div
-                            key={msg.id ?? i}
-                            className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
-                        >
-                            <span className="message-sender">
-                                {msg.sender === "user" ? (msg?.userName || "Participant") : "LLM"}
-                            </span>
-                            <span className="message-text">{msg.text}</span>
+
+                    {resourceHistory.length > 1 && (
+                        <div className="resources-history">
+                            <div className="resources-section-label">Previous rounds</div>
+                            <ul className="resources-history-list">
+                                {resourceHistory
+                                    .slice(0, -1)
+                                    .map((entry) => (
+                                        <li
+                                            key={entry.round}
+                                            className="resources-history-item"
+                                        >
+                                            <span className="resources-history-round">
+                                                Round {entry.round}
+                                            </span>
+                                            <span className="resources-history-summary">
+                                                {Object.entries(entry.allocations)
+                                                    .map(([allocationUserId, details]) => {
+                                                        const fishCount = details?.fish ?? 0;
+                                                        return `U${allocationUserId}: ${fishCount}`;
+                                                    })
+                                                    .join(", ")}
+                                            </span>
+                                        </li>
+                                    ))}
+                            </ul>
                         </div>
-                    ))}
-                </div>
+                    )}
+                </aside>
             </div>
 
             <footer className="admin-interaction-footer">

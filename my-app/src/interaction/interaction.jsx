@@ -27,28 +27,83 @@ export function Interaction(){
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
+    const [resourceHistory, setResourceHistory] = useState([]);
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    useEffect(() => {
+    const currentRoundAllocations =
+        resourceHistory.length > 0
+            ? resourceHistory[resourceHistory.length - 1]
+            : null;
 
-        async function fetchData() {
-            try {
-                const roomData = await getRoom(roomCode);
-                const gameData = games.find(g => parseInt(g.id) === roomData.gameType);
-                const { role } = await getUserRole(user.userId);
-                setUserRole(gameData.roles[parseInt(role) -1]);
-                setGame(games.find(g => parseInt(g.id) === roomData.gameType));
-            } catch (err) {
-                console.error("Failed to fetch rom:", err);
-            } finally {
-                setLoading(false);
+    // Load full room/game state, chat history, and resource allocations
+    async function loadRoomState() {
+        try {
+            const room = await getRoom(roomCode);
+            const gameData = games.find(g => parseInt(g.id) === room.gameType);
+            const { role } = await getUserRole(user.userId);
+            setUserRole(gameData.roles[parseInt(role) - 1]);
+            setGame(gameData);
+
+            const llmInstructions = room.llmInstructions != null ? JSON.parse(room.llmInstructions) : {};
+            const userMessages = room.userMessages != null ? JSON.parse(room.userMessages) : {};
+            const llmResponse = room.llmResponse != null ? JSON.parse(room.llmResponse) : {};
+            const numRounds = room.numRounds != null
+                ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
+                : 1;
+
+            const { messages, canSend, hasSentThisRound } = await resetMessages(
+                llmInstructions,
+                userMessages,
+                llmResponse,
+                numRounds
+            );
+
+            // Parse resourceAllocations history if present on the room.
+            if (room.resourceAllocations) {
+                try {
+                    const parsed = typeof room.resourceAllocations === "string"
+                        ? JSON.parse(room.resourceAllocations)
+                        : room.resourceAllocations;
+
+                    const history = Object.keys(parsed)
+                        .sort((a, b) => Number(a) - Number(b))
+                        .map((roundKey) => {
+                            const roundNumber = Number(roundKey);
+                            const entry = parsed[roundKey] || {};
+                            const allocationByUserId = entry.allocationByUserId || {};
+                            return {
+                                round: roundNumber,
+                                allocations: allocationByUserId
+                            };
+                        });
+
+                    setResourceHistory(history);
+                } catch (err) {
+                    console.error("Error parsing resourceAllocations:", err);
+                    setResourceHistory([]);
+                }
+            } else {
+                setResourceHistory([]);
             }
+
+            if (isStreamingRef.current) {
+                return;
+            }
+            setMessages(messages);
+            setCanSend(canSend);
+            setHasSentThisRound(hasSentThisRound);
+        } catch (err) {
+            console.error("Failed to load room state:", err);
+        } finally {
+            setLoading(false);
         }
+    }
 
-        fetchData();
-
-    }, [roomCode])
+    useEffect(() => {
+        loadRoomState();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [roomCode]);
 
     useEffect(() => {
         socket.emit("join-room", { roomCode, isAdmin, user });
@@ -105,11 +160,15 @@ export function Interaction(){
         socket.on("round-complete", (round) => {
             setCanSend(false);
             setHasSentThisRound(true);
+            // Refresh to pull in updated llmResponse and resourceAllocations.
+            loadRoomState();
         });
 
         socket.on("game-complete", ()=> {
             setCanSend(false);
             setHasSentThisRound(true);
+            // Final refresh so last-round allocations are visible.
+            loadRoomState();
         });
 
         socket.on("force-return-to-login", () => {
@@ -229,26 +288,16 @@ export function Interaction(){
     }
 
     useEffect(() => {
-        async function retrieveRoom() { 
+        async function initialLoad() {
             try {
                 await delay(500);
-                const room = await getRoom(roomCode);
-                const llmInstructions = room.llmInstructions != null ? JSON.parse(room.llmInstructions) : {};
-                const userMessages = room.userMessages != null ? JSON.parse(room.userMessages) : {};
-                const llmResponse = room.llmResponse != null ? JSON.parse(room.llmResponse) : {};
-                const numRounds = room.numRounds != null ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds)) : 1;
-                const { messages, canSend, hasSentThisRound } = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
-                if (isStreamingRef.current) {
-                    return;
-                }
-                setMessages(messages);
-                setCanSend(canSend);
-                setHasSentThisRound(hasSentThisRound);
-            } catch (error){
+                await loadRoomState();
+            } catch (error) {
                 console.error("Error loading conversation history:", error);
             }
         }
-        retrieveRoom();
+        initialLoad();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [roomCode]);
 
 
@@ -296,47 +345,138 @@ export function Interaction(){
             </div>
         </header>
 
-        <div className="chat-container">
-            <div className="chat-box" ref={chatBoxRef}>
-                {messages.length === 0 && (
-                    <div className="chat-placeholder">
-                        <p>Messages will appear here once the round starts.</p>
+        <div className="interaction-main-layout">
+            <aside className="resources-panel" aria-label="Fish resource split">
+                <div className="resources-header">
+                    <div>
+                        <h2 className="resources-title">Resource Split (Fish)</h2>
+                        <p className="resources-subtitle">How fish are divided this game</p>
+                    </div>
+                    {currentRoundAllocations && (
+                        <span className="resources-round-pill">
+                            Round {currentRoundAllocations.round}
+                        </span>
+                    )}
+                </div>
+
+                {currentRoundAllocations ? (
+                    <>
+                        <div className="resources-section-label">Current round</div>
+                        <ul className="resources-list">
+                            {Object.entries(currentRoundAllocations.allocations).map(
+                                ([allocationUserId, details]) => {
+                                    const fishCount = details?.fish ?? 0;
+                                    const isYou = String(allocationUserId) === String(userId);
+                                    return (
+                                        <li
+                                            key={allocationUserId}
+                                            className="resources-row"
+                                        >
+                                            <div className="resources-row-main">
+                                                <span className="resources-row-name">
+                                                    User {allocationUserId}
+                                                </span>
+                                                {isYou && (
+                                                    <span className="resources-row-you">
+                                                        You
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="resources-row-fish">
+                                                {fishCount} fish
+                                            </span>
+                                        </li>
+                                    );
+                                }
+                            )}
+                        </ul>
+                    </>
+                ) : (
+                    <div className="resources-empty">
+                        <p>Fish allocations will appear here after the first round.</p>
                     </div>
                 )}
-                {messages.map((msg, i) => (
-                    <div
-                        key={msg.id ?? i}
-                        className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
-                    >
-                        <span className="message-sender">
-                            {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
-                        </span>
-                        <span className="message-text">{msg.text}</span>
-                    </div>
-                ))}
-            </div>
 
-            <form className="chat-form" onSubmit={handleSubmit}>
-                <textarea
-                    className="chat-input"
-                    rows={1}
-                    placeholder="Type your message..."
-                    value={prompt}
-                    onChange={(e) => {
-                        setPrompt(e.target.value);
-                        e.target.style.height = "auto";
-                        e.target.style.height = e.target.scrollHeight + "px";
-                    }}
-                    aria-label="Message input"
-                />
-                <button
-                    type="submit"
-                    className="chat-send-btn"
-                    disabled={!canSend || hasSentThisRound}
-                >
-                    Send
-                </button>
-            </form>
+                {resourceHistory.length > 1 && (
+                    <div className="resources-history">
+                        <div className="resources-section-label">Previous rounds</div>
+                        <ul className="resources-history-list">
+                            {resourceHistory
+                                .slice(0, -1)
+                                .map((entry) => (
+                                    <li
+                                        key={entry.round}
+                                        className="resources-history-item"
+                                    >
+                                        <span className="resources-history-round">
+                                            Round {entry.round}
+                                        </span>
+                                        <span className="resources-history-summary">
+                                            {Object.entries(entry.allocations)
+                                                .map(([allocationUserId, details]) => {
+                                                    const fishCount = details?.fish ?? 0;
+                                                    return `U${allocationUserId}: ${fishCount}`;
+                                                })
+                                                .join(", ")}
+                                        </span>
+                                    </li>
+                                ))}
+                        </ul>
+                    </div>
+                )}
+            </aside>
+
+            <div className="chat-container">
+                <div className="chat-box" ref={chatBoxRef}>
+                    {messages.length === 0 && (
+                        <div className="chat-placeholder">
+                            <p>Messages will appear here once the round starts.</p>
+                        </div>
+                    )}
+                    {messages.map((msg, i) => {
+                        const rawText = typeof msg.text === "string" ? msg.text : "";
+                        const isJsonLike =
+                            rawText.trim().startsWith("{") &&
+                            rawText.includes("allocationByUserId");
+                        const safeText = isJsonLike
+                            ? "An internal allocation update occurred."
+                            : rawText;
+                        return (
+                            <div
+                                key={msg.id ?? i}
+                                className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
+                            >
+                                <span className="message-sender">
+                                    {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
+                                </span>
+                                <span className="message-text">{safeText}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <form className="chat-form" onSubmit={handleSubmit}>
+                    <textarea
+                        className="chat-input"
+                        rows={1}
+                        placeholder="Type your message..."
+                        value={prompt}
+                        onChange={(e) => {
+                            setPrompt(e.target.value);
+                            e.target.style.height = "auto";
+                            e.target.style.height = e.target.scrollHeight + "px";
+                        }}
+                        aria-label="Message input"
+                    />
+                    <button
+                        type="submit"
+                        className="chat-send-btn"
+                        disabled={!canSend || hasSentThisRound}
+                    >
+                        Send
+                    </button>
+                </form>
+            </div>
         </div>
         <InstructionsModal
             open={showInstructions}

@@ -11,7 +11,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io'
 import { loadGames } from "./services/gameLoader.js";
 const games = loadGames();
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, roomCompleted } from "../backend/services/roomsService.js"
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, roomCompleted, updateResourceAllocations } from "../backend/services/roomsService.js"
 
 
 dotenv.config();
@@ -87,9 +87,44 @@ async function getLlmResponse(roomCode) {
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(roomCode).emit("ai-end"); 
 
-    const existingResponses = JSON.parse(room.llmResponse);
-    existingResponses[round] = buffer;
+    // Expect the model to respond with strict JSON:
+    // {
+    //   "allocationByUserId": { "<userId>": { "fish": number, "round": number, "totalFishSoFar"?: number } },
+    //   "assistantMessage": string
+    // }
+    let parsed;
+    try {
+        parsed = JSON.parse(buffer);
+    } catch (err) {
+        console.error("Failed to parse LLM buffer as JSON, storing raw text.", err);
+        const existingResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
+        existingResponses[round] = buffer;
+        await updateLlmResponse(existingResponses, roomCode);
+        return;
+    }
+
+    const assistantMessage = typeof parsed.assistantMessage === "string"
+        ? parsed.assistantMessage
+        : "";
+    const allocationByUserId =
+        parsed.allocationByUserId && typeof parsed.allocationByUserId === "object"
+            ? parsed.allocationByUserId
+            : {};
+
+    // Update chat responses with assistantMessage only (never raw JSON)
+    const existingResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
+    existingResponses[round] = assistantMessage || "The system updated resource allocations for this round.";
     await updateLlmResponse(existingResponses, roomCode);
+
+    // Update resourceAllocations with the model's JSON
+    const existingResourceAllocations = room.resourceAllocations
+        ? JSON.parse(room.resourceAllocations)
+        : {};
+    existingResourceAllocations[round] = {
+        allocationByUserId,
+        assistantMessage: assistantMessage || buffer
+    };
+    await updateResourceAllocations(existingResourceAllocations, roomCode);
 
     state.userMessages.clear();
 
@@ -138,11 +173,17 @@ io.on("connection", (socket) => {
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-        const room = await getRoom(roomCode);
-        // send user/admin to correct status page
-        io.to(roomCode).emit("status", room.status);
+        // Safely attempt to load room; if it no longer exists, don't crash the server.
+        try {
+            const room = await getRoom(roomCode);
+            // send user/admin to correct status page
+            io.to(roomCode).emit("status", room.status);
+        } catch (err) {
+            console.error("join-room: failed to fetch room for roomCode", roomCode, err?.message || err);
+            return;
+        }
 
-       console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
+        console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
     });
 
     socket.on("show-instructions", async ({roomCode}) => {

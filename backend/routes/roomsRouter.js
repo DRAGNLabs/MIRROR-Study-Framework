@@ -109,7 +109,7 @@ router.patch("/:roomCode/userMessages", (req, res) => {
     })
 });
 
-// updates llmResponse for specified room. This will be udpated every round once LLM sends response
+// updates llmResponse for specified room. This will be updated every round once LLM sends response
 router.patch("/:roomCode/llmResponse", (req, res) => {
     const { llmResponse } = req.body;
     const { roomCode } = req.params;
@@ -125,6 +125,28 @@ router.patch("/:roomCode/llmResponse", (req, res) => {
           message: "llmResponse successfully updated!"
         });
     })
+});
+
+// updates resourceAllocations for specified room. This will store per-round fish splits.
+router.patch("/:roomCode/resourceAllocations", (req, res) => {
+    const { resourceAllocations } = req.body;
+    const { roomCode } = req.params;
+    if (!resourceAllocations) {
+        return res.status(400).json({ error: "resourceAllocations is required"});
+    }
+    db.run(
+      "UPDATE rooms SET resourceAllocations = ? WHERE roomCode = ?",
+      [JSON.stringify(resourceAllocations), roomCode],
+      function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+
+        res.status(200).json({
+          roomCode,
+          resourceAllocations,
+          message: "resourceAllocations successfully updated!"
+        });
+      }
+    );
 });
 
 // updates completed for specified room. Once admin directs users to survey page it will set the room as completed and those rooms won't show up on admin page anymore

@@ -398,6 +398,183 @@ nav button.nav-logout:hover {
   border-radius: 9999px;
 }
 
+/* === Interaction Main Layout: Chat + Resources === */
+.interaction-main-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.5rem 1.5rem 2rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 960px) {
+  .interaction-main-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.resources-panel {
+  flex: 0 0 320px;
+  max-width: 360px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 960px) {
+  .resources-panel {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.resources-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.resources-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.resources-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.resources-round-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: #e0f2fe;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.resources-section-label {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+}
+
+.resources-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.resources-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.resources-row:last-child {
+  border-bottom: none;
+}
+
+.resources-row-main {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.resources-row-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.resources-row-you {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 0.05rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.resources-row-fish {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0369a1;
+}
+
+.resources-empty {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.75rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+}
+
+.resources-empty p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.resources-history {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.resources-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.resources-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.resources-history-round {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.resources-history-summary {
+  text-align: right;
+}
+
 /* === Chat Container === */
 .chat-container {
   flex: 1;
@@ -1215,6 +1392,24 @@ nav button.nav-logout:hover {
   color: #e2e8f0;
 }
 
+.admin-interaction-main-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.5rem 1.5rem 2rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 960px) {
+  .admin-interaction-main-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .admin-interaction-header {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -1286,8 +1481,6 @@ nav button.nav-logout:hover {
   flex-direction: column;
   max-width: 52rem;
   width: 100%;
-  margin: 1.5rem auto;
-  padding: 0 1rem;
   background: #1e293b;
   border-radius: 16px;
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -1321,6 +1514,26 @@ nav button.nav-logout:hover {
 
 .admin-interaction-chat-box .message--bot .message-sender {
   color: #94a3b8;
+}
+
+.admin-resources-panel {
+  flex: 0 0 320px;
+  max-width: 360px;
+  background: #020617;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 960px) {
+  .admin-resources-panel {
+    width: 100%;
+    max-width: none;
+  }
 }
 
 /* Shared: Next button bar (e.g. Admin Instructions page) */

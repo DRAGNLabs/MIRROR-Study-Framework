@@ -61,7 +61,23 @@ db.serialize(() => {
       status TEXT NOT NULL DEFAULT '',
       completed INTEGER NOT NULL DEFAULT 0
     )
-  `)
+  `);
+
+  // Add resourceAllocations column for storing per-round fish splits, if it doesn't exist yet.
+  db.run(
+    `
+    ALTER TABLE rooms
+    ADD COLUMN resourceAllocations TEXT NOT NULL DEFAULT '{}'
+    `,
+    (err) => {
+      if (err && !String(err.message).includes("duplicate column name")) {
+        console.error(
+          "Error adding resourceAllocations column to rooms:",
+          err.message
+        );
+      }
+    }
+  );
 
 });
 
