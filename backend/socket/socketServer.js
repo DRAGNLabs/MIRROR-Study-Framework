@@ -3,8 +3,6 @@ import { handleCloseRoom, handleDisconnect, handleJoinRoom } from './socketHandl
 import { surveyComplete, getLlmInstructions, submitUserMessages } from './gameHandler.js';
 
 let io;
-// export const usersInRoom = {};
-// export const socketUserMap = {};
 export function getIO() {
     if(!io) {
         throw new Error('Socket.io not intialized');
@@ -65,15 +63,6 @@ io.on("connection", (socket) => {
     socket.on("close-room", ({ roomCode }) => {
         if(!roomCode) return;
         handleCloseRoom(io, roomCode);
-        // io.to(roomCode).emit("force-return-to-login");
-        // const clients = io.sockets.adapter.rooms.get(roomCode);
-        // if (clients) {
-        //     clients.forEach(clientId => {
-        //         const clientSocket = io.sockets.sockets.get(clientId);
-        //         clientSocket.leave(roomCode); // remove from room
-        //     });
-        // }
-        // delete usersInRoom[roomCode];
     })
 
     socket.on("survey-complete", async ({ roomCode, userId, surveyId }) => {

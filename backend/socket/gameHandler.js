@@ -14,7 +14,6 @@ function delay(ms) {
 async function getLlmText(io, roomCode, getInstructions) { 
     const room = await getRoom(roomCode);
     const round = currRounds[roomCode];
-    // const room = await getRoom(roomCode);
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
     const instructionsPrompt = game.prompts[0].instruction_prompt;
