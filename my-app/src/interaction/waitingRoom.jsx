@@ -22,20 +22,6 @@ export default function WaitingRoom() {
     } else {
       socket.once("connect", handleJoinRoom);
     }
-    // if (!socket.connected) socket.connect();
-
-    // const handleConnect = () => {
-    //   socket.emit("join-room", { roomCode, isAdmin: false, user});
-    // }
-
-    // if (socket.connected) {
-    //   handleConnect();
-    // } else {
-    //   socket.once("connect", handleConnect);
-    // }
-    // socket.emit("join-room", { roomCode, isAdmin: false, user});
-
-    // socket.on("connect", handleConnect);
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;

@@ -23,9 +23,6 @@ export default function AdminInteraction(){
 
 
     useEffect(() => {
-        // socket.emit("join-room", { roomCode, isAdmin});
-        // if (!socket.connected) socket.connect();
-
         const handleConnect = () => {
             sessionStorage.setItem("roomCode", roomCode);
             socket.emit("join-room", { roomCode, isAdmin}); 
@@ -36,7 +33,6 @@ export default function AdminInteraction(){
         } else {
             socket.once("connect", handleConnect);
         }
-        // socket.on("connect", handleConnect);
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
@@ -87,12 +83,6 @@ export default function AdminInteraction(){
             socket.off("force-return-to-login");
         };
     }, [socket]);
-
-    // useEffect(() => {
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode });
-    //     };
-    // }, []);
 
     useEffect(() => {
         if (!streamingText) return;
@@ -180,7 +170,6 @@ export default function AdminInteraction(){
                 let numRounds = JSON.parse(room.numRounds);
                 const newMsgs =  await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
                 if (isStreamingRef.current) {
-                    // console.log("SKIP database");
                     console.log("Skipping database fetch during stream");
                     return;
                 }

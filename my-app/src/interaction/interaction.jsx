@@ -51,9 +51,6 @@ export function Interaction(){
     }, [roomCode])
 
     useEffect(() => {
-        // socket.emit("join-room", { roomCode, isAdmin, user });
-        // if (!socket.connected) socket.connect();
-
         const handleConnect = () => {
             sessionStorage.setItem("roomCode", roomCode);
             socket.emit("join-room", { roomCode, isAdmin, user }); 
@@ -64,7 +61,6 @@ export function Interaction(){
         } else {
             socket.once("connect", handleConnect);
         }
-        // socket.on("connect", handleConnect);
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
@@ -123,15 +119,8 @@ export function Interaction(){
                 navigate(`/${status}`, { state: { user } });
             }
         });
-            // const handleLeaveRoom = () => {
-        //     socket.emit("leave-room", { roomCode });
-        // };
-
-        // window.addEventListener("beforeunload", handleLeaveRoom);
 
         return () => {
-            // handleLeaveRoom();
-            // window.removeEventListener("beforeunload", handleLeaveRoom);
             socket.off("connect", handleConnect);
             socket.off("receive-message");
             socket.off("room-users");
@@ -146,12 +135,6 @@ export function Interaction(){
             socket.off("status");
         };
     }, [socket]);
-
-    // useEffect(() => {
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode });
-    //     };
-    // }, []);
 
     useEffect(() => {
         if (!streamingText || !currentStreamingId) return;
@@ -237,15 +220,6 @@ export function Interaction(){
 
     useEffect(() => {
         async function retrieveRoom() { 
-            // if (isStreamingRef.current) {
-            //     console.log("Skipping database fetch during stream");
-            //     return;
-            // }
-
-            // if (hasFetchedInitialData.current) {
-            //     return;
-            // }
-
             try {
                 await delay(1000);
                 const room = await getRoom(roomCode);
@@ -255,7 +229,6 @@ export function Interaction(){
                 let numRounds = JSON.parse(room.numRounds);
                 const { messages, canSend, hasSentThisRound } = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
                 if (isStreamingRef.current) {
-                    // console.log("SKIP database");
                     console.log("Skipping DB fetch during stream");
                     return;
                 }

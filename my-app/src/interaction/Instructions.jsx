@@ -35,9 +35,6 @@ export default function Instructions() {
     }, [roomCode])
 
     useEffect(() => {
-        // socket.emit("join-room", { roomCode, isAdmin, user });
-        // if (!socket.connected) socket.connect();
-        
         const handleConnect = () => {
             sessionStorage.setItem("roomCode", roomCode);
             socket.emit("join-room", { roomCode, isAdmin, user }); 
@@ -48,7 +45,6 @@ export default function Instructions() {
         } else {
             socket.once("connect", handleConnect);
         }
-        // socket.on("connect", handleConnect);
 
         const onStart = () => {
             navigate("/interaction", { state: { user }});
@@ -70,15 +66,7 @@ export default function Instructions() {
             }
         });
 
-        // const handleLeaveRoom = () => {
-        //     socket.emit("leave-room", { roomCode });
-        // };
-
-        // window.addEventListener("beforeunload", handleLeaveRoom);
-
         return () => {
-            // handleLeaveRoom();
-            // window.removeEventListener("beforeunload", handleLeaveRoom);
             socket.off("connect", handleConnect);
             socket.off("start-chat", onStart);
             socket.off("force-return-to-login");
@@ -86,11 +74,6 @@ export default function Instructions() {
         };
     }, [socket]);
 
-    // useEffect(() => {
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode });
-    //     };
-    // }, []);
 
         if (loading) return <p>Loading your role...</p>;
     // instructions are hardcoded for now since we don't have role functionality yet, will update that once we implement role functionality

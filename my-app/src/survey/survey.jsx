@@ -171,8 +171,6 @@ export function Survey() {
 
             {/* 1–10 LITERAL SCALE SLIDER */}
             {q.type === "scale" && q.style === "slider" && (
-                // <div className="form-group" >
-                // <div className="scale-wrapper">
                 <div
                     className={`scale-wrapper ${
                     answers[q.id] == null ? "unanswered" : ""

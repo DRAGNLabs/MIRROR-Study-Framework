@@ -31,7 +31,6 @@ export default function AdminInstructions() {
 
     useEffect(() => {
       socket.emit("join-room", { roomCode, isAdmin });
-      // if (!socket.connected) socket.connect();
 
       const handleConnect = () => {
         sessionStorage.setItem("roomCode", roomCode);
@@ -43,32 +42,16 @@ export default function AdminInstructions() {
       } else {
         socket.once("connect", handleConnect);
       }
-      // socket.on("connect", handleConnect);
 
       socket.on("force-return-to-login", () => {
         navigate("/admin");
       })
 
-      // const handleLeaveRoom = () => {
-      //   socket.emit("leave-room", { roomCode });
-      // };
-
-      // window.addEventListener("beforeunload", handleLeaveRoom);
-
       return () => {
-        // handleLeaveRoom();
-        // window.removeEventListener("beforeunload", handleLeaveRoom);
         socket.off("connect", handleConnect);
         socket.off("force-return-to-login");
       }
     }, [socket]);
-
-    // useEffect(() => {
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode });
-    //     };
-    // }, []);
-
 
     async function toInteractions() {
         socket.emit("start-game", { roomCode });
