@@ -2,16 +2,8 @@ import { Server } from 'socket.io';
 import { handleCloseRoom, handleDisconnect, handleJoinRoom } from './socketHandlers.js';
 import { surveyComplete, getLlmInstructions, submitUserMessages } from './gameHandler.js';
 
-let io;
-export function getIO() {
-    if(!io) {
-        throw new Error('Socket.io not intialized');
-    }
-    return io;
-}
-
 export function initializeSocketServer(httpServer) {
-    io = new Server(httpServer, {
+    const io = new Server(httpServer, {
         cors: {
             origin: 'http://localhost:5173',
             methods: ['GET', 'POST']

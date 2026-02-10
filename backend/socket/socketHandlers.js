@@ -9,7 +9,6 @@ export async function handleJoinRoom(io, socket, { roomCode, isAdmin, user }) {
         return;
     } 
 
-    // const io = getIO();
     if(!usersInRoom[roomCode]) {
         usersInRoom[roomCode] = [];
     }

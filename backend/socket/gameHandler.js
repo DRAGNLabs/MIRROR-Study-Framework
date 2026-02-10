@@ -66,7 +66,7 @@ async function getLlmText(io, roomCode, getInstructions) {
 
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
-    const round = currRounds[roomCode]; // change this
+    const round = currRounds[roomCode]; 
     const room = await getRoom(roomCode);
     const buffer = await getLlmText(io, roomCode, false);
     const llmResponses = JSON.parse(room.llmResponse);
@@ -84,9 +84,8 @@ async function getLlmResponse(io, roomCode) {
         console.log(`Round ${round} completed, waiting for next round...`);
     }
 
-    currRounds[roomCode] += 1; // look into this
+    currRounds[roomCode] += 1; 
     io.to(roomCode).emit("round-complete", currRounds[roomCode]);
-    // return round+1; // is this the best way to do this?
 }
 
 export async function getLlmInstructions(io, roomCode, round) {
