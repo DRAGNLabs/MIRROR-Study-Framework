@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import userRouter from "./routes/userRouter.js";
 import surveyRouter from "./routes/surveyRouter.js";
 import adminRouter from "./routes/adminRouter.js";
@@ -13,16 +15,20 @@ import { loadGames } from "./services/gameLoader.js";
 const games = loadGames();
 import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, roomCompleted } from "../backend/services/roomsService.js"
 
-
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
 const httpServer = createServer(app);
 
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:5173', // hardcoded for now, probably will have to update this later import from config file
+        origin: corsOrigin,
         methods: ["GET", "POST"]
     }
 });
@@ -363,18 +369,25 @@ io.on("connection", (socket) => {
 });
 
 
-app.use(cors());
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
-
 
 app.use("/api/users", userRouter);
 app.use("/api/survey", surveyRouter);
 app.use("/api/rooms", roomsRouter);
 app.use("/api/admin", adminRouter);
 
+// Serve React frontend static files in production
+const frontendPath = path.join(__dirname, "../my-app/dist");
+app.use(express.static(frontendPath));
+
+// SPA catch-all: any non-API route serves index.html for client-side routing
+app.get("*", (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 const PORT = process.env.PORT || 3001;
 
-httpServer.listen(PORT, () => 
-    console.log(`🚀 Server running on port ${PORT}`)
+httpServer.listen(PORT, () =>
+    console.log(`Server running on port ${PORT}`)
 );

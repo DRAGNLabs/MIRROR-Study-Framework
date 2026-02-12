@@ -1,4 +1,5 @@
-const API_BASE = "http://localhost:3001/api"; // once again going to have to change this
+const port = process.env.PORT || 3001;
+const API_BASE = process.env.API_BASE || `http://localhost:${port}/api`;
 /*
  This file is here because I didn't want to import from the frontend into the backend, 
  I'm updating most of the room stuff in the index.js instead of in the frontend (more secure), 

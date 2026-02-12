@@ -1,6 +1,9 @@
 import { io } from "socket.io-client";
+import { SOCKET_URL } from "./config.js";
 
-export const socket = io("http://localhost:3001", {
-    autoConnect: true
-}); // hardcoded, will have to change this later
+// When SOCKET_URL is empty (production single-service), io() with no URL
+// auto-connects to the current page's origin.
+export const socket = SOCKET_URL
+    ? io(SOCKET_URL, { autoConnect: true })
+    : io({ autoConnect: true });
 

@@ -125,9 +125,9 @@ export default function RoomManagement() {
         <div className="admin-container">
         <h1>Room Management</h1>
         <h2>Room Code: {room.roomCode}</h2>
-                <p>https://localhost:5173</p> 
+                <p>{window.location.origin}</p>
              <img
-                src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://dragn.ai"
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin)}`}
                 alt="QR Code"
                 style={{ marginTop: "20px" , marginBottom: "20px"}}
             />
