@@ -232,10 +232,10 @@ export function Interaction(){
             try {
                 await delay(1000);
                 const room = await getRoom(roomCode);
-                let llmInstructions = JSON.parse(room.llmInstructions);
-                let userMessages = JSON.parse(room.userMessages);
-                let llmResponse = JSON.parse(room.llmResponse);
-                let numRounds = JSON.parse(room.numRounds);
+                const llmInstructions = room.llmInstructions;
+                const userMessages = room.userMessages;
+                const llmResponse = room.llmResponse;
+                const numRounds = room.numRounds;
                 const { messages, canSend, hasSentThisRound } = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
                 if (isStreamingRef.current) {
                     console.log("SKIP database");

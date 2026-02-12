@@ -42,15 +42,16 @@ async function getLlmResponse(roomCode) {
     const round = state.round;
 
     const room = await getRoom(roomCode);
+    const instructions = room.llmInstructions[round];
 
     const game = games.find(g => parseInt(g.id) === room.gameType)
     const totalRounds = game.rounds; // totalRounds needs to equal the length of prompts in game file
     const responsePrompt = game.prompts[0].response_prompt; 
     const instructionsPrompt = game.prompts[0].instruction_prompt;
     const systemPrompt = game.prompts[0].system_prompt;
-    const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
-    const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
-    const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
+    const llmInstructions = room.llmInstructions ?? {};
+    const llmResponses = room.llmResponse ?? {};
+    const userMessages = room.userMessages ?? {};
 
     const userNames = Array.from(state.userNames.entries())
         .reduce((acc, [id, name]) => {
@@ -87,7 +88,7 @@ async function getLlmResponse(roomCode) {
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(roomCode).emit("ai-end"); 
 
-    const existingResponses = JSON.parse(room.llmResponse);
+    const existingResponses = room.llmResponse;
     existingResponses[round] = buffer;
     await updateLlmResponse(existingResponses, roomCode);
 
@@ -169,7 +170,7 @@ io.on("connection", (socket) => {
         if (!roomUsers) return;
 
         const room = await getRoom(roomCode);
-        const userIds = Array.isArray(room.userIds) ? room.userIds : JSON.parse(room.userIds);
+        const userIds = Array.isArray(room.userIds) ? room.userIds : room.userIds;
         if (!gameState[roomCode]) {
             gameState[roomCode] = {
                 round,
@@ -186,9 +187,9 @@ io.on("connection", (socket) => {
         const instructionsPrompt = game.prompts[0].instruction_prompt;
         const systemPrompt = game.prompts[0].system_prompt;
         const responsePrompt = game.prompts[0].response_prompt; 
-        const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
-        const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
-        const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
+        const llmInstructions = room.llmInstructions ?? {};
+        const llmResponses = room.llmResponse ?? {};
+        const userMessages = room.userMessages ?? {};
 
         const userNames = Array.from(state.userNames.entries())
             .reduce((acc, [id, name]) => {
@@ -247,7 +248,7 @@ io.on("connection", (socket) => {
         const currUserMessages = Array.from(state.userMessages.entries());
 
         const room = await getRoom(roomCode);
-        const existingUserMessages = JSON.parse(room.userMessages);
+        const existingUserMessages = room.userMessages;
         existingUserMessages[round] = currUserMessages;
         await updateUserMessages(existingUserMessages, roomCode);
 
@@ -298,7 +299,8 @@ io.on("connection", (socket) => {
 
         io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
         const currRoom = await getRoom(roomCode);
-        if(surveyStatus[roomCode].size === JSON.parse(currRoom.userIds).length) {
+        if(surveyStatus[roomCode].size === currRoom.userIds.length) {
+            console.log(`All surveys complete for room ${roomCode}`);
             await roomCompleted(roomCode);
             // io.to(roomCode).emit("all-surveys-complete")
         }    

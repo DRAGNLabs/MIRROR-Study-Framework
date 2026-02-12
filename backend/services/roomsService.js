@@ -26,8 +26,7 @@ export async function updateLlmInstructions(llmInstructions, roomCode) {
 export async function appendLlmInstructions(roomCode, round, text) {
     const room = await getRoom(roomCode);
     
-    const instructions = room.llmInstructions
-     ? JSON.parse(room.llmInstructions) : {};
+    const instructions = room.llmInstructions ?? {};
     
      if (instructions[round]) {
         throw new Error(`Instructions in round ${round} already exists`);
