@@ -1,11 +1,12 @@
 /* This is the home page where users will login to the room using a given roomCode*/
 
-import { Link, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import Survey from "./survey/Survey";
 import './App.css';
 import { useState } from "react";
 import { loginUser, getCreatedUser } from '../services/usersService';
 import { getRoom, loginRoom } from '../services/roomsService';
+import { socket } from "./socket"; 
 import Interaction from "./interaction/Interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
@@ -115,9 +116,21 @@ function Home() {
 
 export default function App() {
   const location = useLocation();
-  const hideHomeOn = ["/interaction", "/waiting", "/survey"];
+  const navigate = useNavigate();
+  const hideHomeOn = ["/interaction", "/waiting", "/survey", "/instructions"];
   const shouldHideHome = hideHomeOn.includes(location.pathname)
   const isAdminPage = location.pathname.startsWith("/admin");
+
+  const handleHomeClick = () => {
+    const roomCode = sessionStorage.getItem("roomCode");
+    console.log(roomCode);
+    // const userId = sessionStorage.getItem("userId");
+    if (roomCode) {
+      socket.emit("leave-room", {roomCode});
+      sessionStorage.removeItem("roomCode");
+    }
+    navigate(isAdminPage ? "/admin" : "/");
+  }
 
   return (
     
@@ -125,7 +138,8 @@ export default function App() {
       <header>
         {!shouldHideHome && (
         <nav>
-          <Link to={isAdminPage ? "/admin" : "/"}>Home</Link>
+          {/* <Link to={isAdminPage ? "/admin" : "/"}>Home</Link> */}
+          <button onClick={handleHomeClick}>Home</button>
         </nav>
         )}
       </header>
