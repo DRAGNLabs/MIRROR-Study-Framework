@@ -4,5 +4,7 @@
   "scripts": {
     "build": "cd my-app && npm install && npm run build && cd ../backend && npm install",
     "start": "cd backend && node index.js"
-  }
+  },
+  "comment": "This root package.json exists for Railway deployment. Railway uses Nixpacks, which needs a package.json at the project root to detect Node.js and install npm. The build script builds the React frontend then installs backend deps. The start script launches the Express server."
 }
+

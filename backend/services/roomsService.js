@@ -1,3 +1,6 @@
+// [Railway] API_BASE reads from env vars so this works in any environment.
+// In production on Railway, the backend calls its own API via localhost loopback
+// using the PORT that Railway assigns. In local dev, defaults to port 3001.
 const port = process.env.PORT || 3001;
 const API_BASE = process.env.API_BASE || `http://localhost:${port}/api`;
 /*

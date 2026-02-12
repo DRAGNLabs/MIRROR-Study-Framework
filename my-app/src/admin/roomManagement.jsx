@@ -125,6 +125,8 @@ export default function RoomManagement() {
         <div className="admin-container">
         <h1>Room Management</h1>
         <h2>Room Code: {room.roomCode}</h2>
+                {/* [Railway] Uses window.location.origin so the displayed URL and QR code
+                    automatically match the current deployment domain (localhost, Railway, custom domain). */}
                 <p>{window.location.origin}</p>
              <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin)}`}
