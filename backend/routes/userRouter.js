@@ -3,107 +3,176 @@ import db from "../db.js";
  
 const router = express.Router();
 
+
 // create or login a user
-router.post("/", (req, res) => {
-    const {userName, roomCode} = req.body;
-    if (!userName || !roomCode) {
-        return res.status(400).json({message: "userName and roomCode are required"});
-    }
-    db.run("INSERT INTO users (userName, roomCode) VALUES (?, ?)", [userName, roomCode],
-    function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({
-            userId: this.lastID,
-            userName,
-            roomCode
-        });
+router.post("/", async (req, res) => {
+    try {
+        const {userName, roomCode} = req.body;
+        if (userName === undefined || roomCode === undefined) {
+            return res.status(400).json({message: "userName and roomCode are required"});
         }
-    );
+
+        const result = await db.query(`
+            INSERT INTO users ("userName", "roomCode") 
+            VALUES ($1, $2)
+            RETURNING "userId", "userName", "roomCode"; 
+            `,  //userId should generate automatically with postgres
+            [userName, roomCode],
+        );
+    
+
+        return res.status(201).json(result.rows[0]);
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message });
+    }
 
 });
 
 // updates role for user
-router.patch("/:userId/role", (req, res) => {
-    const { userId } = req.params;
-    const { role } = req.body;
-    if (!userId || !role) {
-        return res.status(400).json({ error: "userId and role are required"});
-    }
-    db.run("UPDATE users SET role = ? WHERE userId = ?", [role, userId], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+router.patch("/:userId/role", async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { role } = req.body;
+        if (userId === undefined || role === undefined) {
+            return res.status(400).json({ error: "userId and role are required"});
+        }
 
-        res.status(200).json({
-            userId, 
-            role, 
+        const result = await db.query(
+            'UPDATE users SET role = $1 WHERE "userId" = $2 RETURNING role, "userId";', 
+            [role, userId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        return res.status(200).json({
+            userId: result.rows[0].userId, 
+            role: result.rows[0].role, 
             message: "role in users successfully updated!"
         });
-    })
-});
 
-// get user with specified userId
-router.get("/:userId", (req, res) => {
-    const userId = req.params.userId;
-    if (!userId) {
-        return res.status(400).json({ error: "userId is required"});
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message });
     }
-    db.get("SELECT * FROM users WHERE userId = ?", [userId], (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!row) return res.status(404).json({ message: "User not found" });
 
-        res.status(200).json(row);
-    });
 });
 
 // get user role with specified userId
-router.get("/:userId/getRole", (req, res) => {
-    const userId = req.params.userId;
-    if (!userId) {
-        return res.status(400).json({ error: "userId is required"});
-    }
-    db.get("SELECT role FROM users WHERE userId = ?", [userId], (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!row) return res.status(404).json({ message: "User not found" });
+router.get("/:userId/getRole", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        if (!userId) {
+            return res.status(400).json({ error: "userId is required"});
+        }
 
-        res.status(200).json(row);
-    });
+        const result = await db.query(
+            'SELECT "userId", role FROM users WHERE "userId" = $1;',
+            [userId]
+        )
+        const row = result.rows[0];
+        if (!row) return res.status(404).json
+        ({ message: "User not found" });
+        return res.status(200).json(row);
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+
 });
 
-router.get("/:userName/:roomCode", (req, res) => {
-    const userName = req.params.userName;
-    const roomCode = req.params.roomCode;
-    if (!userName || !roomCode) {
-        return res.status(400).json({ error: "userName and roomCode are required" });
-    }
-    db.get("SELECT * FROM users WHERE userName = ? AND roomCode = ?", [userName, roomCode], 
-        (err, row) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (!row) {
-                return res.status(200).json(null);
-            }
-
-            res.status(200).json(row);
+// get user with specified userId
+router.get("/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        if (userId === undefined) {
+            return res.status(400).json({ error: "userId is required"});
         }
-    );
+
+        const result = await db.query(
+            'SELECT * FROM users WHERE "userId" = $1', 
+            [userId]
+        );
+
+        const row = result.rows[0];
+ 
+        if (row === undefined) return res.status(404).json({ message: "User not found" });
+
+        return res.status(200).json(row);
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message });
+    }
+
+});
+
+
+
+router.get("/:userName/:roomCode", async (req, res) => {
+    try {
+        const userName = req.params.userName;
+        const roomCode = req.params.roomCode;
+        if (userName === undefined || roomCode === undefined) {
+            return res.status(400).json({ error: "userName and roomCode are required" });
+        }
+
+        const result = await db.query(
+            `
+            SELECT * FROM users 
+            WHERE "userName" = $1 AND "roomCode" = $2
+            LIMIT 1;
+            `, 
+            [userName, roomCode] 
+        );
+
+        const row = result.rows[0];
+
+        if (row === undefined) {
+                return res.status(200).json(null);
+        }
+        res.status(200).json(row);
+
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message });
+    }
+
 });
 
 // get all users in table
-router.get("/", (req, res) => {
-    db.all("SELECT * FROM users", [], (err, rows)=> {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(200).json(rows);
-    })
+router.get("/", async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM users ORDER BY "userId" ASC;')
+
+        res.status(200).json(result.rows);
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message });
+    }
+
 });
 
 // delete user with specified userId from table
-router.delete("/delete/:userId", (req,res) => {
-  const userId = req.params.userId;
-  db.run("DELETE FROM users WHERE userId = ?", [userId], function(err) {
-    if (err) {
-      console.error("Error deleting user:", err);
-      return res.status(500).json({ success: false, message: "Error deleting user." });
+router.delete("/delete/:userId", async (req,res) => {
+    try {
+        const userId = req.params.userId;
+        const result = await db.query(
+            'DELETE FROM users WHERE "userId" = $1', 
+            [userId]
+        );
+
+        res.status(200).json({ success: true, deleted: result.rowCount }); // this.changes says how many rows were deleted
+
+    } catch (err) {
+        console.error("Error deleting user:", err);
+        return res.status(500).json({ success: false, message: "Error deleting user." });
     }
-    res.status(200).json({ success: true, deleted: this.changes }); // this.changes says how many rows were deleted
-  });
+
 });
 
 export default router;
