@@ -18,9 +18,9 @@ async function getLlmText(io, roomCode, getInstructions) {
     const systemPrompt = game.prompts[0].system_prompt;
     const instructionsPrompt = game.prompts[0].instruction_prompt;
     const responsePrompt = game.prompts[0].response_prompt;
-    const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
-    const llmResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
-    const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
+    const llmInstructions = room.llmInstructions ?? {};
+    const llmResponses = room.llmResponse ?? {};
+    const userMessages = room.userMessages ?? {};
 
     const messages = [
         { "role": "system", "content": systemPrompt },
@@ -69,7 +69,7 @@ async function getLlmResponse(io, roomCode) {
     const round = currRounds[roomCode]; 
     const room = await getRoom(roomCode);
     const buffer = await getLlmText(io, roomCode, false);
-    const llmResponses = JSON.parse(room.llmResponse);
+    const llmResponses = room.llmResponse;
     llmResponses[round] = buffer;
     await updateLlmResponse(llmResponses, roomCode);
 
@@ -92,7 +92,6 @@ export async function getLlmInstructions(io, roomCode, round) {
     if (!currRounds[roomCode]) {
         currRounds[roomCode] = round
     }
-    console.log("starting round:", round);
     const room = await getRoom(roomCode);
     const buffer = await getLlmText(io, roomCode, true);
     await appendLlmInstructions(roomCode, round, buffer);
@@ -104,7 +103,7 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
     const round = currRounds[roomCode];
     const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
     const room = await getRoom(roomCode);
-    const existingUserMessages = JSON.parse(room.userMessages);
+    const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
     const alreadySubmitted = roundMessages.some(
         ([existingUserId]) => existingUserId === userId
@@ -123,7 +122,7 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
     await updateUserMessages(existingUserMessages, roomCode);
     io.to(roomCode).emit("receive-message", userMsg);
 
-    if(existingUserMessages[round].length === JSON.parse(room.userIds).length) {
+    if(existingUserMessages[round].length === room.userIds.length) {
         await getLlmResponse(io, roomCode, round); // if a user leaves in middle of round this is called before that user sends their message
     }    
 }
@@ -134,7 +133,7 @@ export async function surveyComplete(io, roomCode, surveyId, userId) {
     const currRoom = await getRoom(roomCode);
 
     let surveyCompleted = true;
-    for (const id of JSON.parse(currRoom.userIds)) {
+    for (const id of currRoom.userIds) {
         const { completed } = await getSurveyStatus(userId)
         if (completed == 0) surveyCompleted = false;
     }

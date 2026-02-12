@@ -36,7 +36,7 @@ export function Admin() {
     }
 
     async function loadUsersForRoom(room) {
-        const userIds = JSON.parse(room.userIds || "[]");
+        const userIds = room.userIds ?? "[]";
         if (userIds.length === 0) return;
 
         try {
