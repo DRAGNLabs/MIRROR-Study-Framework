@@ -6,6 +6,7 @@ import './App.css';
 import { useState } from "react";
 import { loginUser, getCreatedUser } from '../services/usersService';
 import { getRoom, loginRoom } from '../services/roomsService';
+import { socket } from "./socket"
 import Interaction from "./interaction/Interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
