@@ -1167,14 +1167,14 @@ nav button.nav-logout:hover {
 
 
 
-/* Room Management card */
+/* Room Management card (admin) */
 .room-management-card {
   max-width: 420px;
   width: 100%;
   padding: 2rem 2.25rem;
-  background: #0f172a;
+  background: #1e293b;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
@@ -1190,18 +1190,18 @@ nav button.nav-logout:hover {
 }
 
 .room-management-card .back-to-rooms:hover {
-  color: #7bc7de;
+  color: #38bdf8;
 }
 
 .room-management-card h1 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 1rem 0;
-  color: #f8fafc;
+  color: #f1f5f9;
 }
 
 .room-code-box {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 1rem 1.25rem;
@@ -1214,19 +1214,19 @@ nav button.nav-logout:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.2em;
-  color: #e5e7eb;
+  color: #f1f5f9;
 }
 
 .room-management-card .room-url {
   font-size: 0.8125rem;
-  color: #64748b;
+  color: #94a3b8;
   margin: 0 0 1.25rem 0;
 }
 
 .room-qr-wrap {
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   margin-bottom: 1.25rem;
 }
@@ -1259,45 +1259,44 @@ nav button.nav-logout:hover {
   height: 44px;
 }
 
-.users-box {
-  background-color: rgba(255, 255, 255, 0.08);
+.admin-container .users-box {
+  background: #0f172a;
   padding: 1.25rem 1.5rem;
   border-radius: 12px;
   text-align: left;
-  backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.users-box h3 {
+.admin-container .users-box h3 {
   margin-top: 0;
   margin-bottom: 0.75rem;
   font-size: 1rem;
   font-weight: 500;
-  color: #e5e7eb;
+  color: #f1f5f9;
   text-align: center;
 }
 
-.users-box ul {
+.admin-container .users-box ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.users-box li {
+.admin-container .users-box li {
   padding: 0.5rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
   font-size: 0.95rem;
+  color: #e2e8f0;
 }
 
-.users-box li:last-child {
+.admin-container .users-box li:last-child {
   border-bottom: none;
 }
 
-
+/* users-card: user-facing waiting room (light theme, keep as-is for contrast) */
 .users-card {
-  /* background: #ffffff; */
-  background: #90c2d99a;
+  background: #e0f2fe;
   padding: 24px 28px;
   margin: 30px auto;
   width: 80%;
@@ -1305,7 +1304,7 @@ nav button.nav-logout:hover {
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   text-align: center;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(14, 165, 233, 0.2);
 }
 
 .users-card h3 {
@@ -1313,8 +1312,7 @@ nav button.nav-logout:hover {
   margin-bottom: 18px;
   font-size: 22px;
   font-weight: 700;
-  /*color: #89b4ff;   /* Light blue that matches your gradient theme */
-  color: #02152a;
+  color: #0f172a;
 }
 
 .users-card ul {
@@ -1326,8 +1324,7 @@ nav button.nav-logout:hover {
 .users-card li {
   font-size: 18px;
   padding: 8px 0;
-  /* color: #333; */
-  color: #313438;
+  color: #1e293b;
   font-weight: 600;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
@@ -1336,49 +1333,46 @@ nav button.nav-logout:hover {
   border-bottom: none;
 }
 
-
-/* Container for each radio option */
-.custom-radio {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    gap: 10px;
-    margin: 8px 0;
-    user-select: none;
-    font-size: 16px;
+/* Container for each radio option (admin dark theme) */
+.admin-container .custom-radio {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 10px;
+  margin: 8px 0;
+  user-select: none;
+  font-size: 16px;
+  color: #f1f5f9;
 }
 
-/* Hide the real radio button */
-.custom-radio input[type="radio"] {
-    display: none;
+.admin-container .custom-radio input[type="radio"] {
+  display: none;
 }
 
-/* Outer circle */
-.custom-radio .radio-mark {
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    display: inline-block;
-    position: relative;
-    transition: border-color 0.2s ease;
+.admin-container .custom-radio .radio-mark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  transition: border-color 0.2s ease;
 }
 
-/* The filled dot when selected */
-.custom-radio input[type="radio"]:checked + .radio-mark::after {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background: #7bc7de;
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.admin-container .custom-radio input[type="radio"]:checked + .radio-mark::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: #38bdf8;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.custom-radio:hover .radio-mark {
-    border-color: #7bc7de;
+.admin-container .custom-radio:hover .radio-mark {
+  border-color: #38bdf8;
 }
 
 
@@ -2254,4 +2248,71 @@ survey conversation thingy
   background: #b45309;
   border-color: #92400e;
   color: #ffffff;
+}
+
+/* Sort rank question type: most to least important, top 3 emphasized */
+.sort-rank-wrapper {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
+  text-align: left;
+}
+
+.sort-rank-hint {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.sort-rank-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sort-rank-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  cursor: grab;
+  user-select: none;
+}
+
+.sort-rank-item:active {
+  cursor: grabbing;
+}
+
+.sort-rank-item--dragging {
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.sort-rank-item-drag-handle {
+  flex-shrink: 0;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  letter-spacing: -0.2em;
+  cursor: grab;
+}
+
+.sort-rank-item--greyed {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  opacity: 0.85;
+}
+
+.sort-rank-item-label {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 500;
 }

@@ -28,6 +28,9 @@ function formatAnswer(q, answers) {
     if (val == null || val === "") return "(No response)";
     if (q.type === "select") return String(val);
     if (q.type === "scale") return String(val);
+    if (q.type === "sortRank" && Array.isArray(val)) {
+        return val.map((opt, i) => `${i + 1}. ${opt}`).join(", ");
+    }
     return String(val);
 }
 
@@ -75,6 +78,17 @@ export function Survey() {
         loadData();
     }, []);
 
+    // Initialize sortRank answer to option order when first viewing the question
+    useEffect(() => {
+        if (!currentQuestion || currentQuestion.type !== "sortRank" || !currentQuestion.options?.length) return;
+        const current = answers[currentQuestion.id];
+        if (Array.isArray(current) && current.length === currentQuestion.options.length) return;
+        setAnswers(prev => ({
+            ...prev,
+            [currentQuestion.id]: [...(currentQuestion.options)]
+        }));
+    }, [currentQuestion?.id, currentQuestion?.type]);
+
     async function buildConversation(room) {
         const llmInstructions = JSON.parse(room.llmInstructions);
         const userMessages = JSON.parse(room.userMessages);
@@ -115,9 +129,14 @@ export function Survey() {
     async function handleClick() {
         if (!survey) return;
 
-        const missing = survey.questions.filter(
-            q => q.type !== "label" && (answers[q.id] == null || answers[q.id] === "")
-        );
+        const missing = survey.questions.filter(q => {
+            if (q.type === "label") return false;
+            if (q.type === "sortRank") {
+                const val = answers[q.id];
+                return !Array.isArray(val) || val.length !== (q.options?.length ?? 0);
+            }
+            return answers[q.id] == null || answers[q.id] === "";
+        });
 
         if (missing.length > 0) {
             alert("Please fill out all survey questions before submitting!");
@@ -164,6 +183,42 @@ export function Survey() {
     function handleEdit(index) {
         setCurrentStep(index);
         setFromReview(true);
+    }
+
+    const [sortRankDraggingIndex, setSortRankDraggingIndex] = useState(null);
+
+    function reorderSortRank(questionId, options, fromIndex, toIndex) {
+        if (fromIndex === toIndex) return;
+        const reordered = [...options];
+        const [removed] = reordered.splice(fromIndex, 1);
+        reordered.splice(toIndex, 0, removed);
+        setAnswers(prev => ({ ...prev, [questionId]: reordered }));
+    }
+
+    function handleSortRankDragStart(e, index) {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(index));
+        e.dataTransfer.setData("application/json", JSON.stringify({ index }));
+        setSortRankDraggingIndex(index);
+    }
+
+    function handleSortRankDragOver(e, toIndex) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+    }
+
+    function handleSortRankDrop(e, toIndex) {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        if (Number.isNaN(fromIndex)) return;
+        setSortRankDraggingIndex(null);
+        const options = answers[currentQuestion?.id];
+        if (!Array.isArray(options)) return;
+        reorderSortRank(currentQuestion.id, options, fromIndex, toIndex);
+    }
+
+    function handleSortRankDragEnd() {
+        setSortRankDraggingIndex(null);
     }
 
     if (!survey) {
@@ -222,7 +277,9 @@ export function Survey() {
                         <p className="survey-review-subtitle">You can edit any response before submitting.</p>
                         <ul className="survey-review-list">
                             {displaySteps.map((step, index) => {
-                                const isUnanswered = answers[step.question.id] == null || answers[step.question.id] === "";
+                                const isUnanswered = step.question.type === "sortRank"
+                                    ? !Array.isArray(answers[step.question.id]) || answers[step.question.id].length !== (step.question.options?.length ?? 0)
+                                    : (answers[step.question.id] == null || answers[step.question.id] === "");
                                 return (
                                     <li
                                         key={step.question.id}
@@ -314,6 +371,34 @@ export function Survey() {
                                     <span className="selected-number">{answers[currentQuestion.id] ?? currentQuestion.min}</span>
                                     <span className="right-label">{currentQuestion.rightLabel}</span>
                                 </div>
+                            </div>
+                        )}
+
+                        {currentQuestion.type === "sortRank" && (
+                            <div className="sort-rank-wrapper">
+                                <p className="sort-rank-hint">Drag to reorder from what you cared about most (top) to least (bottom). Your top 3 matter most.</p>
+                                <ul className="sort-rank-list">
+                                    {(answers[currentQuestion.id] ?? currentQuestion.options ?? []).map((option, index) => {
+                                        const isGreyed = index >= 3;
+                                        const isDragging = sortRankDraggingIndex === index;
+                                        return (
+                                            <li
+                                                key={`${option}-${index}`}
+                                                className={`sort-rank-item ${isGreyed ? "sort-rank-item--greyed" : ""} ${isDragging ? "sort-rank-item--dragging" : ""}`}
+                                                draggable
+                                                onDragStart={(e) => handleSortRankDragStart(e, index)}
+                                                onDragOver={(e) => handleSortRankDragOver(e, index)}
+                                                onDrop={(e) => handleSortRankDrop(e, index)}
+                                                onDragEnd={handleSortRankDragEnd}
+                                            >
+                                                <span className="sort-rank-item-drag-handle" aria-hidden>::</span>
+                                                <span className="sort-rank-item-label">
+                                                    {index + 1}. {option}
+                                                </span>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
                             </div>
                         )}
                     </div>
