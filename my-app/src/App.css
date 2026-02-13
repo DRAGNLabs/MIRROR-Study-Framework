@@ -1770,16 +1770,51 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 /*
 for survey.jsx
 */
-.scale-wrapper input[type="range"] {
-  padding: 0 0px; 
-}
-
 .scale-wrapper {
   width: 100%;
-  margin: 1em 0;
+  margin: 1.5rem 0;
+  padding: 0 1rem;
 }
 
-/* Row under slider for labels and number */
+.scale-wrapper input[type="range"] {
+  width: 100%;
+  max-width: 400px;
+  min-width: 250px;
+  height: 8px;
+  margin: 0 auto;
+  display: block;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.scale-wrapper input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #334155;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease;
+}
+
+.scale-wrapper input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.08);
+}
+
+.scale-wrapper input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #334155;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .scale-labels {
   display: flex;
   justify-content: space-between;
@@ -1787,38 +1822,31 @@ for survey.jsx
   width: 100%;
   max-width: 400px;
   min-width: 250px;
-  margin: auto;
-  margin-top: 0.5em; /* slight space below slider */
+  margin: 0.75rem auto 0;
   position: relative;
   text-align: center;
 }
 
-.selected-number {
+.scale-labels .selected-number {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-weight: 600;
-  font-size: 0.95rem;
-  text-align: center;
-  min-width: 2ch; /* prevents jitter when numbers change */
+  font-size: 1.1rem;
+  color: #334155;
+  min-width: 2ch;
 }
 
-.left-label,
-.right-label {
+.scale-labels .left-label,
+.scale-labels .right-label {
   font-size: 0.85rem;
-  color: #666;
+  color: #64748b;
 }
 
 input[type="range"] {
   width: 60%;
   max-width: 400px;
   min-width: 250px;
-}
-
-
-/* Number centered below slider */
-.selected-number {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: bold;
 }
 
 
@@ -1941,30 +1969,82 @@ survey conversation thingy
   min-height: 100vh;
   width: 100%;
   padding: 2rem;
+  box-sizing: border-box;
 
   display: flex;
-  justify-content: center;
-  align-items: center; /* important: top-aligned, not centered */
-  background: linear-gradient(
-    180deg,
-    #eaf7fc 0%,
-    #d8f0f9 100%
-  );
-
-  /* animation: fadeIn 0.8s ease forwards; */
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(180deg, #f5f7fa 0%, #e8ecf1 100%);
 }
 
-/* Interaction container layout is defined in the Chat Container section above */
+.survey-progress-wrapper {
+  width: 100%;
+  max-width: 560px;
+  margin-bottom: 2rem;
+}
+
+.survey-progress-wrapper .survey-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.survey-progress-wrapper .survey-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #64748b, #475569);
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.survey-progress-text {
+  font-size: 0.875rem;
+  color: #64748b;
+  display: block;
+  text-align: center;
+}
 
 .survey-card {
-  width: 75%;
-  /* max-width: 900px; wide, readable, professional */
-  background: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  max-width: 560px;
+  background: #ffffff;
   text-align: center;
   padding: 2.5rem;
-  border-radius: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+}
 
-  box-shadow: 0 10px 30px rgba(103, 184, 214, 0.25);
+.survey-card .room-top-left {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  left: auto;
+  padding: 0;
+}
+
+.survey-intro {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.survey-question-step {
+  margin-bottom: 2rem;
+  text-align: center;
+  min-height: 140px;
+}
+
+.survey-question-label {
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.4;
 }
 
 .survey-question {
@@ -1977,24 +2057,201 @@ survey conversation thingy
   margin-bottom: 0.5rem;
 }
 
+.survey-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.survey-nav-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.survey-nav-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+.survey-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.survey-nav-next {
+  background: #334155;
+  color: #ffffff;
+  border-color: #334155;
+  margin-left: auto;
+}
+
+.survey-nav-next:hover:not(:disabled) {
+  background: #475569;
+  border-color: #475569;
+  color: #ffffff;
+}
+
+.survey-error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
 
 .form-group {
   display: flex;
   flex-direction: column;
-  align-items: center;     /* centers input */
-  text-align: center;      /* centers label text */
+  align-items: center;
+  text-align: center;
   margin-bottom: 1.5rem;
   width: 100%;
 }
 
 .form-group input,
-.form-group select {
-  width: 60%;
+.form-group select,
+.form-group textarea {
+  width: 100%;
   max-width: 400px;
   min-width: 250px;
-
-  padding: 0.6rem 0.8rem;
-  border-radius: 8px;
-  border: 2px solid #b6dff0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
   font-size: 1rem;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.form-group textarea {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #94a3b8;
+}
+
+.survey-section-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.survey-review {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.survey-review-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.survey-review-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0 0 1.5rem 0;
+}
+
+.survey-review-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.survey-review-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.survey-review-item--unanswered {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.survey-review-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.survey-review-question {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.survey-review-answer {
+  font-size: 0.95rem;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.survey-review-answer--empty {
+  color: #b45309;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.survey-review-edit-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.survey-review-edit-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.survey-review-edit-btn--answer {
+  background: #d97706;
+  border-color: #b45309;
+  color: #ffffff;
+}
+
+.survey-review-edit-btn--answer:hover {
+  background: #b45309;
+  border-color: #92400e;
+  color: #ffffff;
 }

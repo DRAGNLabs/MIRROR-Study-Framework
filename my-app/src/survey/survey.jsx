@@ -1,6 +1,6 @@
 /** This page is where the user will take the survey */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getUser } from '../../services/usersService';
 import { sendSurvey  } from "../../services/surveyService";
@@ -9,29 +9,59 @@ import { socket } from '../socket';
 import games from "../gameLoader";
 import ConversationModal from "./ConversationModal";
 
+function buildDisplaySteps(questions) {
+    const steps = [];
+    for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        if (q.type === "label" && questions[i + 1]?.type === "scale") {
+            steps.push({ sectionLabel: q, question: questions[i + 1] });
+            i++;
+        } else if (q.type !== "label") {
+            steps.push({ question: q });
+        }
+    }
+    return steps;
+}
+
+function formatAnswer(q, answers) {
+    const val = answers[q.id];
+    if (val == null || val === "") return "(No response)";
+    if (q.type === "select") return String(val);
+    if (q.type === "scale") return String(val);
+    return String(val);
+}
+
 export function Survey() {
     const location = useLocation();
-    const { user } = location.state
+    const { user } = location.state;
     const { userId } = user;
-    const roomCode = parseInt(user.roomCode); 
-    const [answer, setAnswer] = useState([]);
-    const [answers, setAnswers] = useState({}); 
-    const [ error, setError] = useState("");
+    const roomCode = parseInt(user.roomCode);
+    const [answers, setAnswers] = useState({});
+    const [error, setError] = useState("");
     const [survey, setSurvey] = useState(null);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [fromReview, setFromReview] = useState(false);
     const navigate = useNavigate();
-    const inputRef = useRef();
     const surveyId = 1;
     const [showConversation, setShowConversation] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
 
+    const displaySteps = useMemo(
+        () => (survey ? buildDisplaySteps(survey.questions) : []),
+        [survey]
+    );
 
-    async function loadSurvey(){
+    const totalSteps = displaySteps.length + 1;
+    const isReviewStep = currentStep === displaySteps.length;
+    const currentDisplayStep = displaySteps[currentStep];
+    const currentQuestion = currentDisplayStep?.question;
+
+    async function loadSurvey() {
         const roomData = await getRoom(roomCode);
         const selectedSurvey = games.find(g => parseInt(g.id) === roomData.gameType);
         setSurvey(selectedSurvey);
     }
 
-    
     useEffect(() => {
         async function loadData() {
             if (!roomCode) return;
@@ -45,42 +75,6 @@ export function Survey() {
         loadData();
     }, []);
 
-
-    async function handleClick(){
-        if (!survey) return;
-
-        const missing = survey.questions.filter(
-            q => q.type !== "label" && (answers[q.id] == null || answers[q.id] === "")
-        );
-        console.log(survey.questions.filter(
-            q => answers[q.id] == null || answers[q.id] === ""
-        ));
-
-        if (missing.length > 0) {
-            alert("Please fill out all survey questions before submitting!");
-            console.log("Missing questions:", missing.map(q => q.id));
-            return;
-        }
-
-        try {
-            const response = await sendSurvey(1, userId, answers); // dummy surveyId, because I have no idea what surveyId is supposed to be anymore
-            socket.emit("survey-complete", { roomCode, userId, surveyId }); //socket should be connected by this time but might want to think about adding a useEffect which will reconnect socket automatically just in case
-            navigate("/exit", { state: { userId }}); 
-        } catch (err) {
-            console.error("Error:", err);
-            setError(err.message || "Something went wrong.");
-         }
-    }
-
-    //If survey hasn’t loaded yet, return early to avoid crash
-    if (!survey) {
-        return (
-        <div className="survey-container">
-            <p>Survey is loading...</p>
-        </div>
-        );
-    }
-
     async function buildConversation(room) {
         const llmInstructions = JSON.parse(room.llmInstructions);
         const userMessages = JSON.parse(room.userMessages);
@@ -91,126 +85,274 @@ export function Survey() {
 
         for (const round of rounds) {
             if (llmInstructions[round]) {
-            messages.push({
-                sender: "llm",
-                text: llmInstructions[round]
-            });
+                messages.push({
+                    sender: "llm",
+                    text: llmInstructions[round]
+                });
             }
 
             const roundMsgs = userMessages[round] || [];
             for (const [uid, text] of roundMsgs) {
-            const user = await getUser(uid);
-            messages.push({
-                sender: "user",
-                userName: user.userName,
-                text
-            });
+                const userData = await getUser(uid);
+                messages.push({
+                    sender: "user",
+                    userName: userData.userName,
+                    text
+                });
             }
 
             if (llmResponses[round]) {
-            messages.push({
-                sender: "llm",
-                text: llmResponses[round]
-            });
+                messages.push({
+                    sender: "llm",
+                    text: llmResponses[round]
+                });
             }
         }
 
         return messages;
     }
 
+    async function handleClick() {
+        if (!survey) return;
+
+        const missing = survey.questions.filter(
+            q => q.type !== "label" && (answers[q.id] == null || answers[q.id] === "")
+        );
+
+        if (missing.length > 0) {
+            alert("Please fill out all survey questions before submitting!");
+            return;
+        }
+
+        try {
+            await sendSurvey(1, userId, answers);
+            socket.emit("survey-complete", { roomCode, userId, surveyId });
+            navigate("/exit", { state: { userId } });
+        } catch (err) {
+            console.error("Error:", err);
+            setError(err.message || "Something went wrong.");
+        }
+    }
+
+    function handleNext() {
+        if (fromReview) {
+            setCurrentStep(displaySteps.length);
+            setFromReview(false);
+            return;
+        }
+        if (isReviewStep) {
+            handleClick();
+            return;
+        }
+        if (currentStep === displaySteps.length - 1) {
+            setCurrentStep(displaySteps.length);
+        } else {
+            setCurrentStep(prev => prev + 1);
+        }
+    }
+
+    function handlePrev() {
+        if (currentStep === displaySteps.length) {
+            setCurrentStep(displaySteps.length - 1);
+            return;
+        }
+        if (currentStep > 0) {
+            setCurrentStep(prev => prev - 1);
+        }
+    }
+
+    function handleEdit(index) {
+        setCurrentStep(index);
+        setFromReview(true);
+    }
+
+    if (!survey) {
+        return (
+            <div className="survey-container">
+                <p>Survey is loading...</p>
+            </div>
+        );
+    }
+
+    const progress = totalSteps > 0
+        ? ((currentStep + 1) / totalSteps) * 100
+        : 0;
+    const isFirst = currentStep === 0;
+    const isLastQuestion = currentStep === displaySteps.length - 1 && !isReviewStep;
+    const showSubmit = isReviewStep;
 
     return (
         <div className="survey-container">
+            <div className="survey-progress-wrapper">
+                <div className="survey-progress-bar">
+                    <div
+                        className="survey-progress-fill"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+                <span className="survey-progress-text">
+                    {isReviewStep
+                        ? `Review (${currentStep + 1} of ${totalSteps})`
+                        : `Question ${currentStep + 1} of ${totalSteps}`}
+                </span>
+            </div>
+
             <div className="survey-card">
-            <div className="room-top-left">
-                <button
-                    className="info-icon-button"
-                    title="View conversation history"
-                    onClick={() => setShowConversation(true)}
-                >
-                    ⓘ
-                </button>
-            </div>
-            {user ? (
-                <p>{user.userName} please complete the following survey of your experience from room {user.roomCode}!</p> 
-            ) : ( <p>User info is loading...</p> )}
-            
-            {survey.questions.map(q => (
-            <div key={q.id || q.label} className="survey-question">
-
-            <p>{q.label}</p>
-
-            {/* SELECT (yes/no etc.) */}
-            <div className="form-group">
-            {q.type === "select" && (
-                <select
-                onChange={(e) => setAnswers(prev => ({
-                    ...prev, [q.id]: e.target.value
-                }))}
-                >
-                <option value="">Select...</option>
-                {q.options.map(o => (
-                    <option key={o} value={o}>{o}</option>
-                ))}
-                </select>
-            )}
-            </div>
-
-            {/* TEXT INPUT */}
-            {q.type === "text" && (
-                <div className="form-group">
-                <input
-                type="text"
-                onChange={(e) => setAnswers(prev => ({
-                    ...prev, [q.id]: e.target.value
-                }))}
-                placeholder={q.placeholder || ""}
-                />
+                <div className="room-top-left">
+                    <button
+                        className="info-icon-button"
+                        title="View conversation history"
+                        onClick={() => setShowConversation(true)}
+                    >
+                        i
+                    </button>
                 </div>
-            )}
 
-            {/* 1–10 LITERAL SCALE SLIDER */}
-            {q.type === "scale" && q.style === "slider" && (
-                // <div className="form-group" >
-                <div className="scale-wrapper">
-
-                <input
-                    type="range"
-                    min={q.min}
-                    max={q.max}
-                    step={q.step}
-                    value={answers[q.id] ?? q.min}
-                    onChange={(e) => setAnswers(prev => ({
-                    ...prev, [q.id]: Number(e.target.value)
-                    })
+                {user ? (
+                    <p className="survey-intro">
+                        {user.userName}, please complete the following survey of your experience from room {user.roomCode}.
+                    </p>
+                ) : (
+                    <p>User info is loading...</p>
                 )}
-                />
-                <div className="scale-labels">
-                    <span className="left-label">{q.leftLabel}</span>
-                    <span className="selected-number">{answers[q.id] ?? q.min}</span>
-                    <span className="right-label">{q.rightLabel}</span>
-                </div>
-                </div>
-                // </div>
-            )}
-            </div>
-        ))}
 
-            <div className="button-group">
-                <button onClick={handleClick}>
-                    Submit
-                </button>
+                {isReviewStep ? (
+                    <div className="survey-review">
+                        <h3 className="survey-review-title">Review your answers</h3>
+                        <p className="survey-review-subtitle">You can edit any response before submitting.</p>
+                        <ul className="survey-review-list">
+                            {displaySteps.map((step, index) => {
+                                const isUnanswered = answers[step.question.id] == null || answers[step.question.id] === "";
+                                return (
+                                    <li
+                                        key={step.question.id}
+                                        className={`survey-review-item ${isUnanswered ? "survey-review-item--unanswered" : ""}`}
+                                    >
+                                        <div className="survey-review-item-content">
+                                            <span className="survey-review-question">{step.question.label}</span>
+                                            <span className={`survey-review-answer ${isUnanswered ? "survey-review-answer--empty" : ""}`}>
+                                                {formatAnswer(step.question, answers)}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={isUnanswered ? "survey-review-edit-btn survey-review-edit-btn--answer" : "survey-review-edit-btn"}
+                                            onClick={() => handleEdit(index)}
+                                        >
+                                            {isUnanswered ? "Answer" : "Edit"}
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                ) : (
+                    <div key={currentQuestion?.id || currentQuestion?.label} className="survey-question-step">
+                        {currentDisplayStep.sectionLabel && (
+                            <p className="survey-section-label">{currentDisplayStep.sectionLabel.label}</p>
+                        )}
+                        <p className="survey-question-label">{currentQuestion.label}</p>
+
+                        {currentQuestion.type === "select" && (
+                            <div className="form-group">
+                                <select
+                                    value={answers[currentQuestion.id] ?? ""}
+                                    onChange={(e) => setAnswers(prev => ({
+                                        ...prev, [currentQuestion.id]: e.target.value
+                                    }))}
+                                >
+                                    <option value="">Select...</option>
+                                    {currentQuestion.options.map(o => (
+                                        <option key={o} value={o}>{o}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {currentQuestion.type === "text" && (
+                            <div className="form-group">
+                                {currentQuestion.id === "age" || currentQuestion.label?.toLowerCase().includes("age") ? (
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={1}
+                                        max={120}
+                                        step={1}
+                                        value={answers[currentQuestion.id] ?? ""}
+                                        onChange={(e) => setAnswers(prev => ({
+                                            ...prev, [currentQuestion.id]: e.target.value
+                                        }))}
+                                        placeholder={currentQuestion.placeholder || ""}
+                                    />
+                                ) : (
+                                    <textarea
+                                        rows={6}
+                                        value={answers[currentQuestion.id] ?? ""}
+                                        onChange={(e) => setAnswers(prev => ({
+                                            ...prev, [currentQuestion.id]: e.target.value
+                                        }))}
+                                        placeholder={currentQuestion.placeholder || "Type your response here..."}
+                                    />
+                                )}
+                            </div>
+                        )}
+
+                        {currentQuestion.type === "scale" && currentQuestion.style === "slider" && (
+                            <div className="scale-wrapper">
+                                <input
+                                    type="range"
+                                    min={currentQuestion.min}
+                                    max={currentQuestion.max}
+                                    step={currentQuestion.step}
+                                    value={answers[currentQuestion.id] ?? currentQuestion.min}
+                                    onChange={(e) => setAnswers(prev => ({
+                                        ...prev, [currentQuestion.id]: Number(e.target.value)
+                                    }))}
+                                />
+                                <div className="scale-labels">
+                                    <span className="left-label">{currentQuestion.leftLabel}</span>
+                                    <span className="selected-number">{answers[currentQuestion.id] ?? currentQuestion.min}</span>
+                                    <span className="right-label">{currentQuestion.rightLabel}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <div className="survey-nav">
+                    <button
+                        className="survey-nav-btn survey-nav-prev"
+                        onClick={handlePrev}
+                        disabled={isFirst && !isReviewStep}
+                        type="button"
+                    >
+                        Back
+                    </button>
+                    <button
+                        className="survey-nav-btn survey-nav-next"
+                        onClick={handleNext}
+                        type="button"
+                    >
+                        {showSubmit
+                            ? "Submit"
+                            : fromReview
+                                ? "Back to Review"
+                                : isLastQuestion
+                                    ? "Review Answers"
+                                    : "Next"}
+                    </button>
                 </div>
 
-      
+                {error && <p className="survey-error">{error}</p>}
             </div>
-        <ConversationModal
-            open={showConversation}
-            onClose={() => setShowConversation(false)}
-            messages={conversationMessages}
-        />
+
+            <ConversationModal
+                open={showConversation}
+                onClose={() => setShowConversation(false)}
+                messages={conversationMessages}
+            />
         </div>
-    )
+    );
 }
 
 export default Survey;
