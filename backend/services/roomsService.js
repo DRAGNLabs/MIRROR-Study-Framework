@@ -1,4 +1,8 @@
-const API_BASE = "http://localhost:3001/api"; // once again going to have to change this
+// [Railway] API_BASE reads from env vars so this works in any environment.
+// In production on Railway, the backend calls its own API via localhost loopback
+// using the PORT that Railway assigns. In local dev, defaults to port 3001.
+const port = process.env.PORT || 3001;
+const API_BASE = process.env.API_BASE || `http://localhost:${port}/api`;
 /*
  This file is here because I didn't want to import from the frontend into the backend, 
  I'm updating most of the room stuff in the index.js instead of in the frontend (more secure), 

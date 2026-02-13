@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "comment": "Use 'npm run dev' for local development (auto-restart via nodemon). 'npm start' uses plain node for production (Railway)."
   },
   "keywords": [],
   "author": "",

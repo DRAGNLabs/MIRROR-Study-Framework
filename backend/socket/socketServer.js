@@ -2,10 +2,10 @@ import { Server } from 'socket.io';
 import { handleCloseRoom, handleDisconnect, handleJoinRoom } from './socketHandlers.js';
 import { surveyComplete, getLlmInstructions, submitUserMessages } from './gameHandler.js';
 
-export function initializeSocketServer(httpServer) {
+export function initializeSocketServer(httpServer, corsOrigin) {
     const io = new Server(httpServer, {
         cors: {
-            origin: 'http://localhost:5173',
+            origin: corsOrigin,
             methods: ['GET', 'POST']
         }
     });
