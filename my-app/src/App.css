@@ -766,18 +766,22 @@ nav button.nav-logout:hover {
   justify-content: center;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #0f172a;
-  color: #e5e7eb;
+  color: #f1f5f9;
 }
 
-/* Admin Login card - polished elevated form */
+.admin-container h1 {
+  color: #f1f5f9;
+}
+
+/* Admin Login card */
 .admin-login-card {
   max-width: 380px;
   width: 100%;
   padding: 2.5rem;
-  background: #0f172a;
+  background: #1e293b;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   position: relative;
   overflow: hidden;
 }
@@ -789,7 +793,7 @@ nav button.nav-logout:hover {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #7bc7de, #0ea5e9);
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
 }
 
 .admin-login-header {
@@ -800,7 +804,7 @@ nav button.nav-logout:hover {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0 0 0.25rem 0;
-  color: #f8fafc;
+  color: #f1f5f9;
 }
 
 .admin-login-header p {
@@ -813,10 +817,10 @@ nav button.nav-logout:hover {
   width: 100%;
   height: 44px;
   padding: 0 1rem;
-  background: #020617;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  color: #e5e7eb;
+  color: #f1f5f9;
   font-size: 1rem;
   margin-bottom: 0.5rem;
   box-sizing: border-box;
@@ -828,8 +832,8 @@ nav button.nav-logout:hover {
 
 .admin-login-card input:focus {
   outline: none;
-  border-color: #7bc7de;
-  box-shadow: 0 0 0 3px rgba(123, 199, 222, 0.2);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
 }
 
 .admin-login-card .admin-login-error {
@@ -842,7 +846,7 @@ nav button.nav-logout:hover {
 .admin-login-card .admin-login-submit {
   width: 100%;
   height: 44px;
-  background: #7bc7de;
+  background: #38bdf8;
   color: #0f172a;
   border: none;
   border-radius: 8px;
@@ -853,7 +857,8 @@ nav button.nav-logout:hover {
 }
 
 .admin-login-card .admin-login-submit:hover:not(:disabled) {
-  background: #67b8d6;
+  background: #0ea5e9;
+  color: #0f172a;
 }
 
 .admin-login-card .admin-login-submit:disabled {
@@ -865,13 +870,14 @@ nav button.nav-logout:hover {
 .admin-buttons {
   display: flex;
   width: 70vw;
-  align-items: center;      /* center horizontally */
-  justify-content: center;  /* center vertically */
+  align-items: center;
+  justify-content: center;
   gap: 1rem;
-  background: #020617;
+  background: #1e293b;
   padding: 3rem 4rem;
   border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 /* Buttons styling */
@@ -885,28 +891,26 @@ nav button.nav-logout:hover {
   transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
 }
 
-.admin-buttons button:first-of-type {
-  background:  #7bc7de; /* green */
-  color: #fee2e2;
-}
-
+.admin-buttons button:first-of-type,
 .admin-buttons button:last-of-type {
-  background:  #7bc7de; /* red */
-  color: #fee2e2;
+  background: #38bdf8;
+  color: #0f172a;
 }
 
 .admin-buttons button:hover {
   transform: translateY(-1px);
+  background: #0ea5e9;
+  color: #0f172a;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.35);
 }
 
 /* Room creation form */
 .room-info {
   margin: 0 auto;
-  background: #0f172a;
+  background: #1e293b;
   padding: 2rem 2.25rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   min-width: 300px;
   max-width: 400px;
@@ -928,7 +932,7 @@ nav button.nav-logout:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.1em;
-  color: #e5e7eb;
+  color: #f1f5f9;
   padding: 0.75rem 1rem;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
@@ -944,7 +948,7 @@ nav button.nav-logout:hover {
 
 .room-info .label-inline label {
   font-size: 0.9375rem;
-  color: #e5e7eb;
+  color: #f1f5f9;
 }
 
 .room-info .games-options {
@@ -1012,8 +1016,8 @@ nav button.nav-logout:hover {
 }
 
 .text-input.small:focus {
-  border-color: #7bc7de;
-  box-shadow: 0 0 0 2px rgba(123, 199, 222, 0.3);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
   outline: none;
 }
 
@@ -1029,7 +1033,7 @@ nav button.nav-logout:hover {
 .games-label {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #e5e7eb;
+  color: #f1f5f9;
 }
 
 /* Checkbox column on the right */
@@ -1040,7 +1044,7 @@ nav button.nav-logout:hover {
 }
 
 .room-display {
-  background: rgba(255, 255, 255, 0.04);
+  background: #1e293b;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1.5rem;
   border-radius: 12px;
@@ -1057,9 +1061,9 @@ nav button.nav-logout:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
-  color: #e5e7eb;
+  color: #f1f5f9;
   padding: 0.35rem 0.75rem;
-  background: rgba(123, 199, 222, 0.15);
+  background: rgba(56, 189, 248, 0.15);
   border-radius: 6px;
   margin-bottom: 0.75rem;
 }
@@ -1098,7 +1102,7 @@ nav button.nav-logout:hover {
 }
 
 .btn-primary-admin {
-  background: #7bc7de;
+  background: #38bdf8;
   color: #0f172a;
   border: none;
   border-radius: 8px;
@@ -1110,7 +1114,8 @@ nav button.nav-logout:hover {
 }
 
 .btn-primary-admin:hover:not(:disabled) {
-  background: #67b8d6;
+  background: #0ea5e9;
+  color: #0f172a;
 }
 
 .btn-primary-admin:disabled {
@@ -1148,7 +1153,7 @@ nav button.nav-logout:hover {
 .rooms-section-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #f8fafc;
+  color: #f1f5f9;
   margin: 0 0 0.25rem 0;
 }
 
@@ -1383,7 +1388,7 @@ nav button.nav-logout:hover {
   display: flex;
   flex-direction: column;
   background: #0f172a;
-  color: #e2e8f0;
+  color: #f1f5f9;
 }
 
 .admin-interaction-main-layout {
@@ -1410,8 +1415,8 @@ nav button.nav-logout:hover {
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 1.5rem;
-  background: rgba(15, 23, 42, 0.95);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: #1e293b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
@@ -1419,7 +1424,7 @@ nav button.nav-logout:hover {
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #f8fafc;
+  color: #f1f5f9;
   letter-spacing: -0.01em;
   justify-self: start;
 }
@@ -1429,8 +1434,8 @@ nav button.nav-logout:hover {
   padding: 0.35rem 0.75rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #cbd5e1;
-  background: rgba(51, 65, 85, 0.8);
+  color: #e2e8f0;
+  background: #334155;
   border-radius: 9999px;
   justify-self: center;
   grid-column: 2;
@@ -1445,24 +1450,25 @@ nav button.nav-logout:hover {
   padding: 1rem 1.5rem;
   display: flex;
   justify-content: flex-end;
-  background: rgba(15, 23, 42, 0.98);
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  background: #1e293b;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .admin-interaction-next-btn {
   padding: 0.5rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #fff;
-  background: #334155;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #0f172a;
+  background: #38bdf8;
+  border: none;
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .admin-interaction-next-btn:hover {
-  background: #475569;
+  background: #0ea5e9;
+  color: #0f172a;
 }
 
 .admin-interaction-next-btn:active {
@@ -1477,7 +1483,7 @@ nav button.nav-logout:hover {
   width: 100%;
   background: #1e293b;
   border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   min-height: 0;
@@ -1499,23 +1505,31 @@ nav button.nav-logout:hover {
   color: #94a3b8;
 }
 
-/* Ensure message bubbles stay readable on admin dark chat */
 .admin-interaction-chat-box .message--bot {
   background: #334155;
-  color: #e2e8f0;
-  border-color: rgba(148, 163, 184, 0.3);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .admin-interaction-chat-box .message--bot .message-sender {
   color: #94a3b8;
 }
 
+.admin-interaction-chat-box .message--user {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.admin-interaction-chat-box .message--user .message-sender {
+  color: rgba(15, 23, 42, 0.85);
+}
+
 .admin-resources-panel {
   flex: 0 0 320px;
   max-width: 360px;
-  background: #020617;
+  background: #1e293b;
   border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1.25rem 1.25rem 1.5rem;
   box-sizing: border-box;
   display: flex;
@@ -1530,7 +1544,54 @@ nav button.nav-logout:hover {
   }
 }
 
-/* Shared: Next button bar (e.g. Admin Instructions page) */
+/* Admin resources panel: dark theme overrides for shared resources-* classes */
+.admin-resources-panel .resources-title {
+  color: #f1f5f9;
+}
+
+.admin-resources-panel .resources-subtitle {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-round-pill {
+  color: #0f172a;
+  background: #38bdf8;
+}
+
+.admin-resources-panel .resources-section-label {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-row-name {
+  color: #f1f5f9;
+}
+
+.admin-resources-panel .resources-row-fish {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-empty {
+  background: #0f172a;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.admin-resources-panel .resources-empty p {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-resources-panel .resources-history-item {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-history-round {
+  color: #e2e8f0;
+}
+
+/* Shared: Next button bar (Admin Instructions page) */
 .admin-next-bottom-left {
   width: 100%;
   padding: 1rem 1.5rem;
@@ -1543,8 +1604,8 @@ nav button.nav-logout:hover {
   padding: 0.5rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #fff;
-  background: #0f172a;
+  color: #0f172a;
+  background: #38bdf8;
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -1552,7 +1613,8 @@ nav button.nav-logout:hover {
 }
 
 .admin-next-bottom-left button:hover {
-  background: #1e293b;
+  background: #0ea5e9;
+  color: #0f172a;
 }
 
 .admin-next-bottom-left button:active {
@@ -1594,39 +1656,16 @@ stuff below is for instructions page
   border-radius: 10px;
 }
 
-.instructions-card {
-max-width: 700px;
-margin: 0 auto;
-background: #f9fafb31;
-padding: 2rem;
-border-radius: 12px;
-box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-}
-
-.instructions-overview {
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-}
-
-.instructions-card h3 {
-  margin-top: 1.5rem;
-}
-
-.instructions-card ol,
-.instructions-card ul {
-  /* text-align: center; */
-  margin-left: auto;
-  margin-right: auto;
-}
-
-
+/* Admin instructions card (used in AdminInstructions only) */
 .instructions-card {
   max-width: 800px;
   margin: 0 auto;
   padding: 2.5rem;
-  background: #3b4252;
+  background: #1e293b;
   border-radius: 16px;
-  color: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .instructions-overview {
@@ -1634,12 +1673,26 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   font-size: 1.05rem;
   line-height: 1.7;
   margin-bottom: 2.5rem;
+  color: #e2e8f0;
+}
+
+.instructions-card h3 {
+  margin-top: 1.5rem;
+  color: #f1f5f9;
+}
+
+.instructions-card ol,
+.instructions-card ul {
+  margin-left: auto;
+  margin-right: auto;
+  color: #e2e8f0;
 }
 
 .section-title {
   text-align: center;
   font-size: 1.5rem;
   margin: 2rem 0 1.5rem;
+  color: #f1f5f9;
 }
 
 .rounds-container {
@@ -1655,13 +1708,13 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   gap: 1rem;
   max-width: 600px;
 }
-/* background: #6366f1; */
+
 .round-badge {
   min-width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background: #59c2e2;
-  color: white;
+  background: #38bdf8;
+  color: #0f172a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1670,9 +1723,10 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 
 .round-content {
   line-height: 1.6;
+  color: #e2e8f0;
 }
 
-/*for AdminSurvey.jsx*/
+/* Survey status box: light (user) vs dark (admin) */
 .survey-status-box {
   background: #ffffff;
   border-radius: 14px;
@@ -1680,6 +1734,57 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   width: 100%;
   max-width: 420px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Admin Survey: dark theme */
+.admin-container .survey-status-box {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.admin-container .survey-status-header h3 {
+  color: #f1f5f9;
+}
+
+.admin-container .survey-progress {
+  color: #94a3b8;
+}
+
+.admin-container .survey-user {
+  background: transparent;
+}
+
+.admin-container .survey-user.pending {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.admin-container .survey-user.completed {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.admin-container .user-name {
+  color: #f1f5f9;
+}
+
+.admin-container .survey-user.pending .status-badge {
+  background: rgba(251, 191, 36, 0.25);
+  color: #fcd34d;
+}
+
+.admin-container .survey-user.completed .status-badge {
+  background: rgba(34, 197, 94, 0.25);
+  color: #4ade80;
+}
+
+.admin-container .survey-progress-bar {
+  background: #334155;
+}
+
+.admin-container .survey-progress-fill {
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
 }
 
 .survey-status-header {
@@ -1692,12 +1797,12 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 .survey-status-header h3 {
   font-size: 1.2rem;
   font-weight: 600;
-  color: black;
+  color: #0f172a;
 }
 
 .survey-progress {
   font-size: 0.9rem;
-  color: #555;
+  color: #64748b;
 }
 
 .survey-user-list {
@@ -1717,16 +1822,16 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
 .survey-user.pending {
-  background: #e7e8eb;
+  background: #fef3c7;
 }
 
 .survey-user.completed {
-  background: #e7e8eb;
+  background: #dcfce7;
 }
 
 .user-name {
   font-weight: 500;
-  color: black;
+  color: #1e293b;
 }
 
 .status-badge {
@@ -1737,19 +1842,19 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
 .survey-user.pending .status-badge {
-  background: #ffe8e8;
-  color: #c0392b;
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .survey-user.completed .status-badge {
-  background: #d4f4e2;
-  color: #1e8449;
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .survey-progress-bar {
   width: 80%;
   height: 8px;
-  background: #eee;
+  background: #e2e8f0;
   border-radius: 999px;
   overflow: hidden;
   margin-bottom: 16px;
@@ -1757,7 +1862,7 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 
 .survey-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2ecc71, #27ae60);
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
   transition: width 0.3s ease;
 }
 
@@ -2272,6 +2377,15 @@ survey conversation thingy
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.sort-rank-drop-indicator {
+  height: 48px;
+  border: 2px dashed #64748b;
+  border-radius: 10px;
+  background: rgba(100, 116, 139, 0.12);
+  list-style: none;
+  margin: 0;
 }
 
 .sort-rank-item {
