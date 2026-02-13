@@ -8,6 +8,7 @@ import { getRoom } from "../../services/roomsService"
 import { socket } from '../socket';
 import games from "../gameLoader";
 import ConversationModal from "./ConversationModal";
+import ConversationReflectionStep from "./ConversationReflectionStep";
 
 function buildDisplaySteps(questions) {
     const steps = [];
@@ -48,15 +49,20 @@ export function Survey() {
     const surveyId = 1;
     const [showConversation, setShowConversation] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
+    const [conversationMarks, setConversationMarks] = useState([]);
 
     const displaySteps = useMemo(
         () => (survey ? buildDisplaySteps(survey.questions) : []),
         [survey]
     );
 
-    const totalSteps = displaySteps.length + 1;
-    const isReviewStep = currentStep === displaySteps.length;
-    const currentDisplayStep = displaySteps[currentStep];
+    const totalSteps = displaySteps.length + 2;
+    const isReflectionStep = currentStep === 0;
+    const isReviewStep = currentStep === displaySteps.length + 1;
+    const currentDisplayStep =
+        currentStep >= 1 && currentStep <= displaySteps.length
+            ? displaySteps[currentStep - 1]
+            : null;
     const currentQuestion = currentDisplayStep?.question;
 
     async function loadSurvey() {
@@ -154,8 +160,12 @@ export function Survey() {
     }
 
     function handleNext() {
+        if (isReflectionStep) {
+            setCurrentStep(1);
+            return;
+        }
         if (fromReview) {
-            setCurrentStep(displaySteps.length);
+            setCurrentStep(displaySteps.length + 1);
             setFromReview(false);
             return;
         }
@@ -163,16 +173,20 @@ export function Survey() {
             handleClick();
             return;
         }
-        if (currentStep === displaySteps.length - 1) {
-            setCurrentStep(displaySteps.length);
+        if (currentStep === displaySteps.length) {
+            setCurrentStep(displaySteps.length + 1);
         } else {
             setCurrentStep(prev => prev + 1);
         }
     }
 
     function handlePrev() {
-        if (currentStep === displaySteps.length) {
-            setCurrentStep(displaySteps.length - 1);
+        if (currentStep === 1) {
+            setCurrentStep(0);
+            return;
+        }
+        if (currentStep === displaySteps.length + 1) {
+            setCurrentStep(displaySteps.length);
             return;
         }
         if (currentStep > 0) {
@@ -181,7 +195,7 @@ export function Survey() {
     }
 
     function handleEdit(index) {
-        setCurrentStep(index);
+        setCurrentStep(index + 1);
         setFromReview(true);
     }
 
@@ -311,7 +325,7 @@ export function Survey() {
         ? ((currentStep + 1) / totalSteps) * 100
         : 0;
     const isFirst = currentStep === 0;
-    const isLastQuestion = currentStep === displaySteps.length - 1 && !isReviewStep;
+    const isLastQuestion = currentStep === displaySteps.length && !isReviewStep;
     const showSubmit = isReviewStep;
 
     return (
@@ -324,9 +338,11 @@ export function Survey() {
                     />
                 </div>
                 <span className="survey-progress-text">
-                    {isReviewStep
-                        ? `Review (${currentStep + 1} of ${totalSteps})`
-                        : `Question ${currentStep + 1} of ${totalSteps}`}
+                    {isReflectionStep
+                        ? `Reflection (1 of ${totalSteps})`
+                        : isReviewStep
+                            ? `Review (${currentStep + 1} of ${totalSteps})`
+                            : `Question ${currentStep + 1} of ${totalSteps}`}
                 </span>
             </div>
 
@@ -341,15 +357,23 @@ export function Survey() {
                     </button>
                 </div>
 
-                {user ? (
-                    <p className="survey-intro">
-                        {user.userName}, please complete the following survey of your experience from room {user.roomCode}.
-                    </p>
-                ) : (
-                    <p>User info is loading...</p>
+                {!isReflectionStep && (
+                    user ? (
+                        <p className="survey-intro">
+                            {user.userName}, please complete the following survey of your experience from room {user.roomCode}.
+                        </p>
+                    ) : (
+                        <p>User info is loading...</p>
+                    )
                 )}
 
-                {isReviewStep ? (
+                {isReflectionStep ? (
+                    <ConversationReflectionStep
+                        messages={conversationMessages}
+                        marks={conversationMarks}
+                        onMarksChange={setConversationMarks}
+                    />
+                ) : isReviewStep ? (
                     <div className="survey-review">
                         <h3 className="survey-review-title">Review your answers</h3>
                         <p className="survey-review-subtitle">You can edit any response before submitting.</p>
@@ -381,7 +405,7 @@ export function Survey() {
                             })}
                         </ul>
                     </div>
-                ) : (
+                ) : currentDisplayStep ? (
                     <div key={currentQuestion?.id || currentQuestion?.label} className="survey-question-step">
                         {currentDisplayStep.sectionLabel && (
                             <p className="survey-section-label">{currentDisplayStep.sectionLabel.label}</p>
@@ -493,7 +517,7 @@ export function Survey() {
                             );
                         })()}
                     </div>
-                )}
+                ) : null}
 
                 <div className="survey-nav">
                     <button
@@ -513,9 +537,11 @@ export function Survey() {
                             ? "Submit"
                             : fromReview
                                 ? "Back to Review"
-                                : isLastQuestion
-                                    ? "Review Answers"
-                                    : "Next"}
+                                : isReflectionStep
+                                    ? "Continue"
+                                    : isLastQuestion
+                                        ? "Review Answers"
+                                        : "Next"}
                     </button>
                 </div>
 
