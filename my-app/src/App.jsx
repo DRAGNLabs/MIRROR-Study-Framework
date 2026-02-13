@@ -10,8 +10,8 @@ import { socket } from "./socket"
 import Interaction from "./interaction/Interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
-import WaitingRoom from './interaction/waitingRoom';
-import RoomManagement from './admin/roomManagement'
+import WaitingRoom from './interaction/WaitingRoom';
+import RoomManagement from './admin/RoomManagement'
 import AdminInteraction from './admin/AdminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
 import Instructions from './interaction/Instructions';
