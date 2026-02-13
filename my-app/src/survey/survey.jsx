@@ -82,9 +82,9 @@ export function Survey() {
     }
 
     async function buildConversation(room) {
-        const llmInstructions = JSON.parse(room.llmInstructions);
-        const userMessages = JSON.parse(room.userMessages);
-        const llmResponses = JSON.parse(room.llmResponse);
+        const llmInstructions = room.llmInstructions;
+        const userMessages = room.userMessages;
+        const llmResponses = room.llmResponse;
 
         const rounds = Object.keys(llmInstructions).sort((a, b) => a - b);
         const messages = [];
@@ -171,8 +171,11 @@ export function Survey() {
 
             {/* 1–10 LITERAL SCALE SLIDER */}
             {q.type === "scale" && q.style === "slider" && (
-                // <div className="form-group" >
-                <div className="scale-wrapper">
+                <div
+                    className={`scale-wrapper ${
+                    answers[q.id] == null ? "unanswered" : ""
+                        }`}
+                >
 
                 <input
                     type="range"
@@ -180,6 +183,22 @@ export function Survey() {
                     max={q.max}
                     step={q.step}
                     value={answers[q.id] ?? q.min}
+                    onMouseDown={() => {
+                        if (answers[q.id] == null) {
+                        setAnswers(prev => ({
+                            ...prev,
+                            [q.id]: q.min
+                        }));
+                        }
+                    }}
+                    onTouchStart={() => {
+                        if (answers[q.id] == null) {
+                        setAnswers(prev => ({
+                            ...prev,
+                            [q.id]: q.min
+                        }));
+                        }
+                    }}
                     onChange={(e) => setAnswers(prev => ({
                     ...prev, [q.id]: Number(e.target.value)
                     })

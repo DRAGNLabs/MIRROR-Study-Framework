@@ -17,31 +17,24 @@ export default function RoomManagement() {
 
 
     useEffect(() => {
-        socket.emit("join-room", {roomCode, isAdmin});
-        // if (!socket.conected) socket.connect();
+        const handleConnect = () => {
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", {roomCode, isAdmin});
+        }
 
-        // const handleConnect = () => {
-        //     socket.emit("join-room", {roomCode, isAdmin});
-        // }
-
-        // socket.on("connect", handleConnect);
-
-        // if (socket.connected) {
-        //     handleConnect();
-        // } else {
-        //     socket.once("connect", handleConnect);
-        // }
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
 
         socket.on("status", (status) => {
             const currentPath = location.pathname;
-            if(currentPath.includes(status)) {
-                return;
-            } else {
+            if(!currentPath.includes(status)) {
                 navigate(`/admin/${status}`, { state: { roomCode } });
             }
         });
 
-        // socket.on("room-users", setUsers);
         socket.on("room-users", (userList) => {
             setUsers(userList);
         });
@@ -50,28 +43,13 @@ export default function RoomManagement() {
             navigate("/admin");
         })
 
-        // const handleLeaveRoom = () => {
-        //     socket.emit("leave-room", { roomCode });
-        // };
-
-        // window.addEventListener("beforeunload", handleLeaveRoom);
-
         return () => {
-            // handleLeaveRoom();
-            // window.removeEventListener("beforeunload", handleLeaveRoom);
-            // socket.off("connect", handleConnect);
+            socket.off("connect", handleConnect);
             socket.off("status");
             socket.off("room-users");
             socket.off("force-return-to-login");
         };
-  
-    }, [roomCode]);
-
-    // useEffect(() => {
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode });
-    //     };
-    // }, []);
+    }, [socket]);
 
 
     useEffect(() => {

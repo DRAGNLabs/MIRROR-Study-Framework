@@ -12,27 +12,22 @@ export default function WaitingRoom() {
 
 
   useEffect(() => {
-    socket.emit("join-room", { roomCode, isAdmin: false, user});
-    // if (!socket.connected) socket.connect();
+    const handleJoinRoom = () => {
+      sessionStorage.setItem("roomCode", roomCode);
+      socket.emit("join-room", { roomCode, isAdmin: false, user});
+    }
 
-    // const handleConnect = () => {
-    //   socket.emit("join-room", { roomCode, isAdmin: false, user});
-    // }
-
-    // if (socket.connected) {
-    //   handleConnect();
-    // } else {
-    //   socket.once("connect", handleConnect);
-    // }
-    // socket.emit("join-room", { roomCode, isAdmin: false, user});
-
-    // socket.on("connect", handleConnect);
+    if (socket.connected) {
+      handleJoinRoom();
+    } else {
+      socket.once("connect", handleJoinRoom);
+    }
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;
-        if(currentPath.includes(status)) {
-            return;
-        } else {
+        console.log("Current path name in waiting room", currentPath);
+        console.log("status", status);
+        if(!currentPath.includes(status)) {
             navigate(`/${status}`, { state: { user } });
         }
     });
@@ -42,42 +37,26 @@ export default function WaitingRoom() {
     });
 
     const toInstructions = () => {
+
       navigate("/instructions", { state: { user }});
     }
 
     socket.on("to-instructions", toInstructions);
 
     socket.on("force-return-to-login", () => {
+      socket.emit("leave-room");
       navigate("/");
     })
 
-    // const handleUnload = () => {
-    //   socket.emit("leave-room", { roomCode, userId });
-    // };
-
-    // window.addEventListener("beforeunload", handleUnload);
-    // const handleLeaveRoom = () => {
-    //   socket.emit("leave-room", { roomCode });
-    // };
-
-    // window.addEventListener("beforeunload", handleLeaveRoom);
-
     return () => {
-      // handleLeaveRoom();
-      // socket.off("connect", handleConnect);
-      // window.removeEventListener("beforeunload", handleLeaveRoom);
+      socket.off("connect", handleJoinRoom);
       socket.off("status");
       socket.off("room-users");
       socket.off("to-instructions", toInstructions);
       socket.off("force-return-to-login");
     };
-  }, []);
+  }, [socket]);
 
-  //   useEffect(() => {
-  //     return () => {
-  //         socket.emit("leave-room", { roomCode });
-  //     };
-  // }, []);
 
   return (
     <div className="waiting-container">

@@ -966,6 +966,10 @@ for survey.jsx
   margin: 1em 0;
 }
 
+.scale-wrapper.unanswered {
+    opacity: 0.6;
+}
+
 /* Row under slider for labels and number */
 .scale-labels {
   display: flex;

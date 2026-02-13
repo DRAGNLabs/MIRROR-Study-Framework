@@ -69,3 +69,21 @@ export async function roomCompleted(roomCode) {
     if (!response.ok) throw new Error(`Error updating start and userIds in room ${roomCode}`);
     return response.json();
 }
+
+export async function getUser(userId) {
+    const response = await fetch(`${API_BASE}/users/${userId}`);
+    if (!response.ok) throw new Error("Can't get user.");
+
+    return response.json();
+}
+
+// for adminSurvey page, checking if each user has finished their survey
+export async function getSurveyStatus(userId) {
+  const response = await fetch(`${API_BASE}/survey/${userId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if(!response.ok) throw new Error("Error getting survey status");
+  return response.json();
+}
