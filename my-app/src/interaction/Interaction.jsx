@@ -45,12 +45,13 @@ export function Interaction(){
             setUserRole(gameData.roles[parseInt(role) - 1]);
             setGame(gameData);
 
-            const llmInstructions = room.llmInstructions != null ? JSON.parse(room.llmInstructions) : {};
-            const userMessages = room.userMessages != null ? JSON.parse(room.userMessages) : {};
-            const llmResponse = room.llmResponse != null ? JSON.parse(room.llmResponse) : {};
-            const numRounds = room.numRounds != null
-                ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
-                : 1;
+            const llmInstructions = room.llmInstructions ?? {};
+            const userMessages = room.userMessages ?? {};
+            const llmResponse = room.llmResponse ?? {};
+            const numRounds = room.numRounds ?? 1;
+            // const numRounds = room.numRounds != null
+            //     ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
+            //     : 1;
 
             const { messages, canSend, hasSentThisRound } = await resetMessages(
                 llmInstructions,
@@ -62,9 +63,10 @@ export function Interaction(){
             // Parse resourceAllocations history if present on the room.
             if (room.resourceAllocations) {
                 try {
-                    const parsed = typeof room.resourceAllocations === "string"
-                        ? JSON.parse(room.resourceAllocations)
-                        : room.resourceAllocations;
+                    const parsed = room.resourceAllocations ?? {};
+                    // const parsed = typeof room.resourceAllocations === "string"
+                    //     ? JSON.parse(room.resourceAllocations)
+                    //     : room.resourceAllocations;
 
                     const history = Object.keys(parsed)
                         .sort((a, b) => Number(a) - Number(b))

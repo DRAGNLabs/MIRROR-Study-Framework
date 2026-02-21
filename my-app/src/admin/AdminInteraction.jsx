@@ -169,21 +169,23 @@ export default function AdminInteraction(){
     async function loadRoomState() {
         try {
             const room = await getRoom(roomCode);
-            const llmInstructions = room.llmInstructions ? JSON.parse(room.llmInstructions) : {};
-            const userMessages = room.userMessages ? JSON.parse(room.userMessages) : {};
-            const llmResponse = room.llmResponse ? JSON.parse(room.llmResponse) : {};
-            const numRounds = room.numRounds != null
-                ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
-                : 1;
+            const llmInstructions = room.llmInstructions ?? {};
+            const userMessages = room.userMessages ?? {};
+            const llmResponse = room.llmResponse ?? {};
+            const numRounds = room.numRounds ?? 1;
+            // const numRounds = room.numRounds != null
+            //     ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
+            //     : 1;
 
             const newMsgs = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
 
             // Parse resourceAllocations if present
             if (room.resourceAllocations) {
                 try {
-                    const parsed = typeof room.resourceAllocations === "string"
-                        ? JSON.parse(room.resourceAllocations)
-                        : room.resourceAllocations;
+                    const parsed = room.resourceAllocations ?? {};
+                    // const parsed = typeof room.resourceAllocations === "string"
+                    //     ? JSON.parse(room.resourceAllocations)
+                    //     : room.resourceAllocations;
 
                     const history = Object.keys(parsed)
                         .sort((a, b) => Number(a) - Number(b))

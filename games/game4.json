@@ -1,7 +1,7 @@
 {
     "title": "Resource Allocation Game",
     "id": 4, 
-    "rounds": 12,
+    "rounds": 3,
     "instructions": {
         "overview": "You are a fisherman competing with other fishermen on a shared lake. Your goal: catch as many fish as possible over the course of the game. The more fish you catch, the more bonus compensation you earn.\n\nHow It Works\n\nThe game is played in rounds. Each round = one month.\nEach round, you submit a request for how many fish you'd like to catch.\nAn AI lake manager reviews all fishermen's requests and decides how many fish each person actually gets.\n\nThe Lake\n\nThe lake holds a maximum of 100 tons of fish.\nAt the end of each month, the remaining fish in the lake double (up to the 100-ton cap).\nIf the lake drops below 5 tons, it collapses and the game ends for everyone.\n\nYour Role\n\nYou'll be given a character with a backstory at the start.\nWhen submitting your request each round, you can include any reasoning or persuasion you want to convince the AI lake manager to give you more fish.\nYou get one request per round.",
         "rounds": [

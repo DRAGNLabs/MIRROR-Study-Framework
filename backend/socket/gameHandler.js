@@ -1,6 +1,6 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted } from "../services/roomsService.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations } from "../services/roomsService.js";
 
 
 const games = loadGames();
@@ -11,7 +11,7 @@ function delay(ms) {
 }
 
 // used in start-round socket and getLlmResponse function
-async function getLlmText(io, roomCode, getInstructions) { 
+async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
     const room = await getRoom(roomCode);
     const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
@@ -57,8 +57,43 @@ async function getLlmText(io, roomCode, getInstructions) {
         io.to(room.roomCode).emit("ai-token", token); // allows tokens to be appended to LLM message as they come
     });
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
-    io.to(room.roomCode).emit("ai-end"); 
-    return buffer;
+    io.to(room.roomCode).emit("ai-end");
+
+    // adding this check (when I do multiple returns with LLMs we won't be storing their messages in JSON objects, so should return buffer otherwise)
+    if (!getAllocation) {
+        return buffer;
+    }
+    
+    let parsed;
+    try {
+        parsed = JSON.parse(buffer);
+    } catch (err) {
+        console.error("Failed to parse LLM buffer as JSON, storing raw text.", err);
+        // const existingResponses = room.llmResponse ?? {};
+        // existingResponses[round] = buffer;
+        // await updateLlmResponse(existingResponses, roomCode);
+        return buffer;
+    }
+
+    const assistantMessage = typeof parsed.assistantMessage === "string"
+        ? parsed.assistantMessage
+        : "";
+    const allocationByUserId =
+        parsed.allocationByUserId && typeof parsed.allocationByUserId === "object"
+            ? parsed.allocationByUserId
+            : {};
+
+    const existingResourceAllocations = room.resourceAllocations ?? {};
+    existingResourceAllocations[round] = {
+        allocationByUserId,
+        assistantMessage: assistantMessage || buffer
+    };
+    await updateResourceAllocations(existingResourceAllocations, roomCode);
+
+    return assistantMessage || "The system updated resource allocation for this round";
+    
+
+    // return buffer;
 }
 
 
@@ -68,7 +103,7 @@ async function getLlmText(io, roomCode, getInstructions) {
 async function getLlmResponse(io, roomCode) {
     const round = currRounds[roomCode]; 
     const room = await getRoom(roomCode);
-    const buffer = await getLlmText(io, roomCode, false);
+    const buffer = await getLlmText(io, roomCode, false, true);
     const llmResponses = room.llmResponse;
     llmResponses[round] = buffer;
     await updateLlmResponse(llmResponses, roomCode);
@@ -79,8 +114,7 @@ async function getLlmResponse(io, roomCode) {
         const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
         io.to(roomCode).emit("receive-message", endGameMsg);
         return;
-    } 
-    else {
+    } else {
         console.log(`Round ${round} completed, waiting for next round...`);
     }
 
@@ -93,7 +127,7 @@ export async function getLlmInstructions(io, roomCode, round) {
         currRounds[roomCode] = round
     }
     const room = await getRoom(roomCode);
-    const buffer = await getLlmText(io, roomCode, true);
+    const buffer = await getLlmText(io, roomCode, true, false);
     await appendLlmInstructions(roomCode, round, buffer);
     io.to(roomCode).emit("instructions-complete", round);
 }
