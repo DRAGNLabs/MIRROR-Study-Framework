@@ -146,8 +146,14 @@ export default function App() {
     <>
       <header>
         <nav>
-          {/* <Link to={isAdminPage ? "/admin" : "/"}>Home</Link> */}
-          <button onClick={handleHomeClick}>Home</button>
+          {!shouldHideHome && (
+            <button onClick={handleHomeClick}>Home</button> 
+          )}
+          {isAdminPage && !isAdminLogin && (
+            <button type="button" className="nav-logout" onClick={handleLogout}>
+              Logout
+            </button>
+          )}
         </nav>
       </header>
 
