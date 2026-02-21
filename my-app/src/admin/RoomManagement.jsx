@@ -99,28 +99,49 @@ export default function RoomManagement() {
     }
 
 
+    const usersNeeded = room?.usersNeeded ?? 0;
+    const canStart = users.length >= usersNeeded;
+    const joinUrl = typeof window !== "undefined" ? window.location.origin : "https://localhost:5173";
+
     return (
         <div className="admin-container">
-        <h1>Room Management</h1>
-        <h2>Room Code: {room.roomCode}</h2>
-                {/* [Railway] Uses window.location.origin so the displayed URL and QR code
-                    automatically match the current deployment domain (localhost, Railway, custom domain). */}
-                <p>{window.location.origin}</p>
-             <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin)}`}
-                alt="QR Code"
-                style={{ marginTop: "20px" , marginBottom: "20px"}}
-            />
+            <div className="room-management-card">
+                <button
+                    type="button"
+                    className="back-to-rooms"
+                    onClick={() => navigate("/admin")}
+                >
+                    Back to rooms
+                </button>
+                <h1>Room Management</h1>
+                <div className="room-code-box">
+                    <span className="room-code-value">{room?.roomCode ?? '—'}</span>
+                </div>
+                <p className="room-url">{joinUrl}</p>
+                <div className="room-qr-wrap">
+                    <p className="room-qr-label">Scan to join</p>
+                    <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(joinUrl)}`}
+                        alt="QR Code"
+                    />
+                </div>
                 <div className="users-box">
-                    <h3>Users in Room:</h3>
+                    <h3>Participants</h3>
+                    <p className="users-progress">{users.length} / {usersNeeded} joined</p>
                     <ul>
                         {(users || []).map((u, idx) => (
-                         <li key={idx}>{u.userName}</li>
+                            <li key={idx}>{u.userName}</li>
                         ))}
                     </ul>
                 </div>
-
-            <button onClick={start} disabled={users.length < room.usersNeeded}>Start</button>
+                <button
+                    className="btn-primary-admin btn-full room-start-btn"
+                    onClick={start}
+                    disabled={!canStart}
+                >
+                    {canStart ? "Start session" : `Waiting for ${usersNeeded - users.length} more`}
+                </button>
+            </div>
         </div>
     )
 }

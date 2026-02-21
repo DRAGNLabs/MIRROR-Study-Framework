@@ -63,9 +63,23 @@ export default function AdminInstructions() {
         navigate("/admin/interaction", { state: { roomCode } }); // will need to update this once next merge pull request happens (I changed endpoint to /admin/interactions or something like that)
     }
     
-    if(loading) {
+    if (loading) {
         return <p> Loading instructions...</p>;
     }
+
+    if (!game) {
+        return (
+            <div className="admin-container">
+                <div className="instructions-card">
+                    <p>No game found for this room.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const instructions = game.instructions;
+    const overview = typeof instructions === "string" ? instructions : instructions?.overview ?? "";
+    const firstRound = instructions?.rounds?.[0];
 
     return (
   <div className="admin-container">
@@ -74,14 +88,17 @@ export default function AdminInstructions() {
     <h3 className="section-title">Instructions</h3>
 
       <p className="instructions-overview">
-        {game.instructions.overview}
+        {overview}
       </p>
 
-
+      {firstRound && (
+        <>
       <h3 className="section-title">Your Task</h3>
       <div className="round-content">
-        {game.instructions.rounds[0].description}
+        {firstRound.description}
       </div>
+        </>
+      )}
 
     </div>
         <div className="admin-next-bottom-left">

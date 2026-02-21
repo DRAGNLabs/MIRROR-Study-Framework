@@ -1,30 +1,41 @@
 export default function InstructionsModal({ open, onClose, game, role }) {
   if (!open) return null;
 
+  const instructions = game?.instructions;
+  const overview = typeof instructions === "string" ? instructions : instructions?.overview ?? "";
+  const firstRound = instructions?.rounds?.[0];
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
         className="modal-card"
-        onClick={(e) => e.stopPropagation()} 
+        onClick={(e) => e.stopPropagation()}
       >
-        <button className="modal-close" onClick={onClose}>
+        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
           ✕
         </button>
 
-        <h2>Instructions</h2>
+        <h2>Conversation context</h2>
 
-        <p>{game.instructions.overview}</p>
-
-        <h3>Your Task for Each Round</h3>
-        <p>
-          {game.instructions.rounds[0].description}
-        </p>
-
-        {role && (
+        {!game ? (
+          <p>Loading context…</p>
+        ) : (
           <>
-            <h3>Your Role: {role.role}</h3>
-            <p><strong>Backstory:</strong> {role.backstory}</p>
-            {/* <p><strong>Drawbacks:</strong> {role.drawbacks}</p> */}
+            <p>{overview || "No overview available."}</p>
+
+            {firstRound && (
+              <>
+                <h3>Your task for this round</h3>
+                <p>{firstRound.description}</p>
+              </>
+            )}
+
+            {role && (
+              <>
+                <h3>Your role: {role.role}</h3>
+                <p><strong>Backstory:</strong> {role.backstory}</p>
+              </>
+            )}
           </>
         )}
       </div>

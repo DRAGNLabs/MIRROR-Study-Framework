@@ -158,8 +158,8 @@ export function Interaction(){
             const user = await getUser(id);
             return user;
         } catch (error) {
-            console.error("Error:", error);
-            setError(error.message || "something went wrong.");
+            console.error("Error fetching user:", error);
+            return { userName: "Unknown" };
         }
     }
 
@@ -169,7 +169,7 @@ export function Interaction(){
         let userSentThisRound = false;
         let llmResponded = false;
 
-        const rounds = Object.keys(llmInstructions).sort((a,b) => a-b);
+        const rounds = Object.keys(llmInstructions || {}).sort((a,b) => Number(a) - Number(b));
         for (const round of rounds) {
             userSentThisRound = false;
             llmResponded = false;
@@ -181,7 +181,7 @@ export function Interaction(){
                     id: `llm-instructions-${round}`
                 });
             }
-            const msgs = userMessages[round] || [];
+            const msgs = Array.isArray(userMessages[round]) ? userMessages[round] : [];
             for (const [msgUserId, text] of msgs) {
                 const userTemp = await getUserName(msgUserId);
                 newMsgs.push({
@@ -206,7 +206,8 @@ export function Interaction(){
                 newMsgs.push({
                     sender: "user",
                     userName: "Admin",
-                    text: "All rounds are complete, game is ended."
+                    text: "All rounds are complete, game is ended.",
+                    id: "admin-end"
                 });
             }
             
@@ -221,7 +222,7 @@ export function Interaction(){
     useEffect(() => {
         async function retrieveRoom() { 
             try {
-                await delay(1000);
+                await delay(500);
                 const room = await getRoom(roomCode);
                 const llmInstructions = room.llmInstructions;
                 const userMessages = room.userMessages;
@@ -236,8 +237,7 @@ export function Interaction(){
                 setCanSend(canSend);
                 setHasSentThisRound(hasSentThisRound);
             } catch (error){
-                console.error("Error:", error);
-                setError(error.message || "Something went wrong.");
+                console.error("Error loading conversation history:", error);
             }
         }
         retrieveRoom();
@@ -252,7 +252,7 @@ export function Interaction(){
         }
 
         if (!prompt.trim()) return;
-;
+
         const userName = user.userName;
         socket.emit("submit-round-message", {
             roomCode,
@@ -270,53 +270,65 @@ export function Interaction(){
     return (
         <>
         <div className="interactions-container">
-        <div className="welcome-center">
-            {user ? <h2>Welcome, {user.userName}!</h2> : <p>Loading...</p>}
-        </div>
-
-        <div className="room-top-left">
+        <header className="interaction-header">
             <button
-                className="info-icon-button"
-                title="Show instructions"
+                type="button"
+                className="interaction-header-btn info-icon-button"
+                title="Show conversation context"
                 onClick={() => setShowInstructions(true)}
-                >
+                aria-label="Show conversation context"
+            >
                 ⓘ
             </button>
-        </div>
+            <h1 className="interaction-header-title">
+                {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
+            </h1>
+            <div className="interaction-header-meta">
+                {user ? <span className="interaction-room-badge">Room {user.roomCode}</span> : null}
+            </div>
+        </header>
 
-        <div className="room-top-right">
-            {user ? <p>Room: {user.roomCode}</p> : null}
-        </div>
         <div className="chat-container">
-
-
             <div className="chat-box" ref={chatBoxRef}>
+                {messages.length === 0 && (
+                    <div className="chat-placeholder">
+                        <p>Messages will appear here once the round starts.</p>
+                    </div>
+                )}
                 {messages.map((msg, i) => (
                     <div
-                        key={i}
-                        className={`message ${msg.sender === "user" ? "user" : "bot"}`}
+                        key={msg.id ?? i}
+                        className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
                     >
-                    {msg.sender === "user"
-                        ? `${msg?.userName || "You"}: ${msg.text}`
-                        : `LLM: ${msg.text}`}
+                        <span className="message-sender">
+                            {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
+                        </span>
+                        <span className="message-text">{msg.text}</span>
                     </div>
                 ))}
-            </div> 
+            </div>
 
-        <form id="chat-form" onSubmit={handleSubmit}>
-           <textarea
-            id="chat-input"
-            rows="1"
-            placeholder="Type a message..."
-            value={prompt}
-            onChange={(e) => {
-                setPrompt(e.target.value);
-                e.target.style.height = "auto"; // reset height
-                e.target.style.height = e.target.scrollHeight + "px"; // set to content height
-            }}
-            />
-        <button type="submit" disabled={!canSend || hasSentThisRound}>Send</button>
-        </form>
+            <form className="chat-form" onSubmit={handleSubmit}>
+                <textarea
+                    className="chat-input"
+                    rows={1}
+                    placeholder="Type your message..."
+                    value={prompt}
+                    onChange={(e) => {
+                        setPrompt(e.target.value);
+                        e.target.style.height = "auto";
+                        e.target.style.height = e.target.scrollHeight + "px";
+                    }}
+                    aria-label="Message input"
+                />
+                <button
+                    type="submit"
+                    className="chat-send-btn"
+                    disabled={!canSend || hasSentThisRound}
+                >
+                    Send
+                </button>
+            </form>
         </div>
         <InstructionsModal
             open={showInstructions}

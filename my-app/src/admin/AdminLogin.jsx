@@ -33,21 +33,25 @@ export function AdminLogin() {
     };
 
     return(
-    <div className="admin-container">
-        <h1>Welcome Admin!</h1>
-        <p>Enter password:</p>
-        <input 
-          type="password" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={handleKeyDown}
-          required
-        />
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        <div className="button-group">
-            <button onClick={handleClick} disabled={!password.trim()}>Login</button>
-            
+    <div className="admin-container admin-login">
+        <div className="admin-login-card">
+          <div className="admin-login-header">
+            <h1>Admin</h1>
+            <p>Sign in to continue</p>
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); handleClick(); }}>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter password"
+            />
+            {error && <p className="admin-login-error">{error}</p>}
+            <button type="submit" className="admin-login-submit" disabled={!password.trim()}>
+              Sign in
+            </button>
+          </form>
         </div>
     </div>
   );
