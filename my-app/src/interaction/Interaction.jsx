@@ -51,26 +51,19 @@ export function Interaction(){
     }, [roomCode])
 
     useEffect(() => {
-        socket.emit("join-room", { roomCode, isAdmin, user });
-        // if (!socket.connected) socket.connect();
+        const handleConnect = () => {
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", { roomCode, isAdmin, user }); 
+        }
 
-        // const handleConnect = () => {
-        //    socket.emit("join-room", { roomCode, isAdmin, user }); 
-        // }
-
-        // if (socket.connected) {
-        //     handleConnect();
-        // } else {
-        //     socket.once("connect", handleConnect);
-        // }
-        // socket.on("connect", handleConnect);
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
-        });
-
-        socket.on("force-return-to-waiting-room", () => {
-            navigate("/waiting", { state: { user } });
         });
 
         socket.on("start-user-survey", () => {
@@ -78,8 +71,8 @@ export function Interaction(){
         });
 
         socket.on("ai-start", () => {
-            const newId = `streaming-${Date.now()}`;
             isStreamingRef.current = true;
+            const newId = Date.now();
             setCurrentStreamingId(newId);
             setStreamingText("");
             setMessages((prev) => [
@@ -93,6 +86,7 @@ export function Interaction(){
         });
 
         socket.on("ai-end", () => {
+            isStreamingRef.current = false;
             setCurrentStreamingId(null);
             setStreamingText("");
         });
@@ -113,19 +107,21 @@ export function Interaction(){
         });
 
         socket.on("force-return-to-login", () => {
+            socket.emit("leave-room");
             navigate("/");
         })
 
-        // const handleLeaveRoom = () => {
-        //     socket.emit("leave-room", { roomCode });
-        // };
-
-        // window.addEventListener("beforeunload", handleLeaveRoom);
+        socket.on("status", (status) => {
+            const currentPath = location.pathname;
+            console.log("Current path name in interaction", currentPath);
+            console.log("status", status);
+            if(!currentPath.includes(status)) {
+                navigate(`/${status}`, { state: { user } });
+            }
+        });
 
         return () => {
-            // handleLeaveRoom();
-            // window.removeEventListener("beforeunload", handleLeaveRoom);
-            // socket.off("connect", handleConnect);
+            socket.off("connect", handleConnect);
             socket.off("receive-message");
             socket.off("room-users");
             socket.off("force-return-to-waiting-room");
@@ -136,14 +132,9 @@ export function Interaction(){
             socket.off("round-complete");
             socket.off("game-complete");
             socket.off("force-return-to-login");
+            socket.off("status");
         };
-    }, []);
-
-    // useEffect(() => {
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode });
-    //     };
-    // }, []);
+    }, [socket]);
 
     useEffect(() => {
         if (!streamingText || !currentStreamingId) return;
@@ -233,12 +224,13 @@ export function Interaction(){
             try {
                 await delay(500);
                 const room = await getRoom(roomCode);
-                const llmInstructions = room.llmInstructions != null ? JSON.parse(room.llmInstructions) : {};
-                const userMessages = room.userMessages != null ? JSON.parse(room.userMessages) : {};
-                const llmResponse = room.llmResponse != null ? JSON.parse(room.llmResponse) : {};
-                const numRounds = room.numRounds != null ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds)) : 1;
+                const llmInstructions = room.llmInstructions;
+                const userMessages = room.userMessages;
+                const llmResponse = room.llmResponse;
+                const numRounds = room.numRounds;
                 const { messages, canSend, hasSentThisRound } = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
                 if (isStreamingRef.current) {
+                    console.log("Skipping DB fetch during stream");
                     return;
                 }
                 setMessages(messages);

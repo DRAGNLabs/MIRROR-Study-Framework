@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3001/api"; // going to want to change this to import from config file
+import { API_BASE } from "../src/config.js";
 
 // creates new room in rooms table
 export async function sendRoom(roomCode, gameType, numRounds, usersNeeded){ 
