@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket"; 
+import { getUser } from "../../services/usersService";
 import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus } from "../../services/roomsService";
 import games from "../gameLoader";
 
@@ -12,11 +13,14 @@ export function Admin() {
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
     // const [ error, setError] = useState("");
+    const [roomUsers, setRoomUsers] = useState({});
+
     const [ rooms, setRooms ] = useState([]);
     // const [deletingRoom, setDeletingRoom] = useState(null);
     // const [valid, setValid] = useState(false);
     // const location = useLocation();
     // const validLogin = location.state?.isValid;
+
     const navigate = useNavigate();
     const isAdmin = true;
 
@@ -26,6 +30,32 @@ export function Admin() {
         const rooms = await getOpenRooms();
         setRooms(rooms);
     }
+
+    function getGameById(id) {
+        return games.find(g => g.id === id);
+    }
+
+    async function loadUsersForRoom(room) {
+        const userIds = room.userIds ?? "[]";
+        if (userIds.length === 0) return;
+
+        try {
+            const users = await Promise.all(
+                userIds.map(id => getUser(id))
+            );
+
+            const usernames = users.map(u => u.userName);
+            console.log(usernames);
+
+            setRoomUsers(prev => ({
+                ...prev,
+                [room.roomCode]: usernames
+            }));
+        } catch (err) {
+            console.error("Failed to load users for room", room.roomCode, err);
+        }
+    }
+
 
     useEffect(() => { 
         init();
@@ -38,6 +68,15 @@ export function Admin() {
             // setValid(true);
         }
     }, []);
+
+    useEffect(() => {
+        rooms.forEach(room => {
+            if (room.started === 1) {
+                loadUsersForRoom(room);
+            }
+        });
+    }, [rooms]);
+
 
     
     async function createRoom() { //changes the page to customize the room
@@ -124,20 +163,39 @@ export function Admin() {
                 <h2 className="rooms-section-title">Your rooms</h2>
                 <p className="rooms-section-subtitle">Select a room to start or create a new one</p>
                 <div className="rooms-container">
-                    {rooms.map(room => (
+                    {rooms.map(room => {
+                        const game = getGameById(room.gameType);
+                        const status = room.status;
+    
+                        return (
                         <div className="room-display" key={room.roomCode}>
                             <span className="room-code-badge">{room.roomCode}</span>
                             <div className="room-meta">
+                                <strong>{game ? game.title : "Unknown"}</strong> 
                                 <span>{room.usersNeeded} users</span>
-                                <span>Game {room.gameType}</span>
-                                <span>Started: {String(room.started)}</span>
+                                {/* <span>Game {room.gameType}</span> */}
+                                <span>Started: {room.started ? "✅" : "❌"}</span>
+                                <span>{status && <p>Status: {status}</p>}</span>
+                                <span>{Array.isArray(roomUsers?.[room.roomCode]) && (
+                                    <p>Users: {roomUsers[room.roomCode].join(", ")}</p>
+                                )} </span>
                             </div>
                             <div className="room-display-actions">
                                 <button className="btn-primary-admin" onClick={() => startRoom(room.roomCode)}>Start</button>
                                 <button className="btn-secondary-admin" onClick={() => closeRoom(room.roomCode)}>Close</button>
                             </div>
+                            {/* <strong>{game ? game.title : "Unknown"}</strong> 
+                            <p>Room Code: {room.roomCode}</p>
+                            <p>Users needed: {room.usersNeeded}</p>
+                            <p>Started: {room.started ? "✅" : "❌"}</p> 
+                            <div>{status && <p>Status: {status}</p>}</div>
+                            {Array.isArray(roomUsers?.[room.roomCode]) && (
+                                <p>Users: {roomUsers[room.roomCode].join(", ")}</p>
+                            )}
+                            <button onClick={() => startRoom(room.roomCode)}>Start Room</button>
+                            <button onClick={() => closeRoom(room.roomCode)}>Close Room</button> */}
                         </div>
-                    ))}
+                    )})}
                 </div>
             </div>
         )}

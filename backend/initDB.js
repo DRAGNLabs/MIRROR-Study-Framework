@@ -1,15 +1,15 @@
 import db from "./db.js";
 
 
-db.serialize(() => {
-  db.run(`
+async function init() {
+  await db.query(`
     CREATE TABLE IF NOT EXISTS users (
-      userId INTEGER PRIMARY KEY AUTOINCREMENT,
-      userName TEXT NOT NULL,
-      roomCode INTEGER NOT NULL,
-      role INTEGER NOT NULL DEFAULT 0
+      "userId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      "userName" TEXT NOT NULL,
+      "roomCode" INTEGER NOT NULL,
+      role INTEGER NOT NULL DEFAULT 0 
     )
-  `);
+  `); //make default of role 0
 
 /*
  * =====================================
@@ -20,12 +20,12 @@ db.serialize(() => {
  *
  * data is {"question1": "answer1", "question2": "answer2",...}
  */
-  db.run(`
+  await db.query(`
     CREATE TABLE IF NOT EXISTS survey (
-      surveyId INTEGER NOT NULL,
-      userId INTEGER NOT NULL,
-      data TEXT NOT NULL DEFAULT '{}',
-      PRIMARY KEY (surveyId, userId)
+      "surveyId" INTEGER NOT NULL,
+      "userId" INTEGER NOT NULL,
+      data JSONB NOT NULL DEFAULT '{}'::jsonb,
+      PRIMARY KEY ("surveyId", "userId")
     )
   `);
 
@@ -46,39 +46,29 @@ db.serialize(() => {
  * status is a string that will be either waiting | instructions | interaction | survey
  * completed is boolean value (0 or 1) used to know what rooms to show on admin page 
  */
-  db.run(`
+  await db.query(`
     CREATE TABLE IF NOT EXISTS rooms (
-      roomCode INTEGER NOT NULL PRIMARY KEY,
-      gameType INTEGER NOT NULL, 
-      numRounds INTEGER NOT NULL,
-      usersNeeded INTEGER NOT NULL,
-      modelType TEXT NOT NULL,
-      started INTEGER NOT NULL DEFAULT 0,
-      userIds TEXT NOT NULL DEFAULT '[]',
-      userMessages TEXT NOT NULL DEFAULT '{}',
-      llmInstructions TEXT NOT NULL DEFAULT '{}',
-      llmResponse TEXT NOT NULL DEFAULT '{}',
-      status TEXT NOT NULL DEFAULT '',
-      completed INTEGER NOT NULL DEFAULT 0
+      "roomCode" INTEGER NOT NULL PRIMARY KEY,
+      "gameType" INTEGER NOT NULL, 
+      "numRounds" INTEGER NOT NULL,
+      "usersNeeded" INTEGER NOT NULL,
+      "modelType" TEXT NOT NULL DEFAULT 'default',
+      started BOOLEAN NOT NULL DEFAULT FALSE,
+      "userIds" jsonb NOT NULL DEFAULT '[]'::jsonb,
+      "userMessages" jsonb NOT NULL DEFAULT '{}'::jsonb,
+      "llmInstructions" jsonb NOT NULL DEFAULT '{}'::jsonb,
+      "llmResponse" jsonb NOT NULL DEFAULT '{}'::jsonb,
+      status TEXT NOT NULL DEFAULT 'waiting',
+      completed BOOLEAN NOT NULL DEFAULT FALSE,
+      "resourceAllocations" TEXT NOT NULL DEFAULT '{}'::jsonb
     )
-  `);
+  `)
+  console.log("✅ Tables checked/created");
+};
 
-  // Add resourceAllocations column for storing per-round fish splits, if it doesn't exist yet.
-  db.run(
-    `
-    ALTER TABLE rooms
-    ADD COLUMN resourceAllocations TEXT NOT NULL DEFAULT '{}'
-    `,
-    (err) => {
-      if (err && !String(err.message).includes("duplicate column name")) {
-        console.error(
-          "Error adding resourceAllocations column to rooms:",
-          err.message
-        );
-      }
-    }
-  );
+init().catch((err) => {
+  console.error("initDB error:", err);
+  process.exit(1);
+})
 
-});
 
-console.log("✅ Tables checked/created");

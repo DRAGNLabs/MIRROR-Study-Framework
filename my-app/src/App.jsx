@@ -1,11 +1,12 @@
 /* This is the home page where users will login to the room using a given roomCode*/
 
-import { Link, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import Survey from "./survey/Survey";
 import './App.css';
 import { useState } from "react";
 import { loginUser, getCreatedUser } from '../services/usersService';
 import { getRoom, loginRoom } from '../services/roomsService';
+import { socket } from "./socket"
 import Interaction from "./interaction/Interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
@@ -48,7 +49,7 @@ function Home() {
       }
 
       const room = await getRoom(roomCode);
-      const userIds = JSON.parse(room.userIds);
+      const userIds = Array.isArray(room.userIds) ? room.userIds : JSON.parse(room.userIds);
       if(room.completed) {
         setError("This session has already ended.");
         return;
@@ -120,6 +121,8 @@ function Home() {
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
+  const hideHomeOn = ["/interaction", "/waiting", "/survey", "/instructions"];
+  const shouldHideHome = hideHomeOn.includes(location.pathname)
   const isAdminPage = location.pathname.startsWith("/admin");
   const isAdminLogin = location.pathname === "/adminLogin";
 
@@ -128,11 +131,24 @@ export default function App() {
     navigate("/adminLogin");
   }
 
+  const handleHomeClick = () => {
+    const roomCode = sessionStorage.getItem("roomCode");
+    console.log(roomCode);
+    // const userId = sessionStorage.getItem("userId");
+    if (roomCode) {
+      socket.emit("leave-room", {roomCode});
+      sessionStorage.removeItem("roomCode");
+    }
+    navigate(isAdminPage ? "/admin" : "/");
+  }
+
   return (
     <>
       <header>
         <nav>
-          <Link to={isAdminPage && !isAdminLogin ? "/admin" : "/"}>Home</Link>
+          {!shouldHideHome && (
+            <button onClick={handleHomeClick}>Home</button> 
+          )}
           {isAdminPage && !isAdminLogin && (
             <button type="button" className="nav-logout" onClick={handleLogout}>
               Logout
