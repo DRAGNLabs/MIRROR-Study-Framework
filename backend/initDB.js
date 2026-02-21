@@ -59,7 +59,8 @@ async function init() {
       "llmInstructions" jsonb NOT NULL DEFAULT '{}'::jsonb,
       "llmResponse" jsonb NOT NULL DEFAULT '{}'::jsonb,
       status TEXT NOT NULL DEFAULT 'waiting',
-      completed BOOLEAN NOT NULL DEFAULT FALSE
+      completed BOOLEAN NOT NULL DEFAULT FALSE,
+      "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb
     )
   `)
   console.log("✅ Tables checked/created");
