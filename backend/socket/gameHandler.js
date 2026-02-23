@@ -86,6 +86,7 @@ async function getLlmResponse(io, roomCode) {
 
     currRounds[roomCode] += 1; 
     io.to(roomCode).emit("round-complete", currRounds[roomCode]);
+    await getLlmInstructions(io, roomCode, currRounds[roomCode]);
 }
 
 export async function getLlmInstructions(io, roomCode, round) {
