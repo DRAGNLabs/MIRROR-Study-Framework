@@ -61,12 +61,12 @@ export default function AdminInteraction(){
         });
 
 
-        socket.on("round-complete", (nextRound) => {
-            socket.emit('start-round', {
-                roomCode,
-                round: nextRound
-            });
-        });
+        // socket.on("round-complete", (nextRound) => {
+        //     // socket.emit('start-round', {
+        //     //     roomCode,
+        //     //     round: nextRound
+        //     // });
+        // });
 
         socket.on("force-return-to-login", () => {
             navigate("/admin");
@@ -79,7 +79,7 @@ export default function AdminInteraction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
-            socket.off("round-complete");
+            // socket.off("round-complete");
             socket.off("force-return-to-login");
         };
     }, [socket]);
