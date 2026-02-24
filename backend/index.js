@@ -1,13 +1,17 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+// [Railway] path + fileURLToPath needed to resolve the frontend dist directory
+// for static file serving in production (single-service deployment).
+import path from "path";
+import { fileURLToPath } from "url";
 import userRouter from "./routes/userRouter.js";
 import surveyRouter from "./routes/surveyRouter.js";
 import adminRouter from "./routes/adminRouter.js";
 import roomsRouter from "./routes/roomsRouter.js"
 import "./initDB.js";
-import { streamLLM } from "./llm.js";
 import { createServer } from 'http';
+import { initializeSocketServer } from "./socket/socketServer.js";
 import { Server } from 'socket.io'
 import { loadGames } from "./services/gameLoader.js";
 const games = loadGames();
@@ -15,6 +19,10 @@ import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, 
 
 
 dotenv.config();
+
+// [Railway] __dirname is not available in ES modules, so we derive it manually.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -65,8 +73,8 @@ async function getLlmResponse(roomCode) {
     for (let i = 1; i <= round; i++) {
         messages.push({ "role": "user", "content": instructionsPrompt })
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        const roundMessages = userMessages[i] || [];
-        const formattedUserMessages = roundMessages.map(([userId, text]) => {
+        // const roundMessages = userMessages[i] || [];
+        const formattedUserMessages = userMessages[i].map(([userId, text]) => {
             const name = userNames[userId] || `User ${userId}`;
             return `${name}: ${text}`;
         }).join("\n");
@@ -87,44 +95,9 @@ async function getLlmResponse(roomCode) {
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(roomCode).emit("ai-end"); 
 
-    // Expect the model to respond with strict JSON:
-    // {
-    //   "allocationByUserId": { "<userId>": { "fish": number, "round": number, "totalFishSoFar"?: number } },
-    //   "assistantMessage": string
-    // }
-    let parsed;
-    try {
-        parsed = JSON.parse(buffer);
-    } catch (err) {
-        console.error("Failed to parse LLM buffer as JSON, storing raw text.", err);
-        const existingResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
-        existingResponses[round] = buffer;
-        await updateLlmResponse(existingResponses, roomCode);
-        return;
-    }
-
-    const assistantMessage = typeof parsed.assistantMessage === "string"
-        ? parsed.assistantMessage
-        : "";
-    const allocationByUserId =
-        parsed.allocationByUserId && typeof parsed.allocationByUserId === "object"
-            ? parsed.allocationByUserId
-            : {};
-
-    // Update chat responses with assistantMessage only (never raw JSON)
-    const existingResponses = room.llmResponse ? JSON.parse(room.llmResponse) : {};
-    existingResponses[round] = assistantMessage || "The system updated resource allocations for this round.";
+    const existingResponses = JSON.parse(room.llmResponse);
+    existingResponses[round] = buffer;
     await updateLlmResponse(existingResponses, roomCode);
-
-    // Update resourceAllocations with the model's JSON
-    const existingResourceAllocations = room.resourceAllocations
-        ? JSON.parse(room.resourceAllocations)
-        : {};
-    existingResourceAllocations[round] = {
-        allocationByUserId,
-        assistantMessage: assistantMessage || buffer
-    };
-    await updateResourceAllocations(existingResourceAllocations, roomCode);
 
     state.userMessages.clear();
 
@@ -173,17 +146,11 @@ io.on("connection", (socket) => {
         // send updated user list
         io.to(roomCode).emit("room-users", rooms[roomCode]);
 
-        // Safely attempt to load room; if it no longer exists, don't crash the server.
-        try {
-            const room = await getRoom(roomCode);
-            // send user/admin to correct status page
-            io.to(roomCode).emit("status", room.status);
-        } catch (err) {
-            console.error("join-room: failed to fetch room for roomCode", roomCode, err?.message || err);
-            return;
-        }
+        const room = await getRoom(roomCode);
+        // send user/admin to correct status page
+        io.to(roomCode).emit("status", room.status);
 
-        console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
+       console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
     });
 
     socket.on("show-instructions", async ({roomCode}) => {
@@ -246,9 +213,9 @@ io.on("connection", (socket) => {
             messages.push({ "role": "user", "content": instructionsPrompt });
             if (!llmInstructions[i]) break;
             messages.push({ "role": "assistant", "content": llmInstructions[i] });
-            const roundMessages = userMessages[i] || [];
-            const formattedUserMessages = roundMessages.map(([userId, text]) => {
-                const name = userNames[userId] || `User ${userId}`;
+            // const roundMessages = userMessages[i] || [];
+            const formattedUserMessages = userMessages[i].map(([userId, text]) => {
+            const name = userNames[userId] || `User ${userId}`;
                 return `${name}: ${text}`;
             }).join("\n");
             messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
@@ -405,15 +372,27 @@ io.on("connection", (socket) => {
 app.use(cors());
 app.use(express.json());
 
-
 app.use("/api/users", userRouter);
 app.use("/api/survey", surveyRouter);
 app.use("/api/rooms", roomsRouter);
 app.use("/api/admin", adminRouter);
 
+// [Railway] Serve the React frontend's built static files from the backend.
+// In production, `npm run build` in my-app/ creates a dist/ folder, and the
+// backend serves it directly — this is the "single-service" deployment model
+// so frontend and backend share the same origin (no CORS issues).
+const frontendPath = path.join(__dirname, "../my-app/dist");
+app.use(express.static(frontendPath));
+
+// [Railway] SPA catch-all: any route that doesn't match an API endpoint serves
+// index.html, so React Router can handle client-side routing (e.g. /survey, /admin).
+// Uses Express 5 named wildcard syntax {*splat} (bare * is not valid in Express 5).
+app.get("/{*splat}", (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 const PORT = process.env.PORT || 3001;
 
-httpServer.listen(PORT, () => 
-    console.log(`🚀 Server running on port ${PORT}`)
+httpServer.listen(PORT, () =>
+    console.log(`Server running on port ${PORT}`)
 );

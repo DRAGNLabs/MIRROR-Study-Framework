@@ -1914,6 +1914,14 @@ for survey.jsx
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+  margin: 1em 0;
+}
+
+.scale-wrapper.unanswered {
+    opacity: 0.6;
+}
+
+/* Row under slider for labels and number */
 .scale-labels {
   display: flex;
   justify-content: space-between;

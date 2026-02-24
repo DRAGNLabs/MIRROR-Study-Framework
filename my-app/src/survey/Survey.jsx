@@ -96,9 +96,9 @@ export function Survey() {
     }, [currentQuestion?.id, currentQuestion?.type]);
 
     async function buildConversation(room) {
-        const llmInstructions = JSON.parse(room.llmInstructions);
-        const userMessages = JSON.parse(room.userMessages);
-        const llmResponses = JSON.parse(room.llmResponse);
+        const llmInstructions = room.llmInstructions;
+        const userMessages = room.userMessages;
+        const llmResponses = room.llmResponse;
 
         const rounds = Object.keys(llmInstructions).sort((a, b) => a - b);
         const messages = [];

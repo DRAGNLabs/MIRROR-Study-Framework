@@ -29,14 +29,16 @@ export default function AdminInteraction(){
 
 
     useEffect(() => {
-        socket.emit("join-room", { roomCode, isAdmin});
-        // if (!socket.connected) socket.connect();
+        const handleConnect = () => {
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", { roomCode, isAdmin}); 
+        }
 
-        // const handleConnect = () => {
-        //    socket.emit("join-room", { roomCode, isAdmin}); 
-        // }
-
-        // socket.on("connect", handleConnect);
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
@@ -44,9 +46,7 @@ export default function AdminInteraction(){
 
 
         socket.on("ai-start", () => {
-            console.log("HERE in ai-start");
             isStreamingRef.current = true;
-
             const newId = Date.now();
             setCurrentStreamingId(newId);
             setStreamingText("");
@@ -61,6 +61,7 @@ export default function AdminInteraction(){
         });
 
         socket.on("ai-end", () => {
+            isStreamingRef.current = false;
             setCurrentStreamingId(null);
             setStreamingText("");
         });
@@ -81,21 +82,15 @@ export default function AdminInteraction(){
 
 
         return () => {
-            // socket.off("connect", handleConnect);
+            socket.off("connect", handleConnect);
             socket.off("receive-message");
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
-            socket.off("round-complete");
+            // socket.off("round-complete");
             socket.off("force-return-to-login");
         };
-    }, [roomCode]);
-
-    // useEffect(() => {
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode });
-    //     };
-    // }, []);
+    }, [socket]);
 
     useEffect(() => {
         if (!streamingText) return;
@@ -223,10 +218,21 @@ export default function AdminInteraction(){
     useEffect(() => {
         async function initialLoad() {
             try {
-                await delay(1000); // wait for initial LLM instructions to land
-                await loadRoomState();
-            } catch (error) {
-                console.error("Error loading admin conversation history:", error);
+                await delay(1000); // this makes sure the messages don't get reset before llmInstructions have sent
+                const room = await getRoom(roomCode);
+                const llmInstructions = room.llmInstructions;
+                const userMessages = room.userMessages;
+                const llmResponse = room.llmResponse;
+                const numRounds = room.numRounds;
+                const newMsgs =  await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
+                if (isStreamingRef.current) {
+                    console.log("Skipping database fetch during stream");
+                    return;
+                }
+                setMessages(newMsgs);
+            } catch (error){
+                console.error("Error:", error);
+                // setError(error.message || "Something went wrong.");
             }
         }
 

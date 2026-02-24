@@ -35,13 +35,16 @@ export default function AdminSurvey() {
 
 
     useEffect(() => {
-        socket.emit("join-room", {roomCode, isAdmin: true});
-        // if (!socket.connected) socket.connect();
+        const handleConnect = () => {
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", { roomCode, isAdmin: true}); 
+        }
 
-        // const handleConnect = () => {
-        //    socket.emit("join-room", { roomCode, isAdmin: true}); 
-        // }
-        // socket.on("connect", handleConnect);
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
 
         socket.on("user-survey-complete", ({ userId, surveyId }) => {
             setUsers(prev =>
@@ -52,16 +55,10 @@ export default function AdminSurvey() {
         });
 
         return () => {
-            // socket.off("connect", handleConnect);
+            socket.off("connect", handleConnect);
             socket.off("user-survey-complete");
         };
-    }, []);
-
-    // useEffect(() => {
-    //     return () => {
-    //         socket.emit("leave-room", { roomCode });
-    //     };
-    // }, []);
+    }, [socket]);
 
     return (
         <div className="admin-container">

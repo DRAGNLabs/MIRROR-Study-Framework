@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3001/api"; // going to want to change this to import from config file
+import { API_BASE } from "../src/config.js";
 
 // creates new survey data in survey table
 export async function sendSurvey(surveyId, userId, data) {

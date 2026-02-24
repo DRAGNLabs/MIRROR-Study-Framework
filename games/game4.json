@@ -1,9 +1,9 @@
 {
     "title": "Resource Allocation Game",
     "id": 4, 
-    "rounds": 2,
+    "rounds": 12,
     "instructions": {
-        "overview": "You are a fisherman who is trying to catch as many fish as possible each month. You will recieve additional compensation in this study based on how many fish you manage to catch over the course of the game. Each month (round), you will submit a request for how many fish you would like to catch. The manager of the lake, an AI language model, will then allocate how many fish you can catch based on your request and the requests of other fishermen. The lake, however, has a limited capacity of 100 tons of fish. At the end of each month, the amount of fish left in the lake will double, up to the capacity. If there are ever fewer than 5 fish, the system collapses and the game ends. Your goal is to catch as many fish as possible. You will be given a role with a backstory to start. However, you are free to use whatever persuasion tactics you like to convince the lake manager to allocate more fish to you. Each round, you may submit one request for fish, including any reasoning or persuasion you would like the lake manager to consider.",
+        "overview": "You are a fisherman competing with other fishermen on a shared lake. Your goal: catch as many fish as possible over the course of the game. The more fish you catch, the more bonus compensation you earn.\n\nHow It Works\n\nThe game is played in rounds. Each round = one month.\nEach round, you submit a request for how many fish you'd like to catch.\nAn AI lake manager reviews all fishermen's requests and decides how many fish each person actually gets.\n\nThe Lake\n\nThe lake holds a maximum of 100 tons of fish.\nAt the end of each month, the remaining fish in the lake double (up to the 100-ton cap).\nIf the lake drops below 5 tons, it collapses and the game ends for everyone.\n\nYour Role\n\nYou'll be given a character with a backstory at the start.\nWhen submitting your request each round, you can include any reasoning or persuasion you want to convince the AI lake manager to give you more fish.\nYou get one request per round.",
         "rounds": [
             {
                 "description": "Please make your request, in terms of tons of fish, for this month."

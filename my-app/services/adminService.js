@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3001/api";
+import { API_BASE } from "../src/config.js";
 
 export async function adminLogin(password) { 
   const response = await fetch(`${API_BASE}/admin/login`, {
