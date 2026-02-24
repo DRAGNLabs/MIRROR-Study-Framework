@@ -137,6 +137,7 @@ export function Survey() {
 
         const missing = survey.questions.filter(q => {
             if (q.type === "label") return false;
+            if (q.optional) return false;
             if (q.type === "sortRank") {
                 const val = answers[q.id];
                 return !Array.isArray(val) || val.length !== (q.options?.length ?? 0);
@@ -150,7 +151,7 @@ export function Survey() {
         }
 
         try {
-            await sendSurvey(1, userId, answers);
+            await sendSurvey(1, userId, { answers, conversationMarks });
             socket.emit("survey-complete", { roomCode, userId, surveyId });
             navigate("/exit", { state: { userId } });
         } catch (err) {
@@ -379,9 +380,11 @@ export function Survey() {
                         <p className="survey-review-subtitle">You can edit any response before submitting.</p>
                         <ul className="survey-review-list">
                             {displaySteps.map((step, index) => {
-                                const isUnanswered = step.question.type === "sortRank"
-                                    ? !Array.isArray(answers[step.question.id]) || answers[step.question.id].length !== (step.question.options?.length ?? 0)
-                                    : (answers[step.question.id] == null || answers[step.question.id] === "");
+                                const q = step.question;
+                                const isRequired = !q.optional;
+                                const isUnanswered = isRequired && (q.type === "sortRank"
+                                    ? !Array.isArray(answers[q.id]) || answers[q.id].length !== (q.options?.length ?? 0)
+                                    : (answers[q.id] == null || answers[q.id] === ""));
                                 return (
                                     <li
                                         key={step.question.id}

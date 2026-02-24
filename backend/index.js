@@ -65,8 +65,8 @@ async function getLlmResponse(roomCode) {
     for (let i = 1; i <= round; i++) {
         messages.push({ "role": "user", "content": instructionsPrompt })
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        // const roundMessages = userMessages[i] || [];
-        const formattedUserMessages = userMessages[i].map(([userId, text]) => {
+        const roundMessages = userMessages[i] || [];
+        const formattedUserMessages = roundMessages.map(([userId, text]) => {
             const name = userNames[userId] || `User ${userId}`;
             return `${name}: ${text}`;
         }).join("\n");
@@ -246,9 +246,9 @@ io.on("connection", (socket) => {
             messages.push({ "role": "user", "content": instructionsPrompt });
             if (!llmInstructions[i]) break;
             messages.push({ "role": "assistant", "content": llmInstructions[i] });
-            // const roundMessages = userMessages[i] || [];
-            const formattedUserMessages = userMessages[i].map(([userId, text]) => {
-            const name = userNames[userId] || `User ${userId}`;
+            const roundMessages = userMessages[i] || [];
+            const formattedUserMessages = roundMessages.map(([userId, text]) => {
+                const name = userNames[userId] || `User ${userId}`;
                 return `${name}: ${text}`;
             }).join("\n");
             messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
