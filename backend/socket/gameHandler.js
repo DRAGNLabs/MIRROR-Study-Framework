@@ -1,13 +1,17 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations } from "../services/roomsService.js";
-
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount } from "../services/roomsService.js";
+import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
 const currRounds = {} // replace this to rely on database later
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function fillPrompt(template, values) {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => values[key]);
 }
 
 // used in start-round socket and getLlmResponse function
@@ -21,13 +25,16 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     const llmInstructions = room.llmInstructions ?? {};
     const llmResponses = room.llmResponse ?? {};
     const userMessages = room.userMessages ?? {};
+    const fish_amount = room.fish_amount ?? {};
 
     const messages = [
         { "role": "system", "content": systemPrompt },
     ]
 
+    console.log("fish_amount", fish_amount);
+
     for (let i = 1; i <= round; i++) {
-        messages.push({ "role": "user", "content": instructionsPrompt })
+        messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { fish_available: fish_amount[i] }) })
         if (!llmInstructions[i]) break;
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
         const formattedUserMessages =  ( 
@@ -40,10 +47,12 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
             )
         ).join("\n");
 
-        messages.push({"role": "user", "content": `${responsePrompt} \n ${formattedUserMessages}` });
+        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i] })} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
+
+    console.log("Message history (for debugging)", messages);
 
     if(getInstructions) {
         await delay(500);
@@ -68,24 +77,41 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     try {
         parsed = JSON.parse(buffer);
     } catch (err) {
-        console.error("Failed to parse LLM buffer as JSON, storing raw text.", err);
+        try {
+            const repaired = jsonrepair(buffer);
+            parsed = JSON.parse(repaired);
+        } catch(err) {
+            console.error("Unrecoverable JSON", err);
+            fish_amount[round+1] = fish_amount[round];
+            await updateFishAmount(fish_amount, roomCode);
+            return buffer;
+        }
+        // console.error("Failed to parse LLM buffer as JSON, storing raw text.", err);
         // const existingResponses = room.llmResponse ?? {};
         // existingResponses[round] = buffer;
         // await updateLlmResponse(existingResponses, roomCode);
-        return buffer;
+        // return buffer;
     }
 
     const assistantMessage = typeof parsed.assistantMessage === "string"
         ? parsed.assistantMessage
         : "";
-    const allocationByUserId =
-        parsed.allocationByUserId && typeof parsed.allocationByUserId === "object"
-            ? parsed.allocationByUserId
+    const allocationByUserName =
+        parsed.allocationByUserName && typeof parsed.allocationByUserName === "object"
+            ? parsed.allocationByUserName
             : {};
+    
+    const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
+    if (fish_left > 50) {
+        fish_amount[round+1] = 100;
+    } else {
+        fish_amount[round+1] = fish_left * 2;
+    }
+    await updateFishAmount(fish_amount, roomCode);
 
     const existingResourceAllocations = room.resourceAllocations ?? {};
     existingResourceAllocations[round] = {
-        allocationByUserId,
+        allocationByUserName,
         assistantMessage: assistantMessage || buffer
     };
     await updateResourceAllocations(existingResourceAllocations, roomCode);

@@ -73,10 +73,10 @@ export function Interaction(){
                         .map((roundKey) => {
                             const roundNumber = Number(roundKey);
                             const entry = parsed[roundKey] || {};
-                            const allocationByUserId = entry.allocationByUserId || {};
+                            const allocationByUserName = entry.allocationByUserName || {};
                             return {
                                 round: roundNumber,
-                                allocations: allocationByUserId
+                                allocations: allocationByUserName
                             };
                         });
 
@@ -372,17 +372,17 @@ export function Interaction(){
                         <div className="resources-section-label">Current round</div>
                         <ul className="resources-list">
                             {Object.entries(currentRoundAllocations.allocations).map(
-                                ([allocationUserId, details]) => {
+                                ([allocationByUserName, details]) => {
                                     const fishCount = details?.fish ?? 0;
-                                    const isYou = String(allocationUserId) === String(userId);
+                                    const isYou = String(allocationByUserName) === String(user.userName);
                                     return (
                                         <li
-                                            key={allocationUserId}
+                                            key={allocationByUserName}
                                             className="resources-row"
                                         >
                                             <div className="resources-row-main">
                                                 <span className="resources-row-name">
-                                                    User {allocationUserId}
+                                                    User {allocationByUserName}
                                                 </span>
                                                 {isYou && (
                                                     <span className="resources-row-you">
@@ -421,9 +421,9 @@ export function Interaction(){
                                         </span>
                                         <span className="resources-history-summary">
                                             {Object.entries(entry.allocations)
-                                                .map(([allocationUserId, details]) => {
+                                                .map(([allocationByUserName, details]) => {
                                                     const fishCount = details?.fish ?? 0;
-                                                    return `U${allocationUserId}: ${fishCount}`;
+                                                    return `User ${allocationByUserName}: ${fishCount}`;
                                                 })
                                                 .join(", ")}
                                         </span>
@@ -445,7 +445,7 @@ export function Interaction(){
                         const rawText = typeof msg.text === "string" ? msg.text : "";
                         const isJsonLike =
                             rawText.trim().startsWith("{") &&
-                            rawText.includes("allocationByUserId");
+                            rawText.includes("allocationByUserName");
                         const safeText = isJsonLike
                             ? "An internal allocation update occurred."
                             : rawText;

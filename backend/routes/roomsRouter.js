@@ -206,6 +206,36 @@ router.patch("/:roomCode/resourceAllocations", async (req, res) => {
   }
 });
 
+
+// updates fish_amount for specified room. This will store per-round fish splits.
+router.patch("/:roomCode/fishAmount", async (req, res) => {
+  try {
+    const { fishAmount } = req.body;
+    const { roomCode } = req.params;
+    if(fishAmount == undefined) {
+      return res.status(400).json({ error: "fishAmount is required" });
+    }
+
+    const result = await db.query(
+      'UPDATE rooms SET fish_amount = $1::jsonb WHERE "roomCode" = $2 RETURNING fish_amount, "roomCode";',
+      [fishAmount, roomCode]
+    );
+
+    if (result.rowCount == 0) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json({
+      roomCode: result.rows[0].roomCode,
+      fishAmount: result.rows[0].fish_amount,
+      message: "fish_amount successfully updated!"
+    });
+  } catch(err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // updates completed for specified room. Once admin directs users to survey page it will set the room as completed and those rooms won't show up on admin page anymore
 router.patch("/:roomCode/completed", async (req, res) => {
   try {

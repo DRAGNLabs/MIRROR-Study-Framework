@@ -60,7 +60,8 @@ async function init() {
       "llmResponse" jsonb NOT NULL DEFAULT '{}'::jsonb,
       status TEXT NOT NULL DEFAULT 'waiting',
       completed BOOLEAN NOT NULL DEFAULT FALSE,
-      "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb
+      "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb,
+      fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb
     )
   `)
   console.log("✅ Tables checked/created");
