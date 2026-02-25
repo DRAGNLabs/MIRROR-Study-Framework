@@ -31,11 +31,6 @@ export function Interaction(){
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    // const currentRoundAllocations =
-    //     resourceHistory.length > 0
-    //         ? resourceHistory[resourceHistory.length - 1]
-    //         : null;
-
     // Load full room/game state, chat history, and resource allocations
     async function loadRoomState() {
         try {
@@ -280,35 +275,6 @@ export function Interaction(){
         };
     }
 
-    // useEffect(() => {
-    //     async function initialLoad() {
-    //         try {
-    //             await delay(500);
-    //             await loadRoomState();
-    //         } catch (error) {
-    //         // old code testing some stuff
-    //         //     const room = await getRoom(roomCode);
-    //         //     const llmInstructions = room.llmInstructions;
-    //         //     const userMessages = room.userMessages;
-    //         //     const llmResponse = room.llmResponse;
-    //         //     const numRounds = room.numRounds;
-    //         //     const { messages, canSend, hasSentThisRound } = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
-    //         //     if (isStreamingRef.current) {
-    //         //         console.log("Skipping DB fetch during stream");
-    //         //         return;
-    //         //     }
-    //         //     setMessages(messages);
-    //         //     setCanSend(canSend);
-    //         //     setHasSentThisRound(hasSentThisRound);
-    //         // } catch (error){
-    //             console.error("Error loading conversation history:", error);
-    //         }
-    //     }
-    //     initialLoad();
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [roomCode]);
-
-
     const handleSubmit = async(e) => {
         e.preventDefault();
         if (!canSend || hasSentThisRound) {
@@ -421,87 +387,6 @@ export function Interaction(){
                     </div>
                 )}
             </aside>
-
-
-            {/* <aside className="resources-panel" aria-label="Fish resource split">
-                <div className="resources-header">
-                    <div>
-                        <h2 className="resources-title">Resource Split (Fish)</h2>
-                        <p className="resources-subtitle">How fish are divided this game</p>
-                    </div>
-                    {currentRoundAllocations && (
-                        <span className="resources-round-pill">
-                            Round {currentRoundAllocations.round}
-                        </span>
-                    )}
-                </div>
-
-                {currentRoundAllocations ? (
-                    <>
-                        <div className="resources-section-label">Current round</div>
-                        <ul className="resources-list">
-                            {Object.entries(currentRoundAllocations.allocations).map(
-                                ([allocationByUserName, details]) => {
-                                    const fishCount = details?.fish ?? 0;
-                                    const isYou = String(allocationByUserName) === String(user.userName);
-                                    return (
-                                        <li
-                                            key={allocationByUserName}
-                                            className="resources-row"
-                                        >
-                                            <div className="resources-row-main">
-                                                <span className="resources-row-name">
-                                                    User {allocationByUserName}
-                                                </span>
-                                                {isYou && (
-                                                    <span className="resources-row-you">
-                                                        You
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <span className="resources-row-fish">
-                                                {fishCount} fish
-                                            </span>
-                                        </li>
-                                    );
-                                }
-                            )}
-                        </ul>
-                    </>
-                ) : (
-                    <div className="resources-empty">
-                        <p>Fish allocations will appear here after the first round.</p>
-                    </div>
-                )}
-
-                {resourceHistory.length > 1 && (
-                    <div className="resources-history">
-                        <div className="resources-section-label">Previous rounds</div>
-                        <ul className="resources-history-list">
-                            {resourceHistory
-                                .slice(0, -1)
-                                .map((entry) => (
-                                    <li
-                                        key={entry.round}
-                                        className="resources-history-item"
-                                    >
-                                        <span className="resources-history-round">
-                                            Round {entry.round}
-                                        </span>
-                                        <span className="resources-history-summary">
-                                            {Object.entries(entry.allocations)
-                                                .map(([allocationByUserName, details]) => {
-                                                    const fishCount = details?.fish ?? 0;
-                                                    return `User ${allocationByUserName}: ${fishCount}`;
-                                                })
-                                                .join(", ")}
-                                        </span>
-                                    </li>
-                                ))}
-                        </ul>
-                    </div>
-                )}
-            </aside> */}
 
             <div className="chat-container">
                 <div className="chat-box" ref={chatBoxRef}>

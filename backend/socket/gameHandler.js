@@ -90,11 +90,6 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
             await updateFishAmount(fish_amount, roomCode);
             return buffer;
         }
-        // console.error("Failed to parse LLM buffer as JSON, storing raw text.", err);
-        // const existingResponses = room.llmResponse ?? {};
-        // existingResponses[round] = buffer;
-        // await updateLlmResponse(existingResponses, roomCode);
-        // return buffer;
     }
 
     const assistantMessage = typeof parsed.assistantMessage === "string"
