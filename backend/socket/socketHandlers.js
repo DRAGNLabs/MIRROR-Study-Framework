@@ -32,9 +32,14 @@ export async function handleJoinRoom(io, socket, { roomCode, isAdmin, user }) {
     // send updated user list
     io.to(roomCode).emit("room-users", usersInRoom[roomCode]);
 
-    const room = await getRoom(roomCode);
-    // send user/admin to correct status page
-    io.to(roomCode).emit("status", room.status);
+    try {
+        const room = await getRoom(roomCode);
+        // send user/admin to correct status page
+        io.to(roomCode).emit("status", room.status);
+    } catch (err) {
+        console.error("join-room: failed to fetch room for roomCode", roomCode, err?.message || err);
+        return;
+    }
 
     console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
 }

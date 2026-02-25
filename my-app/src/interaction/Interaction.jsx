@@ -27,28 +27,76 @@ export function Interaction(){
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
+    const [resourceHistory, setResourceHistory] = useState([]);
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    useEffect(() => {
+    // Load full room/game state, chat history, and resource allocations
+    async function loadRoomState() {
+        try {
+            const room = await getRoom(roomCode);
+            const gameData = games.find(g => parseInt(g.id) === room.gameType);
+            const { role } = await getUserRole(user.userId);
+            setUserRole(gameData.roles[parseInt(role) - 1]);
+            setGame(gameData);
 
-        async function fetchData() {
-            try {
-                const roomData = await getRoom(roomCode);
-                const gameData = games.find(g => parseInt(g.id) === roomData.gameType);
-                const { role } = await getUserRole(user.userId);
-                setUserRole(gameData.roles[parseInt(role) -1]);
-                setGame(games.find(g => parseInt(g.id) === roomData.gameType));
-            } catch (err) {
-                console.error("Failed to fetch rom:", err);
-            } finally {
-                setLoading(false);
+            const llmInstructions = room.llmInstructions ?? {};
+            const userMessages = room.userMessages ?? {};
+            const llmResponse = room.llmResponse ?? {};
+            const numRounds = room.numRounds ?? 1;
+            const fish_amount = room.fish_amount ?? {};
+
+            const { messages, canSend, hasSentThisRound } = await resetMessages(
+                llmInstructions,
+                userMessages,
+                llmResponse,
+                numRounds,
+                fish_amount
+            );
+
+            // Parse resourceAllocations history if present on the room.
+            if (room.resourceAllocations) {
+                try {
+                    const parsed = room.resourceAllocations ?? {};
+
+                    const history = Object.keys(parsed)
+                        .sort((a, b) => Number(a) - Number(b))
+                        .map((roundKey) => {
+                            const roundNumber = Number(roundKey);
+                            const entry = parsed[roundKey] || {};
+                            const allocationByUserName = entry.allocationByUserName || {};
+                            return {
+                                round: roundNumber,
+                                allocations: allocationByUserName
+                            };
+                        });
+
+                    setResourceHistory(history);
+                } catch (err) {
+                    console.error("Error parsing resourceAllocations:", err);
+                    setResourceHistory([]);
+                }
+            } else {
+                setResourceHistory([]);
             }
+
+            if (isStreamingRef.current) {
+                return;
+            }
+            setMessages(messages);
+            setCanSend(canSend);
+            setHasSentThisRound(hasSentThisRound);
+        } catch (err) {
+            console.error("Failed to load room state:", err);
+        } finally {
+            setLoading(false);
         }
+    }
 
-        fetchData();
-
-    }, [roomCode])
+    useEffect(() => {
+        loadRoomState();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [roomCode]);
 
     useEffect(() => {
         const handleConnect = () => {
@@ -64,6 +112,7 @@ export function Interaction(){
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
+            console.log("Receiving message ", message);
         });
 
         socket.on("start-user-survey", () => {
@@ -99,11 +148,15 @@ export function Interaction(){
         socket.on("round-complete", (round) => {
             setCanSend(false);
             setHasSentThisRound(true);
+            // Refresh to pull in updated llmResponse and resourceAllocations.
+            loadRoomState();
         });
 
         socket.on("game-complete", ()=> {
             setCanSend(false);
             setHasSentThisRound(true);
+            // Final refresh so last-round allocations are visible.
+            loadRoomState();
         });
 
         socket.on("force-return-to-login", () => {
@@ -163,7 +216,7 @@ export function Interaction(){
         }
     }
 
-    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds) {
+    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount) {
         const newMsgs = [];
         let lastRound = -1;
         let userSentThisRound = false;
@@ -210,6 +263,9 @@ export function Interaction(){
                     id: "admin-end"
                 });
             }
+            if(fish_amount[parseInt(round)+1] < 5) {
+                newMsgs.push({ sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" });
+            }
             
         }
         return {
@@ -218,31 +274,6 @@ export function Interaction(){
             hasSentThisRound: userSentThisRound
         };
     }
-
-    useEffect(() => {
-        async function retrieveRoom() { 
-            try {
-                await delay(500);
-                const room = await getRoom(roomCode);
-                const llmInstructions = room.llmInstructions;
-                const userMessages = room.userMessages;
-                const llmResponse = room.llmResponse;
-                const numRounds = room.numRounds;
-                const { messages, canSend, hasSentThisRound } = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
-                if (isStreamingRef.current) {
-                    console.log("Skipping DB fetch during stream");
-                    return;
-                }
-                setMessages(messages);
-                setCanSend(canSend);
-                setHasSentThisRound(hasSentThisRound);
-            } catch (error){
-                console.error("Error loading conversation history:", error);
-            }
-        }
-        retrieveRoom();
-    }, [roomCode]);
-
 
     const handleSubmit = async(e) => {
         e.preventDefault();
@@ -288,47 +319,126 @@ export function Interaction(){
             </div>
         </header>
 
-        <div className="chat-container">
-            <div className="chat-box" ref={chatBoxRef}>
-                {messages.length === 0 && (
-                    <div className="chat-placeholder">
-                        <p>Messages will appear here once the round starts.</p>
+        <div className="interaction-main-layout">
+            <aside className="resources-panel" aria-label="Fish resource split">
+                <div className="resources-header">
+                    <div>
+                        <h2 className="resources-title">Resource Split (Fish)</h2>
+                        <p className="resources-subtitle">How fish are divided this game</p>
+                    </div>
+                </div>
+
+            {/* ── Total allocations (prominent) ── */}
+            {resourceHistory.length > 0 ? (() => {
+                // Aggregate fish across all rounds per user
+                const totals = {};
+                resourceHistory.forEach(({ allocations }) => {
+                    Object.entries(allocations).forEach(([userName, details]) => {
+                        totals[userName] = (totals[userName] ?? 0) + (details?.fish ?? 0);
+                    });
+                });
+
+                return (
+                    <>
+                        <div className="resources-section-label">Total (all rounds)</div>
+                        <ul className="resources-list">
+                            {Object.entries(totals).map(([userName, total]) => {
+                                const isYou = String(userName) === String(user.userName);
+                                return (
+                                    <li key={userName} className="resources-row">
+                                        <div className="resources-row-main">
+                                            <span className="resources-row-name">User {userName}</span>
+                                            {isYou && (
+                                                <span className="resources-row-you">You</span>
+                                            )}
+                                        </div>
+                                        <span className="resources-row-fish">{total} fish</span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </>
+                );
+            })() : (
+                <div className="resources-empty">
+                    <p>Fish allocations will appear here after the first round.</p>
+                </div>
+            )}
+
+            {/* ── Per-round history (smaller) ── */}
+                {resourceHistory.length > 0 && (
+                    <div className="resources-history">
+                        <div className="resources-section-label">Round breakdown</div>
+                        <ul className="resources-history-list">
+                            {resourceHistory.map((entry) => (
+                                <li key={entry.round} className="resources-history-item">
+                                    <span className="resources-history-round">Round {entry.round}</span>
+                                    <span className="resources-history-summary">
+                                        {Object.entries(entry.allocations)
+                                            .map(([userName, details]) => {
+                                                const fishCount = details?.fish ?? 0;
+                                                return `${userName}: ${fishCount}`;
+                                            })
+                                            .join(", ")}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 )}
-                {messages.map((msg, i) => (
-                    <div
-                        key={msg.id ?? i}
-                        className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
-                    >
-                        <span className="message-sender">
-                            {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
-                        </span>
-                        <span className="message-text">{msg.text}</span>
-                    </div>
-                ))}
-            </div>
+            </aside>
 
-            <form className="chat-form" onSubmit={handleSubmit}>
-                <textarea
-                    className="chat-input"
-                    rows={1}
-                    placeholder="Type your message..."
-                    value={prompt}
-                    onChange={(e) => {
-                        setPrompt(e.target.value);
-                        e.target.style.height = "auto";
-                        e.target.style.height = e.target.scrollHeight + "px";
-                    }}
-                    aria-label="Message input"
-                />
-                <button
-                    type="submit"
-                    className="chat-send-btn"
-                    disabled={!canSend || hasSentThisRound}
-                >
-                    Send
-                </button>
-            </form>
+            <div className="chat-container">
+                <div className="chat-box" ref={chatBoxRef}>
+                    {messages.length === 0 && (
+                        <div className="chat-placeholder">
+                            <p>Messages will appear here once the round starts.</p>
+                        </div>
+                    )}
+                    {messages.map((msg, i) => {
+                        const rawText = typeof msg.text === "string" ? msg.text : "";
+                        const isJsonLike =
+                            rawText.trim().startsWith("{") &&
+                            rawText.includes("allocationByUserName");
+                        const safeText = isJsonLike
+                            ? "An internal allocation update occurred."
+                            : rawText;
+                        return (
+                            <div
+                                key={msg.id ?? i}
+                                className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
+                            >
+                                <span className="message-sender">
+                                    {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
+                                </span>
+                                <span className="message-text">{safeText}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <form className="chat-form" onSubmit={handleSubmit}>
+                    <textarea
+                        className="chat-input"
+                        rows={1}
+                        placeholder="Type your message..."
+                        value={prompt}
+                        onChange={(e) => {
+                            setPrompt(e.target.value);
+                            e.target.style.height = "auto";
+                            e.target.style.height = e.target.scrollHeight + "px";
+                        }}
+                        aria-label="Message input"
+                    />
+                    <button
+                        type="submit"
+                        className="chat-send-btn"
+                        disabled={!canSend || hasSentThisRound}
+                    >
+                        Send
+                    </button>
+                </form>
+            </div>
         </div>
         <InstructionsModal
             open={showInstructions}

@@ -70,6 +70,29 @@ export async function roomCompleted(roomCode) {
     return response.json();
 }
 
+export async function updateResourceAllocations(resourceAllocations, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/resourceAllocations`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceAllocations })
+    });
+    if (!response.ok) throw new Error(`Error updating resourceAllocations in room ${roomCode}`);
+    return response.json();
+}
+
+export async function updateFishAmount(fishAmount, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/fishAmount`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fishAmount })
+    });
+    if (!response.ok) throw new Error(`Error updating fishAmount in room ${roomCode}`);
+    return response.json();
+}
+
+
+// these should probably be in different service file (this one in userService and other in surveyService),
+// I just felt like it was annoying to have one function in each file so added them to this one
 export async function getUser(userId) {
     const response = await fetch(`${API_BASE}/users/${userId}`);
     if (!response.ok) throw new Error("Can't get user.");
