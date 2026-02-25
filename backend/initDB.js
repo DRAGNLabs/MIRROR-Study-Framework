@@ -44,7 +44,9 @@ async function init() {
  * llmInstructions: {round#1: "llmInstructions1", round#2: "llmInstructions2",...}
  * llmResponse: {round#1: "llmResponse1", round#2: "llmResponse2",...}
  * status is a string that will be either waiting | instructions | interaction | survey
- * completed is boolean value (0 or 1) used to know what rooms to show on admin page 
+ * completed is boolean value (0 or 1) used to know what rooms to show on admin page
+ * I believe resoureAllocations is {"round_num": {"userName": "Allocation", "userName": "Allocation"}} -- Khaleel if you could update this
+ * fish_amount: {round#1: <amount of fish>, round#2: <amount of fish>, ...}
  */
   await db.query(`
     CREATE TABLE IF NOT EXISTS rooms (
@@ -59,7 +61,9 @@ async function init() {
       "llmInstructions" jsonb NOT NULL DEFAULT '{}'::jsonb,
       "llmResponse" jsonb NOT NULL DEFAULT '{}'::jsonb,
       status TEXT NOT NULL DEFAULT 'waiting',
-      completed BOOLEAN NOT NULL DEFAULT FALSE
+      completed BOOLEAN NOT NULL DEFAULT FALSE,
+      "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb,
+      fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb
     )
   `)
   console.log("✅ Tables checked/created");
