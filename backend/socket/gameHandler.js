@@ -32,8 +32,6 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         { "role": "system", "content": systemPrompt },
     ]
 
-    console.log("fish_amount", fish_amount);
-
     for (let i = 1; i <= round; i++) {
         if (!game.instructions?.template) {
             messages.push({ "role": "user", "content": instructionsPrompt})
@@ -55,9 +53,6 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
-
-    // console.log("Message history (for debugging)", messages);
-
     if(getInstructions) {
         await delay(500);
     }
