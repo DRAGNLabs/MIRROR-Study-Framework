@@ -31,10 +31,10 @@ export function Interaction(){
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    const currentRoundAllocations =
-        resourceHistory.length > 0
-            ? resourceHistory[resourceHistory.length - 1]
-            : null;
+    // const currentRoundAllocations =
+    //     resourceHistory.length > 0
+    //         ? resourceHistory[resourceHistory.length - 1]
+    //         : null;
 
     // Load full room/game state, chat history, and resource allocations
     async function loadRoomState() {
@@ -49,24 +49,20 @@ export function Interaction(){
             const userMessages = room.userMessages ?? {};
             const llmResponse = room.llmResponse ?? {};
             const numRounds = room.numRounds ?? 1;
-            // const numRounds = room.numRounds != null
-            //     ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
-            //     : 1;
+            const fish_amount = room.fish_amount ?? {};
 
             const { messages, canSend, hasSentThisRound } = await resetMessages(
                 llmInstructions,
                 userMessages,
                 llmResponse,
-                numRounds
+                numRounds,
+                fish_amount
             );
 
             // Parse resourceAllocations history if present on the room.
             if (room.resourceAllocations) {
                 try {
                     const parsed = room.resourceAllocations ?? {};
-                    // const parsed = typeof room.resourceAllocations === "string"
-                    //     ? JSON.parse(room.resourceAllocations)
-                    //     : room.resourceAllocations;
 
                     const history = Object.keys(parsed)
                         .sort((a, b) => Number(a) - Number(b))
@@ -121,6 +117,7 @@ export function Interaction(){
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
+            console.log("Receiving message ", message);
         });
 
         socket.on("start-user-survey", () => {
@@ -224,7 +221,7 @@ export function Interaction(){
         }
     }
 
-    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds) {
+    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount) {
         const newMsgs = [];
         let lastRound = -1;
         let userSentThisRound = false;
@@ -271,6 +268,10 @@ export function Interaction(){
                     id: "admin-end"
                 });
             }
+            if(fish_amount[parseInt(round)] < 5) {
+                newMsgs.push({ sender: "llm", text: "Fish got below 5 tons, no more left to allocate", id: "no-fish-left" });
+                newMsgs.push({sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "admin-end"});
+            }
             
         }
         return {
@@ -280,33 +281,33 @@ export function Interaction(){
         };
     }
 
-    useEffect(() => {
-        async function initialLoad() {
-            try {
-                await delay(500);
-                await loadRoomState();
-            } catch (error) {
-            // old code testing some stuff
-            //     const room = await getRoom(roomCode);
-            //     const llmInstructions = room.llmInstructions;
-            //     const userMessages = room.userMessages;
-            //     const llmResponse = room.llmResponse;
-            //     const numRounds = room.numRounds;
-            //     const { messages, canSend, hasSentThisRound } = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
-            //     if (isStreamingRef.current) {
-            //         console.log("Skipping DB fetch during stream");
-            //         return;
-            //     }
-            //     setMessages(messages);
-            //     setCanSend(canSend);
-            //     setHasSentThisRound(hasSentThisRound);
-            // } catch (error){
-                console.error("Error loading conversation history:", error);
-            }
-        }
-        initialLoad();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [roomCode]);
+    // useEffect(() => {
+    //     async function initialLoad() {
+    //         try {
+    //             await delay(500);
+    //             await loadRoomState();
+    //         } catch (error) {
+    //         // old code testing some stuff
+    //         //     const room = await getRoom(roomCode);
+    //         //     const llmInstructions = room.llmInstructions;
+    //         //     const userMessages = room.userMessages;
+    //         //     const llmResponse = room.llmResponse;
+    //         //     const numRounds = room.numRounds;
+    //         //     const { messages, canSend, hasSentThisRound } = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
+    //         //     if (isStreamingRef.current) {
+    //         //         console.log("Skipping DB fetch during stream");
+    //         //         return;
+    //         //     }
+    //         //     setMessages(messages);
+    //         //     setCanSend(canSend);
+    //         //     setHasSentThisRound(hasSentThisRound);
+    //         // } catch (error){
+    //             console.error("Error loading conversation history:", error);
+    //         }
+    //     }
+    //     initialLoad();
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [roomCode]);
 
 
     const handleSubmit = async(e) => {
@@ -355,6 +356,75 @@ export function Interaction(){
 
         <div className="interaction-main-layout">
             <aside className="resources-panel" aria-label="Fish resource split">
+                <div className="resources-header">
+                    <div>
+                        <h2 className="resources-title">Resource Split (Fish)</h2>
+                        <p className="resources-subtitle">How fish are divided this game</p>
+                    </div>
+                </div>
+
+            {/* ── Total allocations (prominent) ── */}
+            {resourceHistory.length > 0 ? (() => {
+                // Aggregate fish across all rounds per user
+                const totals = {};
+                resourceHistory.forEach(({ allocations }) => {
+                    Object.entries(allocations).forEach(([userName, details]) => {
+                        totals[userName] = (totals[userName] ?? 0) + (details?.fish ?? 0);
+                    });
+                });
+
+                return (
+                    <>
+                        <div className="resources-section-label">Total (all rounds)</div>
+                        <ul className="resources-list">
+                            {Object.entries(totals).map(([userName, total]) => {
+                                const isYou = String(userName) === String(user.userName);
+                                return (
+                                    <li key={userName} className="resources-row">
+                                        <div className="resources-row-main">
+                                            <span className="resources-row-name">User {userName}</span>
+                                            {isYou && (
+                                                <span className="resources-row-you">You</span>
+                                            )}
+                                        </div>
+                                        <span className="resources-row-fish">{total} fish</span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </>
+                );
+            })() : (
+                <div className="resources-empty">
+                    <p>Fish allocations will appear here after the first round.</p>
+                </div>
+            )}
+
+            {/* ── Per-round history (smaller) ── */}
+                {resourceHistory.length > 0 && (
+                    <div className="resources-history">
+                        <div className="resources-section-label">Round breakdown</div>
+                        <ul className="resources-history-list">
+                            {resourceHistory.map((entry) => (
+                                <li key={entry.round} className="resources-history-item">
+                                    <span className="resources-history-round">Round {entry.round}</span>
+                                    <span className="resources-history-summary">
+                                        {Object.entries(entry.allocations)
+                                            .map(([userName, details]) => {
+                                                const fishCount = details?.fish ?? 0;
+                                                return `User ${userName}: ${fishCount}`;
+                                            })
+                                            .join(", ")}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </aside>
+
+
+            {/* <aside className="resources-panel" aria-label="Fish resource split">
                 <div className="resources-header">
                     <div>
                         <h2 className="resources-title">Resource Split (Fish)</h2>
@@ -432,7 +502,7 @@ export function Interaction(){
                         </ul>
                     </div>
                 )}
-            </aside>
+            </aside> */}
 
             <div className="chat-container">
                 <div className="chat-box" ref={chatBoxRef}>

@@ -20,6 +20,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
+    // might want to change the line below to be conditional if there is an instruction prompt (as some games we won't prompt LLM for instructions)
     const instructionsPrompt = game.prompts[0].instruction_prompt;
     const responsePrompt = game.prompts[0].response_prompt;
     const llmInstructions = room.llmInstructions ?? {};
@@ -34,7 +35,10 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     console.log("fish_amount", fish_amount);
 
     for (let i = 1; i <= round; i++) {
-        messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { fish_available: fish_amount[i] }) })
+        if (!game.instructions?.template) {
+            messages.push({ "role": "user", "content": instructionsPrompt})
+            // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
+        } 
         if (!llmInstructions[i]) break;
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
         const formattedUserMessages =  ( 
@@ -52,7 +56,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
 
-    console.log("Message history (for debugging)", messages);
+    // console.log("Message history (for debugging)", messages);
 
     if(getInstructions) {
         await delay(500);
@@ -102,7 +106,9 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
             : {};
     
     const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
-    if (fish_left > 50) {
+    if (fish_left < 5) {
+        fish_amount[round+1] = fish_left;
+    } else if (fish_left > 50) {
         fish_amount[round+1] = 100;
     } else {
         fish_amount[round+1] = fish_left * 2;
@@ -128,9 +134,10 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
     const round = currRounds[roomCode]; 
-    const room = await getRoom(roomCode);
     const buffer = await getLlmText(io, roomCode, false, true);
-    const llmResponses = room.llmResponse;
+    const room = await getRoom(roomCode);
+    const fish_amount = room.fish_amount ?? {};
+    const llmResponses = room.llmResponse ?? {};
     llmResponses[round] = buffer;
     await updateLlmResponse(llmResponses, roomCode);
 
@@ -140,6 +147,14 @@ async function getLlmResponse(io, roomCode) {
         const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
         io.to(roomCode).emit("receive-message", endGameMsg);
         return;
+    } else if (fish_amount[round+1] < 5) {
+        // abort game if fish is below 5 tons
+        io.to(roomCode).emit("game-complete");
+        const endGameMsg = { sender: "llm", text: "Fish got below 5 tons, no more left to allocate", id: "no-fish-left" };
+        // for some reason users don't get message unless you do await delay(500)
+        await delay(500);
+        io.to(roomCode).emit("receive-message", endGameMsg);
+        return; 
     } else {
         console.log(`Round ${round} completed, waiting for next round...`);
     }
@@ -154,8 +169,19 @@ export async function getLlmInstructions(io, roomCode, round) {
         currRounds[roomCode] = round
     }
     const room = await getRoom(roomCode);
-    const buffer = await getLlmText(io, roomCode, true, false);
-    await appendLlmInstructions(roomCode, round, buffer);
+    const fish_amount = room.fish_amount;
+    const game = games.find(g=> parseInt(g.id) === room.gameType);
+    let instructions = "";
+    if (game.instructions?.template) {
+        instructions = fillPrompt(game.instructions.template, { curr_round: round, fish_available: fish_amount[round] });
+        const instruction_message = { sender: "llm", text: instructions, id: `instructions-${round}` };
+        // users don't receive instructions from socket if this await delay isn't here
+        await delay(500); 
+        io.to(roomCode).emit("receive-message", instruction_message);
+    } else {
+        instructions = await getLlmText(io, roomCode, true, false);
+    }
+    await appendLlmInstructions(roomCode, round, instructions);
     io.to(roomCode).emit("instructions-complete", round);
 }
 

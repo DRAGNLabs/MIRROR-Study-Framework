@@ -122,41 +122,28 @@ export default function AdminInteraction(){
         }
     }
 
-    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds) {
+    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount) {
         const newMsgs = [];
 
         const rounds = Object.keys(llmInstructions).sort((a,b) => a-b);
         for (const round of rounds) {
             if (llmInstructions[round]) {
-                newMsgs.push({
-                    sender: "llm",
-                    text: llmInstructions[round],
-                    id: `llm-instructions-${round}`
-                });
+                newMsgs.push({ sender: "llm", text: llmInstructions[round], id: `llm-instructions-${round}`});
             }
             const msgs = userMessages[round] || [];
             for (const [userId, text] of msgs) {
                 const userName = await getUserName(userId);
-                newMsgs.push({
-                    sender: "user",
-                    userId,
-                    userName: userName,
-                    text
-                });
+                newMsgs.push({ sender: "user", userId, userName: userName, text});
             }
             if (llmResponse[round]) {
-                newMsgs.push({
-                    sender: "llm",
-                    text: llmResponse[round],
-                    id: `llm-${round}`
-                });
+                newMsgs.push({ sender: "llm", text: llmResponse[round], id: `llm-${round}`});
             }
             if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) { // this check needs to change
-                newMsgs.push({
-                    sender: "user",
-                    userName: "Admin",
-                    text: "All rounds are complete, game is ended."
-                });
+                newMsgs.push({ sender: "user", userName: "Admin", text: "All rounds are complete, game is ended."});
+            }
+            if(fish_amount[parseInt(round)] < 5) {
+                newMsgs.push({ sender: "llm", text: "Fish got below 5 tons, no more left to allocate", id: "no-fish-left" });
+                newMsgs.push({sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "admin-end"});
             }
             
         }
@@ -171,11 +158,12 @@ export default function AdminInteraction(){
             const userMessages = room.userMessages ?? {};
             const llmResponse = room.llmResponse ?? {};
             const numRounds = room.numRounds ?? 1;
+            const fish_amount = room.fish_amount ?? {};
             // const numRounds = room.numRounds != null
             //     ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
             //     : 1;
 
-            const newMsgs = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
+            const newMsgs = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount);
 
             // Parse resourceAllocations if present
             if (room.resourceAllocations) {
