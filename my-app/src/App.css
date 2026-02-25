@@ -448,7 +448,6 @@ nav button.nav-logout:hover {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #0f172a;
   letter-spacing: -0.01em;
 }
 
@@ -511,7 +510,6 @@ nav button.nav-logout:hover {
 .resources-row-name {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #0f172a;
 }
 
 .resources-row-you {
@@ -568,7 +566,6 @@ nav button.nav-logout:hover {
 
 .resources-history-round {
   font-weight: 600;
-  color: #0f172a;
 }
 
 .resources-history-summary {

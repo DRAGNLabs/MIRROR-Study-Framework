@@ -149,11 +149,11 @@ async function getLlmResponse(io, roomCode) {
         return;
     } else if (fish_amount[round+1] < 5) {
         // abort game if fish is below 5 tons
-        io.to(roomCode).emit("game-complete");
-        const endGameMsg = { sender: "llm", text: "Fish got below 5 tons, no more left to allocate", id: "no-fish-left" };
+        const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
         // for some reason users don't get message unless you do await delay(500)
         await delay(500);
         io.to(roomCode).emit("receive-message", endGameMsg);
+        io.to(roomCode).emit("game-complete");
         return; 
     } else {
         console.log(`Round ${round} completed, waiting for next round...`);

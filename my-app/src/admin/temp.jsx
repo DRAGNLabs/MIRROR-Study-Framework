@@ -22,11 +22,6 @@ export default function AdminInteraction(){
     const isStreamingRef = useRef(false);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    const currentRoundAllocations =
-        resourceHistory.length > 0
-            ? resourceHistory[resourceHistory.length - 1]
-            : null;
-
 
     useEffect(() => {
         const handleConnect = () => {
@@ -70,10 +65,6 @@ export default function AdminInteraction(){
             navigate("/admin");
         });
 
-        socket.on("round-complete", (round) => {
-            loadRoomState();
-        });
-
 
         return () => {
             socket.off("connect", handleConnect);
@@ -81,7 +72,6 @@ export default function AdminInteraction(){
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
-            socket.off("round-complete");
             socket.off("force-return-to-login");
         };
     }, [socket]);
@@ -114,7 +104,6 @@ export default function AdminInteraction(){
             return user.userName;
         } catch (error) {
             console.error("Error:", error);
-            // setError(error.message || "something went wrong.");
         }
     }
 
@@ -134,11 +123,12 @@ export default function AdminInteraction(){
             if (llmResponse[round]) {
                 newMsgs.push({ sender: "llm", text: llmResponse[round], id: `llm-${round}`});
             }
-            if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) { // this check needs to change
+            if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) {
                 newMsgs.push({ sender: "user", userName: "Admin", text: "All rounds are complete, game is ended."});
             }
-            if(fish_amount[parseInt(round)+1] < 5) {
-                newMsgs.push({ sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" });
+            if(fish_amount[parseInt(round)] < 5) {
+                newMsgs.push({ sender: "llm", text: "Fish got below 5 tons, no more left to allocate", id: "no-fish-left" });
+                newMsgs.push({sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "admin-end"});
             }
             
         }
@@ -154,9 +144,6 @@ export default function AdminInteraction(){
             const llmResponse = room.llmResponse ?? {};
             const numRounds = room.numRounds ?? 1;
             const fish_amount = room.fish_amount ?? {};
-            // const numRounds = room.numRounds != null
-            //     ? (typeof room.numRounds === "number" ? room.numRounds : JSON.parse(room.numRounds))
-            //     : 1;
 
             const newMsgs = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount);
 
@@ -164,19 +151,16 @@ export default function AdminInteraction(){
             if (room.resourceAllocations) {
                 try {
                     const parsed = room.resourceAllocations ?? {};
-                    // const parsed = typeof room.resourceAllocations === "string"
-                    //     ? JSON.parse(room.resourceAllocations)
-                    //     : room.resourceAllocations;
 
                     const history = Object.keys(parsed)
                         .sort((a, b) => Number(a) - Number(b))
                         .map((roundKey) => {
                             const roundNumber = Number(roundKey);
                             const entry = parsed[roundKey] || {};
-                            const allocationByUserName = entry.allocationByUserName || {};
+                            const allocationByUserId = entry.allocationByUserId || {};
                             return {
                                 round: roundNumber,
-                                allocations: allocationByUserName
+                                allocations: allocationByUserId
                             };
                         });
 
@@ -198,41 +182,18 @@ export default function AdminInteraction(){
         }
     }
 
-
     useEffect(() => {
-        loadRoomState();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        async function initialLoad() {
+            try {
+                await delay(1000);
+                await loadRoomState();
+            } catch (error) {
+                console.error("Error loading admin conversation history:", error);
+            }
+        }
+
+        initialLoad();
     }, [roomCode]);
-
-
-    // useEffect(() => {
-    //     async function initialLoad() {
-    //         try {
-    //             await delay(1000); // wait for initial LLM instructions to land
-    //             await loadRoomState();
-    //         } catch (error) {
-    //             console.error("Error loading admin conversation history:", error);
-    //         // old code testing some stuff
-    //         //     await delay(1000); // this makes sure the messages don't get reset before llmInstructions have sent
-    //         //     const room = await getRoom(roomCode);
-    //         //     const llmInstructions = room.llmInstructions;
-    //         //     const userMessages = room.userMessages;
-    //         //     const llmResponse = room.llmResponse;
-    //         //     const numRounds = room.numRounds;
-    //         //     const newMsgs =  await resetMessages(llmInstructions, userMessages, llmResponse, numRounds);
-    //         //     if (isStreamingRef.current) {
-    //         //         console.log("Skipping database fetch during stream");
-    //         //         return;
-    //         //     }
-    //         //     setMessages(newMsgs);
-    //         // } catch (error){
-    //         //     console.error("Error:", error);
-    //         //     // setError(error.message || "Something went wrong.");
-    //         }
-    //     }
-
-    //     initialLoad();
-    // }, [roomCode]);
 
     return (
         <>
@@ -273,6 +234,7 @@ export default function AdminInteraction(){
                         })}
                     </div>
                 </div>
+
                 <aside className="admin-resources-panel" aria-label="Fish resource split (admin)">
                     <div className="resources-header">
                         <div>
@@ -325,7 +287,7 @@ export default function AdminInteraction(){
                                             {Object.entries(entry.allocations)
                                                 .map(([userId, details]) => {
                                                     const fishCount = details?.fish ?? 0;
-                                                    return `${userId}: ${fishCount}`;
+                                                    return `U${userId}: ${fishCount}`;
                                                 })
                                                 .join(", ")}
                                         </span>
@@ -335,80 +297,6 @@ export default function AdminInteraction(){
                         </div>
                     )}
                 </aside>
-{/* 
-                <aside className="admin-resources-panel" aria-label="Fish resource split (admin)">
-                    <div className="resources-header">
-                        <div>
-                            <h2 className="resources-title">Resource Split (Fish)</h2>
-                            <p className="resources-subtitle">Per-user allocations by round</p>
-                        </div>
-                        {currentRoundAllocations && (
-                            <span className="resources-round-pill">
-                                Round {currentRoundAllocations.round}
-                            </span>
-                        )}
-                    </div>
-
-                    {currentRoundAllocations ? (
-                        <>
-                            <div className="resources-section-label">Current round</div>
-                            <ul className="resources-list">
-                                {Object.entries(currentRoundAllocations.allocations).map(
-                                    ([allocationUserId, details]) => {
-                                        const fishCount = details?.fish ?? 0;
-                                        return (
-                                            <li
-                                                key={allocationUserId}
-                                                className="resources-row"
-                                            >
-                                                <div className="resources-row-main">
-                                                    <span className="resources-row-name">
-                                                        User {allocationUserId}
-                                                    </span>
-                                                </div>
-                                                <span className="resources-row-fish">
-                                                    {fishCount} fish
-                                                </span>
-                                            </li>
-                                        );
-                                    }
-                                )}
-                            </ul>
-                        </>
-                    ) : (
-                        <div className="resources-empty">
-                            <p>Fish allocations will appear here after the first round.</p>
-                        </div>
-                    )}
-
-                    {resourceHistory.length > 1 && (
-                        <div className="resources-history">
-                            <div className="resources-section-label">Previous rounds</div>
-                            <ul className="resources-history-list">
-                                {resourceHistory
-                                    .slice(0, -1)
-                                    .map((entry) => (
-                                        <li
-                                            key={entry.round}
-                                            className="resources-history-item"
-                                        >
-                                            <span className="resources-history-round">
-                                                Round {entry.round}
-                                            </span>
-                                            <span className="resources-history-summary">
-                                                {Object.entries(entry.allocations)
-                                                    .map(([allocationUserId, details]) => {
-                                                        const fishCount = details?.fish ?? 0;
-                                                        return `U${allocationUserId}: ${fishCount}`;
-                                                    })
-                                                    .join(", ")}
-                                            </span>
-                                        </li>
-                                    ))}
-                            </ul>
-                        </div>
-                    )}
-                </aside> */}
             </div>
 
             <footer className="admin-interaction-footer">
@@ -424,4 +312,4 @@ export default function AdminInteraction(){
      </>
     )
 
-};
+};  

@@ -268,9 +268,8 @@ export function Interaction(){
                     id: "admin-end"
                 });
             }
-            if(fish_amount[parseInt(round)] < 5) {
-                newMsgs.push({ sender: "llm", text: "Fish got below 5 tons, no more left to allocate", id: "no-fish-left" });
-                newMsgs.push({sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "admin-end"});
+            if(fish_amount[parseInt(round)+1] < 5) {
+                newMsgs.push({ sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" });
             }
             
         }
@@ -412,7 +411,7 @@ export function Interaction(){
                                         {Object.entries(entry.allocations)
                                             .map(([userName, details]) => {
                                                 const fishCount = details?.fish ?? 0;
-                                                return `User ${userName}: ${fishCount}`;
+                                                return `${userName}: ${fishCount}`;
                                             })
                                             .join(", ")}
                                     </span>
