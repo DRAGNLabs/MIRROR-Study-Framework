@@ -31,7 +31,7 @@ const httpServer = createServer(app);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 initializeSocketServer(httpServer, corsOrigin);
 
-app.use(cors());
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
 app.use("/api/users", userRouter);
