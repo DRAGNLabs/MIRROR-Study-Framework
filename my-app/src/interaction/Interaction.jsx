@@ -31,6 +31,27 @@ export function Interaction(){
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+    // Fetch only resource allocations from DB (no message/canSend side effects)
+    async function refreshResourceAllocations() {
+        try {
+            const room = await getRoom(roomCode);
+            if (room.resourceAllocations) {
+                const parsed = room.resourceAllocations ?? {};
+                const history = Object.keys(parsed)
+                    .sort((a, b) => Number(a) - Number(b))
+                    .map((roundKey) => {
+                        const roundNumber = Number(roundKey);
+                        const entry = parsed[roundKey] || {};
+                        const allocationByUserName = entry.allocationByUserName || {};
+                        return { round: roundNumber, allocations: allocationByUserName };
+                    });
+                setResourceHistory(history);
+            }
+        } catch (err) {
+            console.error("Failed to refresh resource allocations:", err);
+        }
+    }
+
     // Load full room/game state, chat history, and resource allocations
     async function loadRoomState() {
         try {
@@ -148,15 +169,13 @@ export function Interaction(){
         socket.on("round-complete", (round) => {
             setCanSend(false);
             setHasSentThisRound(true);
-            // Refresh to pull in updated llmResponse and resourceAllocations.
-            loadRoomState();
+            refreshResourceAllocations();
         });
 
         socket.on("game-complete", ()=> {
             setCanSend(false);
             setHasSentThisRound(true);
-            // Final refresh so last-round allocations are visible.
-            loadRoomState();
+            refreshResourceAllocations();
         });
 
         socket.on("force-return-to-login", () => {

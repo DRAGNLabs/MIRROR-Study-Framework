@@ -71,7 +71,7 @@ export default function AdminInteraction(){
         });
 
         socket.on("round-complete", (round) => {
-            loadRoomState();
+            refreshResourceAllocations();
         });
 
 
@@ -143,6 +143,26 @@ export default function AdminInteraction(){
             
         }
         return newMsgs;
+    }
+
+    async function refreshResourceAllocations() {
+        try {
+            const room = await getRoom(roomCode);
+            if (room.resourceAllocations) {
+                const parsed = room.resourceAllocations ?? {};
+                const history = Object.keys(parsed)
+                    .sort((a, b) => Number(a) - Number(b))
+                    .map((roundKey) => {
+                        const roundNumber = Number(roundKey);
+                        const entry = parsed[roundKey] || {};
+                        const allocationByUserName = entry.allocationByUserName || {};
+                        return { round: roundNumber, allocations: allocationByUserName };
+                    });
+                setResourceHistory(history);
+            }
+        } catch (err) {
+            console.error("Failed to refresh resource allocations:", err);
+        }
     }
 
     // Load full room state: chat history + resource allocations
