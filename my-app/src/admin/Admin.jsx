@@ -10,6 +10,7 @@ export function Admin() {
     const [start, setStart] = useState(true);
     const [count, setCount] = useState(3);
     const [selectedGame, setSelectedGame] = useState(null);
+    const [selectedModel, setSelectedModel] = useState("gpt-4o");
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
     // const [ error, setError] = useState("");
@@ -89,7 +90,7 @@ export function Admin() {
     async function buildRoom() { //sends the room into the backend
         try {
             const gameData = games.find(g => g.id === selectedGame);
-            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count); 
+            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count, selectedModel); 
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
@@ -242,6 +243,30 @@ return (
               <span>{game.title}</span>
             </label>
           ))}
+        </div>
+
+        <h3 className="room-info-section">Model</h3>
+        <div className="model-select">
+          <div className="model-select-header">
+            <label htmlFor="modelType" className="model-select-label">
+              ChatGPT model
+            </label>
+            <p className="model-select-helper">
+              Choose which ChatGPT model this session will use.
+            </p>
+          </div>
+          <div className="model-select-control">
+            <select
+              id="modelType"
+              className="model-select-input"
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+            >
+              <option value="gpt-4o">gpt-4o (default)</option>
+              <option value="gpt-4.1">gpt-4.1</option>
+              <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+            </select>
+          </div>
         </div>
 
         <button

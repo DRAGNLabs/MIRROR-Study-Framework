@@ -951,6 +951,73 @@ nav button.nav-logout:hover {
   margin-top: 0.5rem;
 }
 
+.room-info .model-select {
+  margin-top: 0.5rem;
+  padding: 0.75rem 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.model-select-header {
+  margin-bottom: 0.5rem;
+}
+
+.model-select-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  margin-bottom: 0.15rem;
+}
+
+.model-select-helper {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.model-select-control {
+  position: relative;
+}
+
+.model-select-input {
+  width: 100%;
+  padding: 0.6rem 2.5rem 0.6rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.model-select-input:hover {
+  border-color: rgba(148, 163, 184, 0.9);
+}
+
+.model-select-input:focus {
+  outline: none;
+  border-color: #7bc7de;
+  box-shadow: 0 0 0 2px rgba(123, 199, 222, 0.35);
+  background: #020617;
+}
+
+.model-select-control::after {
+  content: "▾";
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
 .room-info .btn-full {
   margin-top: 1.5rem;
 }
