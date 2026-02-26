@@ -14,11 +14,28 @@ function buildDisplaySteps(questions) {
     const steps = [];
     for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
+
+        // Group specific survey questions onto shared pages:
+        // - compensation-explanation (Q6) + negotiation (Q7)
+        // - negotiation-explanation (Q8) + interaction-explanation (Q9)
+        if (q.id === "compensation-explanation" && questions[i + 1]?.id === "negotiation") {
+            // Show the main satisfaction question first, then the justification textbox
+            steps.push({ questions: [questions[i + 1], q] });
+            i++;
+            continue;
+        }
+        if (q.id === "negotiation-explanation" && questions[i + 1]?.id === "interaction-explanation") {
+            // Show the interaction explanation before its justification textbox
+            steps.push({ questions: [questions[i + 1], q] });
+            i++;
+            continue;
+        }
+
         if (q.type === "label" && questions[i + 1]?.type === "scale") {
-            steps.push({ sectionLabel: q, question: questions[i + 1] });
+            steps.push({ sectionLabel: q, questions: [questions[i + 1]] });
             i++;
         } else if (q.type !== "label") {
-            steps.push({ question: q });
+            steps.push({ questions: [q] });
         }
     }
     return steps;
@@ -63,7 +80,10 @@ export function Survey() {
         currentStep >= 1 && currentStep <= displaySteps.length
             ? displaySteps[currentStep - 1]
             : null;
-    const currentQuestion = currentDisplayStep?.question;
+    const primaryQuestion = currentDisplayStep?.questions?.[0] ?? currentDisplayStep?.question ?? null;
+    const currentQuestions = currentDisplayStep
+        ? currentDisplayStep.questions ?? (currentDisplayStep.question ? [currentDisplayStep.question] : [])
+        : [];
 
     async function loadSurvey() {
         const roomData = await getRoom(roomCode);
@@ -86,14 +106,14 @@ export function Survey() {
 
     // Initialize sortRank answer to option order when first viewing the question
     useEffect(() => {
-        if (!currentQuestion || currentQuestion.type !== "sortRank" || !currentQuestion.options?.length) return;
-        const current = answers[currentQuestion.id];
-        if (Array.isArray(current) && current.length === currentQuestion.options.length) return;
+        if (!primaryQuestion || primaryQuestion.type !== "sortRank" || !primaryQuestion.options?.length) return;
+        const current = answers[primaryQuestion.id];
+        if (Array.isArray(current) && current.length === primaryQuestion.options.length) return;
         setAnswers(prev => ({
             ...prev,
-            [currentQuestion.id]: [...(currentQuestion.options)]
+            [primaryQuestion.id]: [...(primaryQuestion.options)]
         }));
-    }, [currentQuestion?.id, currentQuestion?.type]);
+    }, [primaryQuestion?.id, primaryQuestion?.type]);
 
     async function buildConversation(room) {
         const llmInstructions = room.llmInstructions;
@@ -236,7 +256,7 @@ export function Survey() {
         e.preventDefault();
         e.stopPropagation();
         const fromIndex = sortRankDragSourceRef.current ?? parseInt(e.dataTransfer.getData("text/plain"), 10);
-        const questionId = currentQuestion?.id;
+        const questionId = primaryQuestion?.id;
         const options = answers[questionId];
 
         setSortRankDraggingIndex(null);
@@ -268,8 +288,8 @@ export function Survey() {
 
     useEffect(() => {
         const flip = sortRankFlipRef.current;
-        const questionId = currentQuestion?.id;
-        const newOrder = questionId && currentQuestion?.type === "sortRank" ? (answers[questionId] ?? []) : null;
+        const questionId = primaryQuestion?.id;
+        const newOrder = questionId && primaryQuestion?.type === "sortRank" ? (answers[questionId] ?? []) : null;
 
         if (!flip || !newOrder?.length || !sortRankListRef.current || flip.order.length !== newOrder.length) {
             return;
@@ -312,7 +332,7 @@ export function Survey() {
         };
         const rafId = requestAnimationFrame(startAnimation);
         return () => cancelAnimationFrame(rafId);
-    }, [answers[currentQuestion?.id], currentQuestion?.id, currentQuestion?.type]);
+    }, [answers[primaryQuestion?.id], primaryQuestion?.id, primaryQuestion?.type]);
 
     if (!survey) {
         return (
@@ -348,15 +368,18 @@ export function Survey() {
             </div>
 
             <div className="survey-card">
-                <div className="room-top-left">
-                    <button
-                        className="info-icon-button"
-                        title="View conversation history"
-                        onClick={() => setShowConversation(true)}
-                    >
-                        i
-                    </button>
-                </div>
+                {!isReflectionStep && (
+                    <div className="room-top-left">
+                        <button
+                            className="info-icon-button"
+                            title="View conversation history"
+                            aria-label="View conversation history"
+                            onClick={() => setShowConversation(true)}
+                        >
+                            i
+                        </button>
+                    </div>
+                )}
 
                 {!isReflectionStep && (
                     user ? (
@@ -379,146 +402,214 @@ export function Survey() {
                         <h3 className="survey-review-title">Review your answers</h3>
                         <p className="survey-review-subtitle">You can edit any response before submitting.</p>
                         <ul className="survey-review-list">
-                            {displaySteps.map((step, index) => {
-                                const q = step.question;
-                                const isRequired = !q.optional;
-                                const isUnanswered = isRequired && (q.type === "sortRank"
-                                    ? !Array.isArray(answers[q.id]) || answers[q.id].length !== (q.options?.length ?? 0)
-                                    : (answers[q.id] == null || answers[q.id] === ""));
-                                return (
-                                    <li
-                                        key={step.question.id}
-                                        className={`survey-review-item ${isUnanswered ? "survey-review-item--unanswered" : ""}`}
-                                    >
-                                        <div className="survey-review-item-content">
-                                            <span className="survey-review-question">{step.question.label}</span>
-                                            <span className={`survey-review-answer ${isUnanswered ? "survey-review-answer--empty" : ""}`}>
-                                                {formatAnswer(step.question, answers)}
-                                            </span>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className={isUnanswered ? "survey-review-edit-btn survey-review-edit-btn--answer" : "survey-review-edit-btn"}
-                                            onClick={() => handleEdit(index)}
+                            {displaySteps.flatMap((step, stepIndex) => {
+                                const questionsInStep = step.questions ?? (step.question ? [step.question] : []);
+                                return questionsInStep.map((q) => {
+                                    const isRequired = !q.optional;
+                                    const isUnanswered = isRequired && (q.type === "sortRank"
+                                        ? !Array.isArray(answers[q.id]) || answers[q.id].length !== (q.options?.length ?? 0)
+                                        : (answers[q.id] == null || answers[q.id] === ""));
+                                    return (
+                                        <li
+                                            key={q.id}
+                                            className={`survey-review-item ${isUnanswered ? "survey-review-item--unanswered" : ""}`}
                                         >
-                                            {isUnanswered ? "Answer" : "Edit"}
-                                        </button>
-                                    </li>
-                                );
+                                            <div className="survey-review-item-content">
+                                                <span className="survey-review-question">{q.label}</span>
+                                                <span className={`survey-review-answer ${isUnanswered ? "survey-review-answer--empty" : ""}`}>
+                                                    {formatAnswer(q, answers)}
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className={isUnanswered ? "survey-review-edit-btn survey-review-edit-btn--answer" : "survey-review-edit-btn"}
+                                                onClick={() => handleEdit(stepIndex)}
+                                            >
+                                                {isUnanswered ? "Answer" : "Edit"}
+                                            </button>
+                                        </li>
+                                    );
+                                });
                             })}
                         </ul>
                     </div>
                 ) : currentDisplayStep ? (
-                    <div key={currentQuestion?.id || currentQuestion?.label} className="survey-question-step">
+                    <div
+                        key={
+                            currentQuestions.map(q => q.id || q.label).join("|") ||
+                            primaryQuestion?.id ||
+                            primaryQuestion?.label
+                        }
+                        className="survey-question-step"
+                    >
                         {currentDisplayStep.sectionLabel && (
                             <p className="survey-section-label">{currentDisplayStep.sectionLabel.label}</p>
                         )}
-                        <p className="survey-question-label">{currentQuestion.label}</p>
+                        {currentQuestions.map((q) => (
+                            <div key={q.id || q.label} className="survey-question-block">
+                                <p className="survey-question-label">{q.label}</p>
 
-                        {currentQuestion.type === "select" && (
-                            <div className="form-group">
-                                <select
-                                    value={answers[currentQuestion.id] ?? ""}
-                                    onChange={(e) => setAnswers(prev => ({
-                                        ...prev, [currentQuestion.id]: e.target.value
-                                    }))}
-                                >
-                                    <option value="">Select...</option>
-                                    {currentQuestion.options.map(o => (
-                                        <option key={o} value={o}>{o}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        {currentQuestion.type === "text" && (
-                            <div className="form-group">
-                                {currentQuestion.id === "age" || currentQuestion.label?.toLowerCase().includes("age") ? (
-                                    <input
-                                        type="number"
-                                        inputMode="numeric"
-                                        min={1}
-                                        max={120}
-                                        step={1}
-                                        value={answers[currentQuestion.id] ?? ""}
-                                        onChange={(e) => setAnswers(prev => ({
-                                            ...prev, [currentQuestion.id]: e.target.value
-                                        }))}
-                                        placeholder={currentQuestion.placeholder || ""}
-                                    />
-                                ) : (
-                                    <textarea
-                                        rows={6}
-                                        value={answers[currentQuestion.id] ?? ""}
-                                        onChange={(e) => setAnswers(prev => ({
-                                            ...prev, [currentQuestion.id]: e.target.value
-                                        }))}
-                                        placeholder={currentQuestion.placeholder || "Type your response here..."}
-                                    />
+                                {q.type === "select" && (
+                                    <div className="form-group">
+                                        <select
+                                            value={answers[q.id] ?? ""}
+                                            onChange={(e) => setAnswers(prev => ({
+                                                ...prev, [q.id]: e.target.value
+                                            }))}
+                                        >
+                                            <option value="">Select...</option>
+                                            {q.options.map(o => (
+                                                <option key={o} value={o}>{o}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 )}
-                            </div>
-                        )}
 
-                        {currentQuestion.type === "scale" && currentQuestion.style === "slider" && (
-                            <div className="scale-wrapper">
-                                <input
-                                    type="range"
-                                    min={currentQuestion.min}
-                                    max={currentQuestion.max}
-                                    step={currentQuestion.step}
-                                    value={answers[currentQuestion.id] ?? currentQuestion.min}
-                                    onChange={(e) => setAnswers(prev => ({
-                                        ...prev, [currentQuestion.id]: Number(e.target.value)
-                                    }))}
-                                />
-                                <div className="scale-labels">
-                                    <span className="left-label">{currentQuestion.leftLabel}</span>
-                                    <span className="selected-number">{answers[currentQuestion.id] ?? currentQuestion.min}</span>
-                                    <span className="right-label">{currentQuestion.rightLabel}</span>
-                                </div>
-                            </div>
-                        )}
+                                {q.type === "text" && (
+                                    <div className="form-group">
+                                        {q.id === "age" ? (
+                                            <div className="age-input">
+                                                <button
+                                                    type="button"
+                                                    className="age-input-btn"
+                                                    aria-label="Decrease age"
+                                                    onClick={() => {
+                                                        const raw = answers[q.id];
+                                                        const parsed = parseInt(raw, 10);
+                                                        const base = Number.isNaN(parsed) ? 1 : parsed;
+                                                        const next = Math.max(1, base - 1);
+                                                        setAnswers(prev => ({
+                                                            ...prev,
+                                                            [q.id]: String(next)
+                                                        }));
+                                                    }}
+                                                >
+                                                    −
+                                                </button>
+                                                <input
+                                                    className="age-input-field"
+                                                    type="number"
+                                                    inputMode="numeric"
+                                                    min={1}
+                                                    max={120}
+                                                    step={1}
+                                                    value={answers[q.id] ?? ""}
+                                                    onChange={(e) => setAnswers(prev => ({
+                                                        ...prev,
+                                                        [q.id]: e.target.value
+                                                    }))}
+                                                    placeholder={q.placeholder || "e.g., 24"}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="age-input-btn"
+                                                    aria-label="Increase age"
+                                                    onClick={() => {
+                                                        const raw = answers[q.id];
+                                                        const parsed = parseInt(raw, 10);
+                                                        const base = Number.isNaN(parsed) ? 1 : parsed;
+                                                        const next = Math.min(120, base + 1);
+                                                        setAnswers(prev => ({
+                                                            ...prev,
+                                                            [q.id]: String(next)
+                                                        }));
+                                                    }}
+                                                >
+                                                    +
+                                                </button>
+                                                <span className="age-input-suffix">years</span>
+                                            </div>
+                                        ) : (
+                                            <textarea
+                                                rows={6}
+                                                value={answers[q.id] ?? ""}
+                                                onChange={(e) => setAnswers(prev => ({
+                                                    ...prev, [q.id]: e.target.value
+                                                }))}
+                                                placeholder={q.placeholder || "Type your response here..."}
+                                            />
+                                        )}
+                                    </div>
+                                )}
 
-                        {currentQuestion.type === "sortRank" && (() => {
-                            const sortOptions = answers[currentQuestion.id] ?? currentQuestion.options ?? [];
-                            return (
-                                <div className="sort-rank-wrapper">
-                                    <p className="sort-rank-hint">Drag to reorder from what you cared about most (top) to least (bottom). Your top 3 matter most.</p>
-                                    <ul className="sort-rank-list" ref={sortRankListRef}>
-                                        {sortOptions.map((option, index) => {
-                                            const isGreyed = index >= 3;
-                                            const isDragging = sortRankDraggingIndex === index;
-                                            const showDropIndicator = sortRankDropTargetIndex === index;
-                                            return (
-                                                <Fragment key={`${option}-${index}`}>
-                                                    {showDropIndicator && (
-                                                        <li
-                                                            className="sort-rank-drop-indicator"
-                                                            aria-hidden
-                                                            onDragOver={(e) => handleSortRankDragOver(e, index)}
-                                                            onDrop={(e) => handleSortRankDrop(e, index)}
-                                                        />
-                                                    )}
-                                                    <li
-                                                        className={`sort-rank-item ${isGreyed ? "sort-rank-item--greyed" : ""} ${isDragging ? "sort-rank-item--dragging" : ""}`}
-                                                        draggable
-                                                        onDragStart={(e) => handleSortRankDragStart(e, index)}
-                                                        onDragOver={(e) => handleSortRankDragOver(e, index)}
-                                                        onDrop={(e) => handleSortRankDrop(e, index)}
-                                                        onDragEnd={handleSortRankDragEnd}
-                                                    >
-                                                        <span className="sort-rank-item-drag-handle" aria-hidden>::</span>
-                                                        <span className="sort-rank-item-label">
-                                                            {index + 1}. {option}
-                                                        </span>
-                                                    </li>
-                                                </Fragment>
-                                            );
-                                        })}
-                                    </ul>
-                                </div>
-                            );
-                        })()}
+                                {q.type === "scale" && q.style === "slider" && (
+                                    <div className="scale-wrapper">
+                                        <input
+                                            type="range"
+                                            min={q.min}
+                                            max={q.max}
+                                            step={q.step}
+                                            value={answers[q.id] ?? q.min}
+                                            onMouseDown={() => {
+                                                if (answers[q.id] == null || answers[q.id] === "") {
+                                                    setAnswers(prev => ({
+                                                        ...prev,
+                                                        [q.id]: q.min
+                                                    }));
+                                                }
+                                            }}
+                                            onTouchStart={() => {
+                                                if (answers[q.id] == null || answers[q.id] === "") {
+                                                    setAnswers(prev => ({
+                                                        ...prev,
+                                                        [q.id]: q.min
+                                                    }));
+                                                }
+                                            }}
+                                            onChange={(e) => setAnswers(prev => ({
+                                                ...prev, [q.id]: Number(e.target.value)
+                                            }))}
+                                        />
+                                        <div className="scale-labels">
+                                            <span className="left-label">{q.leftLabel}</span>
+                                            <span className="selected-number">{answers[q.id] ?? q.min}</span>
+                                            <span className="right-label">{q.rightLabel}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {q.type === "sortRank" && (() => {
+                                    const sortOptions = answers[q.id] ?? q.options ?? [];
+                                    return (
+                                        <div className="sort-rank-wrapper">
+                                            <p className="sort-rank-hint">Drag to reorder from what you cared about most (top) to least (bottom). Your top 3 matter most.</p>
+                                            <ul className="sort-rank-list" ref={sortRankListRef}>
+                                                {sortOptions.map((option, index) => {
+                                                    const isGreyed = index >= 3;
+                                                    const isDragging = sortRankDraggingIndex === index;
+                                                    const showDropIndicator = sortRankDropTargetIndex === index;
+                                                    return (
+                                                        <Fragment key={`${option}-${index}`}>
+                                                            {showDropIndicator && (
+                                                                <li
+                                                                    className="sort-rank-drop-indicator"
+                                                                    aria-hidden
+                                                                    onDragOver={(e) => handleSortRankDragOver(e, index)}
+                                                                    onDrop={(e) => handleSortRankDrop(e, index)}
+                                                                />
+                                                            )}
+                                                            <li
+                                                                className={`sort-rank-item ${isGreyed ? "sort-rank-item--greyed" : ""} ${isDragging ? "sort-rank-item--dragging" : ""}`}
+                                                                draggable
+                                                                onDragStart={(e) => handleSortRankDragStart(e, index)}
+                                                                onDragOver={(e) => handleSortRankDragOver(e, index)}
+                                                                onDrop={(e) => handleSortRankDrop(e, index)}
+                                                                onDragEnd={handleSortRankDragEnd}
+                                                            >
+                                                                <span className="sort-rank-item-drag-handle" aria-hidden>::</span>
+                                                                <span className="sort-rank-item-label">
+                                                                    {index + 1}. {option}
+                                                                </span>
+                                                            </li>
+                                                        </Fragment>
+                                                    );
+                                                })}
+                                            </ul>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        ))}
                     </div>
                 ) : null}
 

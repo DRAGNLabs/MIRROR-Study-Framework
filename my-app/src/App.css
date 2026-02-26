@@ -1992,7 +1992,9 @@ for instructions button on interactions page
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 5vh;
+  padding-bottom: 5vh;
   z-index: 1000;
 }
 
@@ -2413,6 +2415,76 @@ survey conversation thingy
   line-height: 1.5;
 }
 
+/* Modern age input styling */
+.age-input {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.age-input-field {
+  width: 80px;
+  max-width: 100px;
+  padding: 0.45rem 0.5rem;
+  border-radius: 999px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.age-input-field:focus {
+  outline: none;
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+}
+
+.age-input-suffix {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.age-input-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.age-input-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.age-input-btn:active {
+  transform: translateY(0);
+}
+
+/* Hide native number spinners for custom age control */
+.age-input-field::-webkit-outer-spin-button,
+.age-input-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.age-input-field[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
@@ -2427,10 +2499,10 @@ survey conversation thingy
 }
 
 .survey-section-label {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #475569;
-  margin: 0 0 0.5rem 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: #1e293b;
+  margin: 0.5rem 0 1rem 0;
   line-height: 1.4;
 }
 
