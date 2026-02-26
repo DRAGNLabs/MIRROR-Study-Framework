@@ -1,5 +1,5 @@
 import { loadGames } from "../services/gameLoader.js"
-import { streamLLM } from "../llm.js";
+import { streamLLM, callLLM } from "../llm.js";
 import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount } from "../services/roomsService.js";
 import { jsonrepair } from "jsonrepair";
 
@@ -67,55 +67,57 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(room.roomCode).emit("ai-end");
 
-    // adding this check (when I do multiple returns with LLMs we won't be storing their messages in JSON objects, so should return buffer otherwise)
     if (!getAllocation) {
         return buffer;
     }
-    
+
+    // --- Call 2: Extract structured allocation data from natural response ---
+    const extractionPrompt = game.prompts[0].extraction_prompt;
+    const extractionMessages = [
+        { role: "system", content: extractionPrompt },
+        { role: "user", content: buffer },
+    ];
+
     let parsed;
     try {
-        parsed = JSON.parse(buffer);
+        const extractionResult = await callLLM(extractionMessages);
+        parsed = JSON.parse(extractionResult);
     } catch (err) {
         try {
-            const repaired = jsonrepair(buffer);
+            const extractionResult = await callLLM(extractionMessages);
+            const repaired = jsonrepair(extractionResult);
             parsed = JSON.parse(repaired);
-        } catch(err) {
-            console.error("Unrecoverable JSON", err);
-            fish_amount[round+1] = fish_amount[round];
+        } catch (err) {
+            console.error("Extraction call failed", err);
+            fish_amount[round + 1] = fish_amount[round];
             await updateFishAmount(fish_amount, roomCode);
             return buffer;
         }
     }
 
-    const assistantMessage = typeof parsed.assistantMessage === "string"
-        ? parsed.assistantMessage
-        : "";
     const allocationByUserName =
         parsed.allocationByUserName && typeof parsed.allocationByUserName === "object"
             ? parsed.allocationByUserName
             : {};
-    
+
     const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
     if (fish_left < 5) {
-        fish_amount[round+1] = fish_left;
+        fish_amount[round + 1] = fish_left;
     } else if (fish_left > 50) {
-        fish_amount[round+1] = 100;
+        fish_amount[round + 1] = 100;
     } else {
-        fish_amount[round+1] = fish_left * 2;
+        fish_amount[round + 1] = fish_left * 2;
     }
     await updateFishAmount(fish_amount, roomCode);
 
     const existingResourceAllocations = room.resourceAllocations ?? {};
     existingResourceAllocations[round] = {
         allocationByUserName,
-        assistantMessage: assistantMessage || buffer
+        assistantMessage: buffer
     };
     await updateResourceAllocations(existingResourceAllocations, roomCode);
 
-    return assistantMessage || "The system updated resource allocation for this round";
-    
-
-    // return buffer;
+    return buffer;
 }
 
 

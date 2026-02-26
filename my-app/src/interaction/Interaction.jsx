@@ -396,13 +396,7 @@ export function Interaction(){
                         </div>
                     )}
                     {messages.map((msg, i) => {
-                        const rawText = typeof msg.text === "string" ? msg.text : "";
-                        const isJsonLike =
-                            rawText.trim().startsWith("{") &&
-                            rawText.includes("allocationByUserName");
-                        const safeText = isJsonLike
-                            ? "An internal allocation update occurred."
-                            : rawText;
+                        const safeText = typeof msg.text === "string" ? msg.text : "";
                         return (
                             <div
                                 key={msg.id ?? i}
