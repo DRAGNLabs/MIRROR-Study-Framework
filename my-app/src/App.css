@@ -763,18 +763,22 @@ nav button.nav-logout:hover {
   justify-content: center;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #0f172a;
-  color: #e5e7eb;
+  color: #f1f5f9;
 }
 
-/* Admin Login card - polished elevated form */
+.admin-container h1 {
+  color: #f1f5f9;
+}
+
+/* Admin Login card */
 .admin-login-card {
   max-width: 380px;
   width: 100%;
   padding: 2.5rem;
-  background: #0f172a;
+  background: #1e293b;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   position: relative;
   overflow: hidden;
 }
@@ -786,7 +790,7 @@ nav button.nav-logout:hover {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #7bc7de, #0ea5e9);
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
 }
 
 .admin-login-header {
@@ -797,7 +801,7 @@ nav button.nav-logout:hover {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0 0 0.25rem 0;
-  color: #f8fafc;
+  color: #f1f5f9;
 }
 
 .admin-login-header p {
@@ -810,10 +814,10 @@ nav button.nav-logout:hover {
   width: 100%;
   height: 44px;
   padding: 0 1rem;
-  background: #020617;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  color: #e5e7eb;
+  color: #f1f5f9;
   font-size: 1rem;
   margin-bottom: 0.5rem;
   box-sizing: border-box;
@@ -825,8 +829,8 @@ nav button.nav-logout:hover {
 
 .admin-login-card input:focus {
   outline: none;
-  border-color: #7bc7de;
-  box-shadow: 0 0 0 3px rgba(123, 199, 222, 0.2);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
 }
 
 .admin-login-card .admin-login-error {
@@ -839,7 +843,7 @@ nav button.nav-logout:hover {
 .admin-login-card .admin-login-submit {
   width: 100%;
   height: 44px;
-  background: #7bc7de;
+  background: #38bdf8;
   color: #0f172a;
   border: none;
   border-radius: 8px;
@@ -850,7 +854,8 @@ nav button.nav-logout:hover {
 }
 
 .admin-login-card .admin-login-submit:hover:not(:disabled) {
-  background: #67b8d6;
+  background: #0ea5e9;
+  color: #0f172a;
 }
 
 .admin-login-card .admin-login-submit:disabled {
@@ -862,13 +867,14 @@ nav button.nav-logout:hover {
 .admin-buttons {
   display: flex;
   width: 70vw;
-  align-items: center;      /* center horizontally */
-  justify-content: center;  /* center vertically */
+  align-items: center;
+  justify-content: center;
   gap: 1rem;
-  background: #020617;
+  background: #1e293b;
   padding: 3rem 4rem;
   border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 /* Buttons styling */
@@ -882,28 +888,26 @@ nav button.nav-logout:hover {
   transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
 }
 
-.admin-buttons button:first-of-type {
-  background:  #7bc7de; /* green */
-  color: #fee2e2;
-}
-
+.admin-buttons button:first-of-type,
 .admin-buttons button:last-of-type {
-  background:  #7bc7de; /* red */
-  color: #fee2e2;
+  background: #38bdf8;
+  color: #0f172a;
 }
 
 .admin-buttons button:hover {
   transform: translateY(-1px);
+  background: #0ea5e9;
+  color: #0f172a;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.35);
 }
 
 /* Room creation form */
 .room-info {
   margin: 0 auto;
-  background: #0f172a;
+  background: #1e293b;
   padding: 2rem 2.25rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   min-width: 300px;
   max-width: 400px;
@@ -925,7 +929,7 @@ nav button.nav-logout:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.1em;
-  color: #e5e7eb;
+  color: #f1f5f9;
   padding: 0.75rem 1rem;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
@@ -941,7 +945,7 @@ nav button.nav-logout:hover {
 
 .room-info .label-inline label {
   font-size: 0.9375rem;
-  color: #e5e7eb;
+  color: #f1f5f9;
 }
 
 .room-info .games-options {
@@ -1009,8 +1013,8 @@ nav button.nav-logout:hover {
 }
 
 .text-input.small:focus {
-  border-color: #7bc7de;
-  box-shadow: 0 0 0 2px rgba(123, 199, 222, 0.3);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
   outline: none;
 }
 
@@ -1026,7 +1030,7 @@ nav button.nav-logout:hover {
 .games-label {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #e5e7eb;
+  color: #f1f5f9;
 }
 
 /* Checkbox column on the right */
@@ -1037,7 +1041,7 @@ nav button.nav-logout:hover {
 }
 
 .room-display {
-  background: rgba(255, 255, 255, 0.04);
+  background: #1e293b;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1.5rem;
   border-radius: 12px;
@@ -1054,9 +1058,9 @@ nav button.nav-logout:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
-  color: #e5e7eb;
+  color: #f1f5f9;
   padding: 0.35rem 0.75rem;
-  background: rgba(123, 199, 222, 0.15);
+  background: rgba(56, 189, 248, 0.15);
   border-radius: 6px;
   margin-bottom: 0.75rem;
 }
@@ -1126,7 +1130,7 @@ nav button.nav-logout:hover {
 }
 
 .btn-primary-admin {
-  background: #7bc7de;
+  background: #38bdf8;
   color: #0f172a;
   border: none;
   border-radius: 8px;
@@ -1138,7 +1142,8 @@ nav button.nav-logout:hover {
 }
 
 .btn-primary-admin:hover:not(:disabled) {
-  background: #67b8d6;
+  background: #0ea5e9;
+  color: #0f172a;
 }
 
 .btn-primary-admin:disabled {
@@ -1176,7 +1181,7 @@ nav button.nav-logout:hover {
 .rooms-section-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #f8fafc;
+  color: #f1f5f9;
   margin: 0 0 0.25rem 0;
 }
 
@@ -1195,14 +1200,14 @@ nav button.nav-logout:hover {
 
 
 
-/* Room Management card */
+/* Room Management card (admin) */
 .room-management-card {
   max-width: 420px;
   width: 100%;
   padding: 2rem 2.25rem;
-  background: #0f172a;
+  background: #1e293b;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
@@ -1218,18 +1223,18 @@ nav button.nav-logout:hover {
 }
 
 .room-management-card .back-to-rooms:hover {
-  color: #7bc7de;
+  color: #38bdf8;
 }
 
 .room-management-card h1 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 1rem 0;
-  color: #f8fafc;
+  color: #f1f5f9;
 }
 
 .room-code-box {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 1rem 1.25rem;
@@ -1242,19 +1247,19 @@ nav button.nav-logout:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.2em;
-  color: #e5e7eb;
+  color: #f1f5f9;
 }
 
 .room-management-card .room-url {
   font-size: 0.8125rem;
-  color: #64748b;
+  color: #94a3b8;
   margin: 0 0 1.25rem 0;
 }
 
 .room-qr-wrap {
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   margin-bottom: 1.25rem;
 }
@@ -1287,45 +1292,44 @@ nav button.nav-logout:hover {
   height: 44px;
 }
 
-.users-box {
-  background-color: rgba(255, 255, 255, 0.08);
+.admin-container .users-box {
+  background: #0f172a;
   padding: 1.25rem 1.5rem;
   border-radius: 12px;
   text-align: left;
-  backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.users-box h3 {
+.admin-container .users-box h3 {
   margin-top: 0;
   margin-bottom: 0.75rem;
   font-size: 1rem;
   font-weight: 500;
-  color: #e5e7eb;
+  color: #f1f5f9;
   text-align: center;
 }
 
-.users-box ul {
+.admin-container .users-box ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.users-box li {
+.admin-container .users-box li {
   padding: 0.5rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
   font-size: 0.95rem;
+  color: #e2e8f0;
 }
 
-.users-box li:last-child {
+.admin-container .users-box li:last-child {
   border-bottom: none;
 }
 
-
+/* users-card: user-facing waiting room (light theme, keep as-is for contrast) */
 .users-card {
-  /* background: #ffffff; */
-  background: #90c2d99a;
+  background: #e0f2fe;
   padding: 24px 28px;
   margin: 30px auto;
   width: 80%;
@@ -1333,7 +1337,7 @@ nav button.nav-logout:hover {
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   text-align: center;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(14, 165, 233, 0.2);
 }
 
 .users-card h3 {
@@ -1341,8 +1345,7 @@ nav button.nav-logout:hover {
   margin-bottom: 18px;
   font-size: 22px;
   font-weight: 700;
-  /*color: #89b4ff;   /* Light blue that matches your gradient theme */
-  color: #02152a;
+  color: #0f172a;
 }
 
 .users-card ul {
@@ -1354,8 +1357,7 @@ nav button.nav-logout:hover {
 .users-card li {
   font-size: 18px;
   padding: 8px 0;
-  /* color: #333; */
-  color: #313438;
+  color: #1e293b;
   font-weight: 600;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
@@ -1364,49 +1366,46 @@ nav button.nav-logout:hover {
   border-bottom: none;
 }
 
-
-/* Container for each radio option */
-.custom-radio {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    gap: 10px;
-    margin: 8px 0;
-    user-select: none;
-    font-size: 16px;
+/* Container for each radio option (admin dark theme) */
+.admin-container .custom-radio {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 10px;
+  margin: 8px 0;
+  user-select: none;
+  font-size: 16px;
+  color: #f1f5f9;
 }
 
-/* Hide the real radio button */
-.custom-radio input[type="radio"] {
-    display: none;
+.admin-container .custom-radio input[type="radio"] {
+  display: none;
 }
 
-/* Outer circle */
-.custom-radio .radio-mark {
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    display: inline-block;
-    position: relative;
-    transition: border-color 0.2s ease;
+.admin-container .custom-radio .radio-mark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  transition: border-color 0.2s ease;
 }
 
-/* The filled dot when selected */
-.custom-radio input[type="radio"]:checked + .radio-mark::after {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background: #7bc7de;
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.admin-container .custom-radio input[type="radio"]:checked + .radio-mark::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: #38bdf8;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.custom-radio:hover .radio-mark {
-    border-color: #7bc7de;
+.admin-container .custom-radio:hover .radio-mark {
+  border-color: #38bdf8;
 }
 
 
@@ -1417,7 +1416,7 @@ nav button.nav-logout:hover {
   display: flex;
   flex-direction: column;
   background: #0f172a;
-  color: #e2e8f0;
+  color: #f1f5f9;
 }
 
 .admin-interaction-main-layout {
@@ -1444,8 +1443,8 @@ nav button.nav-logout:hover {
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 1.5rem;
-  background: rgba(15, 23, 42, 0.95);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: #1e293b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
@@ -1453,7 +1452,7 @@ nav button.nav-logout:hover {
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #f8fafc;
+  color: #f1f5f9;
   letter-spacing: -0.01em;
   justify-self: start;
 }
@@ -1463,8 +1462,8 @@ nav button.nav-logout:hover {
   padding: 0.35rem 0.75rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #cbd5e1;
-  background: rgba(51, 65, 85, 0.8);
+  color: #e2e8f0;
+  background: #334155;
   border-radius: 9999px;
   justify-self: center;
   grid-column: 2;
@@ -1479,24 +1478,25 @@ nav button.nav-logout:hover {
   padding: 1rem 1.5rem;
   display: flex;
   justify-content: flex-end;
-  background: rgba(15, 23, 42, 0.98);
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  background: #1e293b;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .admin-interaction-next-btn {
   padding: 0.5rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #fff;
-  background: #334155;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #0f172a;
+  background: #38bdf8;
+  border: none;
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .admin-interaction-next-btn:hover {
-  background: #475569;
+  background: #0ea5e9;
+  color: #0f172a;
 }
 
 .admin-interaction-next-btn:active {
@@ -1511,7 +1511,7 @@ nav button.nav-logout:hover {
   width: 100%;
   background: #1e293b;
   border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   min-height: 0;
@@ -1533,23 +1533,31 @@ nav button.nav-logout:hover {
   color: #94a3b8;
 }
 
-/* Ensure message bubbles stay readable on admin dark chat */
 .admin-interaction-chat-box .message--bot {
   background: #334155;
-  color: #e2e8f0;
-  border-color: rgba(148, 163, 184, 0.3);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .admin-interaction-chat-box .message--bot .message-sender {
   color: #94a3b8;
 }
 
+.admin-interaction-chat-box .message--user {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.admin-interaction-chat-box .message--user .message-sender {
+  color: rgba(15, 23, 42, 0.85);
+}
+
 .admin-resources-panel {
   flex: 0 0 320px;
   max-width: 360px;
-  background: #020617;
+  background: #1e293b;
   border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1.25rem 1.25rem 1.5rem;
   box-sizing: border-box;
   display: flex;
@@ -1564,7 +1572,54 @@ nav button.nav-logout:hover {
   }
 }
 
-/* Shared: Next button bar (e.g. Admin Instructions page) */
+/* Admin resources panel: dark theme overrides for shared resources-* classes */
+.admin-resources-panel .resources-title {
+  color: #f1f5f9;
+}
+
+.admin-resources-panel .resources-subtitle {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-round-pill {
+  color: #0f172a;
+  background: #38bdf8;
+}
+
+.admin-resources-panel .resources-section-label {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-row-name {
+  color: #f1f5f9;
+}
+
+.admin-resources-panel .resources-row-fish {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-empty {
+  background: #0f172a;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.admin-resources-panel .resources-empty p {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-resources-panel .resources-history-item {
+  color: #94a3b8;
+}
+
+.admin-resources-panel .resources-history-round {
+  color: #e2e8f0;
+}
+
+/* Shared: Next button bar (Admin Instructions page) */
 .admin-next-bottom-left {
   width: 100%;
   padding: 1rem 1.5rem;
@@ -1577,8 +1632,8 @@ nav button.nav-logout:hover {
   padding: 0.5rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #fff;
-  background: #0f172a;
+  color: #0f172a;
+  background: #38bdf8;
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -1586,7 +1641,8 @@ nav button.nav-logout:hover {
 }
 
 .admin-next-bottom-left button:hover {
-  background: #1e293b;
+  background: #0ea5e9;
+  color: #0f172a;
 }
 
 .admin-next-bottom-left button:active {
@@ -1628,39 +1684,16 @@ stuff below is for instructions page
   border-radius: 10px;
 }
 
-.instructions-card {
-max-width: 700px;
-margin: 0 auto;
-background: #f9fafb31;
-padding: 2rem;
-border-radius: 12px;
-box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-}
-
-.instructions-overview {
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-}
-
-.instructions-card h3 {
-  margin-top: 1.5rem;
-}
-
-.instructions-card ol,
-.instructions-card ul {
-  /* text-align: center; */
-  margin-left: auto;
-  margin-right: auto;
-}
-
-
+/* Admin instructions card (used in AdminInstructions only) */
 .instructions-card {
   max-width: 800px;
   margin: 0 auto;
   padding: 2.5rem;
-  background: #3b4252;
+  background: #1e293b;
   border-radius: 16px;
-  color: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .instructions-overview {
@@ -1668,12 +1701,26 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   font-size: 1.05rem;
   line-height: 1.7;
   margin-bottom: 2.5rem;
+  color: #e2e8f0;
+}
+
+.instructions-card h3 {
+  margin-top: 1.5rem;
+  color: #f1f5f9;
+}
+
+.instructions-card ol,
+.instructions-card ul {
+  margin-left: auto;
+  margin-right: auto;
+  color: #e2e8f0;
 }
 
 .section-title {
   text-align: center;
   font-size: 1.5rem;
   margin: 2rem 0 1.5rem;
+  color: #f1f5f9;
 }
 
 .rounds-container {
@@ -1689,13 +1736,13 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   gap: 1rem;
   max-width: 600px;
 }
-/* background: #6366f1; */
+
 .round-badge {
   min-width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background: #59c2e2;
-  color: white;
+  background: #38bdf8;
+  color: #0f172a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1704,9 +1751,10 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 
 .round-content {
   line-height: 1.6;
+  color: #e2e8f0;
 }
 
-/*for AdminSurvey.jsx*/
+/* Survey status box: light (user) vs dark (admin) */
 .survey-status-box {
   background: #ffffff;
   border-radius: 14px;
@@ -1714,6 +1762,57 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   width: 100%;
   max-width: 420px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Admin Survey: dark theme */
+.admin-container .survey-status-box {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.admin-container .survey-status-header h3 {
+  color: #f1f5f9;
+}
+
+.admin-container .survey-progress {
+  color: #94a3b8;
+}
+
+.admin-container .survey-user {
+  background: transparent;
+}
+
+.admin-container .survey-user.pending {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.admin-container .survey-user.completed {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.admin-container .user-name {
+  color: #f1f5f9;
+}
+
+.admin-container .survey-user.pending .status-badge {
+  background: rgba(251, 191, 36, 0.25);
+  color: #fcd34d;
+}
+
+.admin-container .survey-user.completed .status-badge {
+  background: rgba(34, 197, 94, 0.25);
+  color: #4ade80;
+}
+
+.admin-container .survey-progress-bar {
+  background: #334155;
+}
+
+.admin-container .survey-progress-fill {
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
 }
 
 .survey-status-header {
@@ -1726,12 +1825,12 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 .survey-status-header h3 {
   font-size: 1.2rem;
   font-weight: 600;
-  color: black;
+  color: #0f172a;
 }
 
 .survey-progress {
   font-size: 0.9rem;
-  color: #555;
+  color: #64748b;
 }
 
 .survey-user-list {
@@ -1751,16 +1850,16 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
 .survey-user.pending {
-  background: #e7e8eb;
+  background: #fef3c7;
 }
 
 .survey-user.completed {
-  background: #e7e8eb;
+  background: #dcfce7;
 }
 
 .user-name {
   font-weight: 500;
-  color: black;
+  color: #1e293b;
 }
 
 .status-badge {
@@ -1771,19 +1870,19 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
 .survey-user.pending .status-badge {
-  background: #ffe8e8;
-  color: #c0392b;
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .survey-user.completed .status-badge {
-  background: #d4f4e2;
-  color: #1e8449;
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .survey-progress-bar {
   width: 80%;
   height: 8px;
-  background: #eee;
+  background: #e2e8f0;
   border-radius: 999px;
   overflow: hidden;
   margin-bottom: 16px;
@@ -1791,20 +1890,56 @@ box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 
 .survey-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2ecc71, #27ae60);
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
   transition: width 0.3s ease;
 }
 
 /*
 for survey.jsx
 */
-.scale-wrapper input[type="range"] {
-  padding: 0 0px; 
-}
-
 .scale-wrapper {
   width: 100%;
-  margin: 1em 0;
+  margin: 1.5rem 0;
+  padding: 0 1rem;
+}
+
+.scale-wrapper input[type="range"] {
+  width: 100%;
+  max-width: 400px;
+  min-width: 250px;
+  height: 8px;
+  margin: 0 auto;
+  display: block;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.scale-wrapper input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #334155;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease;
+}
+
+.scale-wrapper input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.08);
+}
+
+.scale-wrapper input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #334155;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .scale-wrapper.unanswered {
@@ -1819,38 +1954,31 @@ for survey.jsx
   width: 100%;
   max-width: 400px;
   min-width: 250px;
-  margin: auto;
-  margin-top: 0.5em; /* slight space below slider */
+  margin: 0.75rem auto 0;
   position: relative;
   text-align: center;
 }
 
-.selected-number {
+.scale-labels .selected-number {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-weight: 600;
-  font-size: 0.95rem;
-  text-align: center;
-  min-width: 2ch; /* prevents jitter when numbers change */
+  font-size: 1.1rem;
+  color: #334155;
+  min-width: 2ch;
 }
 
-.left-label,
-.right-label {
+.scale-labels .left-label,
+.scale-labels .right-label {
   font-size: 0.85rem;
-  color: #666;
+  color: #64748b;
 }
 
 input[type="range"] {
   width: 60%;
   max-width: 400px;
   min-width: 250px;
-}
-
-
-/* Number centered below slider */
-.selected-number {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: bold;
 }
 
 
@@ -1864,7 +1992,9 @@ for instructions button on interactions page
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 5vh;
+  padding-bottom: 5vh;
   z-index: 1000;
 }
 
@@ -1968,35 +2098,230 @@ survey conversation thingy
   color: #333;
 }
 
+/* === Conversation reflection step (before survey) === */
+.conversation-reflection {
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.reflection-prompt {
+  font-size: 1rem;
+  color: #475569;
+  line-height: 1.55;
+  margin: 0 0 0.75rem 0;
+}
+
+.reflection-summary {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 1rem 0;
+}
+
+.reflection-chat {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.reflection-message-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reflection-message {
+  display: block;
+  width: 100%;
+  max-width: 90%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  position: relative;
+}
+
+.reflection-message.message--user {
+  align-self: flex-end;
+  margin-left: auto;
+  background: #2563eb;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.reflection-message.message--bot {
+  align-self: flex-start;
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 4px;
+}
+
+.reflection-message:hover {
+  border-color: #cbd5e1;
+}
+
+.reflection-message--marked {
+  border-color: #475569;
+  box-shadow: 0 0 0 1px #475569;
+}
+
+.reflection-message.message--user.reflection-message--marked {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.reflection-message-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: #1e293b;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.reflection-message.message--user .reflection-message-badge {
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e293b;
+}
+
+.reflection-message-text {
+  display: block;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding-right: 1.5rem;
+}
+
+.reflection-note-wrap {
+  padding-left: 0.25rem;
+  max-width: 90%;
+}
+
+.reflection-message.message--user + .reflection-note-wrap {
+  margin-left: auto;
+  padding-right: 0.25rem;
+  padding-left: 0;
+}
+
+.reflection-note-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e293b;
+  transition: border-color 0.2s ease;
+}
+
+.reflection-note-input::placeholder {
+  color: #94a3b8;
+}
+
+.reflection-note-input:focus {
+  outline: none;
+  border-color: #64748b;
+}
+
 
 .survey-container {
   min-height: 100vh;
   width: 100%;
   padding: 2rem;
+  box-sizing: border-box;
 
   display: flex;
-  justify-content: center;
-  align-items: center; /* important: top-aligned, not centered */
-  background: linear-gradient(
-    180deg,
-    #eaf7fc 0%,
-    #d8f0f9 100%
-  );
-
-  /* animation: fadeIn 0.8s ease forwards; */
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(180deg, #f5f7fa 0%, #e8ecf1 100%);
 }
 
-/* Interaction container layout is defined in the Chat Container section above */
+.survey-progress-wrapper {
+  width: 100%;
+  max-width: 560px;
+  margin-bottom: 2rem;
+}
+
+.survey-progress-wrapper .survey-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.survey-progress-wrapper .survey-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #64748b, #475569);
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.survey-progress-text {
+  font-size: 0.875rem;
+  color: #64748b;
+  display: block;
+  text-align: center;
+}
 
 .survey-card {
-  width: 75%;
-  /* max-width: 900px; wide, readable, professional */
-  background: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  max-width: 560px;
+  background: #ffffff;
   text-align: center;
   padding: 2.5rem;
-  border-radius: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+}
 
-  box-shadow: 0 10px 30px rgba(103, 184, 214, 0.25);
+.survey-card .room-top-left {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  left: auto;
+  padding: 0;
+}
+
+.survey-intro {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.survey-question-step {
+  margin-bottom: 2rem;
+  text-align: center;
+  min-height: 140px;
+}
+
+.survey-question-label {
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.4;
 }
 
 .survey-question {
@@ -2009,24 +2334,349 @@ survey conversation thingy
   margin-bottom: 0.5rem;
 }
 
+.survey-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.survey-nav-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.survey-nav-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+.survey-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.survey-nav-next {
+  background: #334155;
+  color: #ffffff;
+  border-color: #334155;
+  margin-left: auto;
+}
+
+.survey-nav-next:hover:not(:disabled) {
+  background: #475569;
+  border-color: #475569;
+  color: #ffffff;
+}
+
+.survey-error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
 
 .form-group {
   display: flex;
   flex-direction: column;
-  align-items: center;     /* centers input */
-  text-align: center;      /* centers label text */
+  align-items: center;
+  text-align: center;
   margin-bottom: 1.5rem;
   width: 100%;
 }
 
 .form-group input,
-.form-group select {
-  width: 60%;
+.form-group select,
+.form-group textarea {
+  width: 100%;
   max-width: 400px;
   min-width: 250px;
-
-  padding: 0.6rem 0.8rem;
-  border-radius: 8px;
-  border: 2px solid #b6dff0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
   font-size: 1rem;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.form-group textarea {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Modern age input styling */
+.age-input {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.age-input-field {
+  width: 80px;
+  max-width: 100px;
+  padding: 0.45rem 0.5rem;
+  border-radius: 999px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.age-input-field:focus {
+  outline: none;
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+}
+
+.age-input-suffix {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.age-input-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.age-input-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.age-input-btn:active {
+  transform: translateY(0);
+}
+
+/* Hide native number spinners for custom age control */
+.age-input-field::-webkit-outer-spin-button,
+.age-input-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.age-input-field[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #94a3b8;
+}
+
+.survey-section-label {
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: #1e293b;
+  margin: 0.5rem 0 1rem 0;
+  line-height: 1.4;
+}
+
+.survey-review {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.survey-review-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.survey-review-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0 0 1.5rem 0;
+}
+
+.survey-review-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.survey-review-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.survey-review-item--unanswered {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.survey-review-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.survey-review-question {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.survey-review-answer {
+  font-size: 0.95rem;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.survey-review-answer--empty {
+  color: #b45309;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.survey-review-edit-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.survey-review-edit-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.survey-review-edit-btn--answer {
+  background: #d97706;
+  border-color: #b45309;
+  color: #ffffff;
+}
+
+.survey-review-edit-btn--answer:hover {
+  background: #b45309;
+  border-color: #92400e;
+  color: #ffffff;
+}
+
+/* Sort rank question type: most to least important, top 3 emphasized */
+.sort-rank-wrapper {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
+  text-align: left;
+}
+
+.sort-rank-hint {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.sort-rank-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sort-rank-drop-indicator {
+  height: 48px;
+  border: 2px dashed #64748b;
+  border-radius: 10px;
+  background: rgba(100, 116, 139, 0.12);
+  list-style: none;
+  margin: 0;
+}
+
+.sort-rank-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  cursor: grab;
+  user-select: none;
+}
+
+.sort-rank-item:active {
+  cursor: grabbing;
+}
+
+.sort-rank-item--dragging {
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.sort-rank-item-drag-handle {
+  flex-shrink: 0;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  letter-spacing: -0.2em;
+  cursor: grab;
+}
+
+.sort-rank-item--greyed {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  opacity: 0.85;
+}
+
+.sort-rank-item-label {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 500;
 }

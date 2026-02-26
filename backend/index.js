@@ -29,9 +29,7 @@ const httpServer = createServer(app);
 // so CORS is not strictly needed. This is mainly for local dev where the
 // Vite dev server (port 5173) and backend (port 3001) run on different ports.
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
-
 initializeSocketServer(httpServer, corsOrigin);
-
 
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json());

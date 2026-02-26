@@ -97,7 +97,24 @@
             "id": "interaction-explanation",
             "label": "In your own words, describe how your interactions with the Lake Manager made you feel. Did any specific emotions stand out?",
             "type": "text",
-            "optional": false
+            "optional": true
+        },
+        {
+            "id": "chatbot-attributes-rank",
+            "label": "Based on what you just experienced, which attribute of the chatbot behavior did you find yourselves caring about, and which did you not care about?",
+            "type": "sortRank",
+            "options": [
+                "Tone and friendliness",
+                "Accuracy of the response",
+                "Speed of response",
+                "Relevance to what I said / listening to my arguments",
+                "Consistency of reasoning",
+                "Not feeling repetitive or robotic",
+                "Remembering context and details",
+                "Fairness",
+                "Transparency and explainability",
+                "Not ignoring my situation"
+            ]
         },
         { 
             "id": "response-label",
