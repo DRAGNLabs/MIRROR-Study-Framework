@@ -62,14 +62,18 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         await delay(500);
     }
 
+    console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
     io.to(room.roomCode).emit("ai-start");
 
     let buffer = "";
-    await streamLLM(messages, token => {
-        buffer += token;
-        io.to(room.roomCode).emit("ai-token", token); // allows tokens to be appended to LLM message as they come
-    });
-    // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
+    try {
+        await streamLLM(messages, token => {
+            buffer += token;
+            io.to(room.roomCode).emit("ai-token", token);
+        });
+    } catch (err) {
+        console.error(`[Round ${round}] streamLLM threw:`, err);
+    }
     io.to(room.roomCode).emit("ai-end");
 
     if (!getAllocation) {
@@ -77,6 +81,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     }
 
     // --- Call 2: Extract structured allocation data from natural response ---
+    console.log(`[Round ${round}] Starting extraction call...`);
     try {
         const extractionPrompt = game.prompts[0].extraction_prompt;
         const extractionMessages = [
@@ -117,8 +122,9 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
             assistantMessage: buffer
         };
         await updateResourceAllocations(existingResourceAllocations, roomCode);
+        console.log(`[Round ${round}] Extraction succeeded, fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
     } catch (err) {
-        console.error("Extraction failed, continuing with natural response", err);
+        console.error(`[Round ${round}] Extraction failed, continuing with natural response:`, err);
         fish_amount[round + 1] = fish_amount[round];
         await updateFishAmount(fish_amount, roomCode);
     }
@@ -131,35 +137,46 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
-    const round = currRounds[roomCode]; 
-    const buffer = await getLlmText(io, roomCode, false, true);
-    const room = await getRoom(roomCode);
-    const fish_amount = room.fish_amount ?? {};
-    const llmResponses = room.llmResponse ?? {};
-    llmResponses[round] = buffer;
-    await updateLlmResponse(llmResponses, roomCode);
-
-    const totalRounds = room.numRounds;
-    if (round >= totalRounds) {
-        io.to(roomCode).emit("game-complete");
-        const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
-        io.to(roomCode).emit("receive-message", endGameMsg);
-        return;
-    } else if (fish_amount[round+1] < 5) {
-        // abort game if fish is below 5 tons
-        const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
-        // for some reason users don't get message unless you do await delay(500)
-        await delay(500);
-        io.to(roomCode).emit("receive-message", endGameMsg);
-        io.to(roomCode).emit("game-complete");
-        return; 
-    } else {
-        console.log(`Round ${round} completed, waiting for next round...`);
+    const round = currRounds[roomCode];
+    let buffer;
+    try {
+        buffer = await getLlmText(io, roomCode, false, true);
+    } catch (err) {
+        console.error(`[Round ${round}] getLlmText crashed:`, err);
+        io.to(roomCode).emit("ai-end");
+        buffer = "An error occurred generating the response.";
     }
 
-    currRounds[roomCode] += 1; 
-    io.to(roomCode).emit("round-complete", currRounds[roomCode]);
-    await getLlmInstructions(io, roomCode, currRounds[roomCode]);
+    try {
+        const room = await getRoom(roomCode);
+        const fish_amount = room.fish_amount ?? {};
+        const llmResponses = room.llmResponse ?? {};
+        llmResponses[round] = buffer;
+        await updateLlmResponse(llmResponses, roomCode);
+
+        const totalRounds = room.numRounds;
+        if (round >= totalRounds) {
+            io.to(roomCode).emit("game-complete");
+            const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
+            io.to(roomCode).emit("receive-message", endGameMsg);
+            return;
+        } else if (fish_amount[round+1] < 5) {
+            // abort game if fish is below 5 tons
+            const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
+            await delay(500);
+            io.to(roomCode).emit("receive-message", endGameMsg);
+            io.to(roomCode).emit("game-complete");
+            return;
+        } else {
+            console.log(`Round ${round} completed, waiting for next round...`);
+        }
+
+        currRounds[roomCode] += 1;
+        io.to(roomCode).emit("round-complete", currRounds[roomCode]);
+        await getLlmInstructions(io, roomCode, currRounds[roomCode]);
+    } catch (err) {
+        console.error(`[Round ${round}] getLlmResponse post-processing crashed:`, err);
+    }
 }
 
 export async function getLlmInstructions(io, roomCode, round) {
