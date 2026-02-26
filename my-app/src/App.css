@@ -2407,6 +2407,8 @@ survey conversation thingy
   background: #ffffff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   font-family: inherit;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .form-group textarea {

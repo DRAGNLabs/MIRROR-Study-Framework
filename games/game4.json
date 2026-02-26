@@ -102,7 +102,7 @@
             "id": "interaction-explanation",
             "label": "In your own words, describe how your interactions with the Lake Manager made you feel. Did any specific emotions stand out?",
             "type": "text",
-            "optional": false
+            "optional": true
         },
         {
             "id": "chatbot-attributes-rank",

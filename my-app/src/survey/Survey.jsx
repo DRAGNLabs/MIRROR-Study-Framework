@@ -166,7 +166,7 @@ export function Survey() {
         });
 
         if (missing.length > 0) {
-            alert("Please fill out all survey questions before submitting!");
+            alert("Some required questions are missing.\n\nOn the review screen, look for items highlighted in yellow and sliders that still show a dash (—) instead of a number.");
             return;
         }
 
@@ -447,7 +447,10 @@ export function Survey() {
                         )}
                         {currentQuestions.map((q) => (
                             <div key={q.id || q.label} className="survey-question-block">
-                                <p className="survey-question-label">{q.label}</p>
+                                <p className="survey-question-label">
+                                    {q.label}
+                                    {q.optional ? " (optional)" : ""}
+                                </p>
 
                                 {q.type === "select" && (
                                     <div className="form-group">
@@ -533,36 +536,26 @@ export function Survey() {
                                 )}
 
                                 {q.type === "scale" && q.style === "slider" && (
-                                    <div className="scale-wrapper">
+                                    <div
+                                        className={`scale-wrapper ${
+                                            answers[q.id] == null || answers[q.id] === "" ? "unanswered" : ""
+                                        }`}
+                                    >
                                         <input
                                             type="range"
                                             min={q.min}
                                             max={q.max}
                                             step={q.step}
                                             value={answers[q.id] ?? q.min}
-                                            onMouseDown={() => {
-                                                if (answers[q.id] == null || answers[q.id] === "") {
-                                                    setAnswers(prev => ({
-                                                        ...prev,
-                                                        [q.id]: q.min
-                                                    }));
-                                                }
-                                            }}
-                                            onTouchStart={() => {
-                                                if (answers[q.id] == null || answers[q.id] === "") {
-                                                    setAnswers(prev => ({
-                                                        ...prev,
-                                                        [q.id]: q.min
-                                                    }));
-                                                }
-                                            }}
                                             onChange={(e) => setAnswers(prev => ({
                                                 ...prev, [q.id]: Number(e.target.value)
                                             }))}
                                         />
                                         <div className="scale-labels">
                                             <span className="left-label">{q.leftLabel}</span>
-                                            <span className="selected-number">{answers[q.id] ?? q.min}</span>
+                                            <span className="selected-number">
+                                                {answers[q.id] == null || answers[q.id] === "" ? "—" : answers[q.id]}
+                                            </span>
                                             <span className="right-label">{q.rightLabel}</span>
                                         </div>
                                     </div>
