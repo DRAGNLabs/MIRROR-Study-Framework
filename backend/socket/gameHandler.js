@@ -10,6 +10,11 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function stripFences(text) {
+    if (typeof text !== "string") return "";
+    return text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+}
+
 function fillPrompt(template, values) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => values[key]);
 }
@@ -72,50 +77,51 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     }
 
     // --- Call 2: Extract structured allocation data from natural response ---
-    const extractionPrompt = game.prompts[0].extraction_prompt;
-    const extractionMessages = [
-        { role: "system", content: extractionPrompt },
-        { role: "user", content: buffer },
-    ];
-
-    let parsed;
     try {
-        const extractionResult = await callLLM(extractionMessages);
-        parsed = JSON.parse(extractionResult);
-    } catch (err) {
+        const extractionPrompt = game.prompts[0].extraction_prompt;
+        const extractionMessages = [
+            { role: "system", content: extractionPrompt },
+            { role: "user", content: buffer },
+        ];
+
+        let parsed;
         try {
-            const extractionResult = await callLLM(extractionMessages);
-            const repaired = jsonrepair(extractionResult);
-            parsed = JSON.parse(repaired);
+            const raw = await callLLM(extractionMessages);
+            const cleaned = stripFences(raw);
+            parsed = JSON.parse(cleaned);
         } catch (err) {
-            console.error("Extraction call failed", err);
-            fish_amount[round + 1] = fish_amount[round];
-            await updateFishAmount(fish_amount, roomCode);
-            return buffer;
+            const raw = await callLLM(extractionMessages);
+            const cleaned = stripFences(raw);
+            const repaired = jsonrepair(cleaned);
+            parsed = JSON.parse(repaired);
         }
+
+        const allocationByUserName =
+            parsed.allocationByUserName && typeof parsed.allocationByUserName === "object"
+                ? parsed.allocationByUserName
+                : {};
+
+        const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
+        if (fish_left < 5) {
+            fish_amount[round + 1] = fish_left;
+        } else if (fish_left > 50) {
+            fish_amount[round + 1] = 100;
+        } else {
+            fish_amount[round + 1] = fish_left * 2;
+        }
+        await updateFishAmount(fish_amount, roomCode);
+
+        const existingResourceAllocations = room.resourceAllocations ?? {};
+        existingResourceAllocations[round] = {
+            allocationByUserName,
+            assistantMessage: buffer
+        };
+        await updateResourceAllocations(existingResourceAllocations, roomCode);
+    } catch (err) {
+        console.error("Extraction failed, continuing with natural response", err);
+        fish_amount[round + 1] = fish_amount[round];
+        await updateFishAmount(fish_amount, roomCode);
     }
-
-    const allocationByUserName =
-        parsed.allocationByUserName && typeof parsed.allocationByUserName === "object"
-            ? parsed.allocationByUserName
-            : {};
-
-    const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
-    if (fish_left < 5) {
-        fish_amount[round + 1] = fish_left;
-    } else if (fish_left > 50) {
-        fish_amount[round + 1] = 100;
-    } else {
-        fish_amount[round + 1] = fish_left * 2;
-    }
-    await updateFishAmount(fish_amount, roomCode);
-
-    const existingResourceAllocations = room.resourceAllocations ?? {};
-    existingResourceAllocations[round] = {
-        allocationByUserName,
-        assistantMessage: buffer
-    };
-    await updateResourceAllocations(existingResourceAllocations, roomCode);
 
     return buffer;
 }
