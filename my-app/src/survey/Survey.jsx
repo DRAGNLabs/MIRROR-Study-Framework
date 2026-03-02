@@ -550,6 +550,13 @@ export function Survey() {
                                             onChange={(e) => setAnswers(prev => ({
                                                 ...prev, [q.id]: Number(e.target.value)
                                             }))}
+                                            onClick={(e) => {
+                                                if (answers[q.id] == null || answers[q.id] === "") {
+                                                    setAnswers(prev => ({
+                                                        ...prev, [q.id]: Number(e.target.value)
+                                                    }));
+                                                }
+                                            }}
                                         />
                                         <div className="scale-labels">
                                             <span className="left-label">{q.leftLabel}</span>
