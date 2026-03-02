@@ -6,17 +6,24 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-export async function callLLM(messages) {
-  const response = await client.responses.create({
-    model: process.env.OPENAI_MODEL,
-    input: messages,
-  });
-  return response.output_text;
+function resolveModel(modelOverride) {
+  const trimmedOverride = typeof modelOverride === "string" ? modelOverride.trim() : "";
+  if (trimmedOverride && trimmedOverride !== "default") {
+    return trimmedOverride;
+  }
+
+  const envModel = (process.env.OPENAI_MODEL || "").trim();
+  if (!envModel) {
+    throw new Error("No OpenAI model configured. Set OPENAI_MODEL or provide a model override.");
+  }
+  return envModel;
 }
 
-export async function streamLLM(prompt, onToken) {
+export async function streamLLM(prompt, onToken, modelOverride) {
+  const model = resolveModel(modelOverride);
+
   const stream = await client.responses.stream({
-    model: process.env.OPENAI_MODEL,
+    model,
     input: prompt,
   });
 

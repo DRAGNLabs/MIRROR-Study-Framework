@@ -7,26 +7,34 @@ import db from "../db.js";
 // Creates room, puts roomCode, gameType, numRounds, usersNeeded, and modelType into table (rest of info will be updated later)
 router.post('/', async (req, res) => {
   try{
-  const { roomCode, gameType, numRounds, usersNeeded } = req.body;
-  if (roomCode === undefined || gameType === undefined || numRounds === undefined || usersNeeded === undefined) {
-    return res.status(400).json({message: "roomCode, gameType, numRounds, and usersNeeded are required"});
+    const { roomCode, gameType, numRounds, usersNeeded, modelType } = req.body;
+
+    if (roomCode === undefined || gameType === undefined || numRounds === undefined || usersNeeded === undefined) {
+      return res.status(400).json({message: "roomCode, gameType, numRounds, and usersNeeded are required"});
+    }
+
+    let finalModelType = typeof modelType === "string" ? modelType.trim() : "";
+    if (!finalModelType) {
+      finalModelType = (process.env.OPENAI_MODEL || "").trim();
+    }
+    if (!finalModelType) {
+      finalModelType = "default";
+    }
+
+    const sql = `
+      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType") 
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType";
+    `;
+
+    const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType]);
+    
+    return res.status(201).json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
   }
-  const modelType = process.env.OPENAI_MODEL;
-
-  const sql = `
-    INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType") 
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType";
-  `;
-
-  const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, modelType])
-  
-  return res.status(201).json(result.rows[0]);
-
-} catch (err) {
-  console.error(err);
-  return res.status(500).json({ error: err.message });
-}
 });
 
 
