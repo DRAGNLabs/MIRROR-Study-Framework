@@ -159,11 +159,22 @@ export async function getLlmInstructions(io, roomCode, round) {
         currRounds[roomCode] = round
     }
     const room = await getRoom(roomCode);
-    const fish_amount = room.fish_amount;
+    const fish_amount = room.fish_amount ?? {};
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     let instructions = "";
     if (game.instructions?.template) {
-        instructions = fillPrompt(game.instructions.template, { curr_round: round, fish_available: fish_amount[round] });
+        // Safely look up fish available for this round; fall back to any existing entry or 100 if missing
+        const existingRounds = Object.keys(fish_amount);
+        const fallbackFish =
+            (fish_amount && fish_amount[round] != null)
+                ? fish_amount[round]
+                : (existingRounds.length > 0
+                    ? fish_amount[existingRounds[0]]
+                    : 100);
+        instructions = fillPrompt(game.instructions.template, {
+            curr_round: round,
+            fish_available: fallbackFish
+        });
         const instruction_message = { sender: "llm", text: instructions, id: `instructions-${round}` };
         // users don't receive instructions from socket if this await delay isn't here
         await delay(500); 
