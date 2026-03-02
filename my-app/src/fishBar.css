@@ -1,0 +1,116 @@
+.fish-bar {
+    display: flex;
+    flex-direction: column;
+    padding: 0.25rem 0;
+    margin-bottom: 0.5rem;
+    border-radius: 999px;
+    background: transparent;
+}
+
+.fish-bar-track--empty {
+    opacity: 0.4;
+}
+
+.fish-bar-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.fish-bar-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.fish-bar-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.fish-bar-total {
+    font-size: 0.85rem;
+    opacity: 0.95;
+}
+
+.fish-bar-subtitle {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.fish-bar-track {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    height: 22px;
+    margin-top: 0.35rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #e0f2fe, #bfdbfe);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+.fish-bar-segment {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 4px;
+    height: 100%;
+    transition:
+        width 0.4s ease-out,
+        transform 0.3s ease-out,
+        background-color 0.3s ease-out;
+}
+
+.fish-bar-segment--you {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.fish-bar-segment-label {
+    z-index: 1;
+    padding: 0 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fdfdfd;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+}
+
+.fish-bar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+    margin-top: 0.3rem;
+}
+
+.fish-bar-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+}
+
+.fish-bar-legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px rgba(4, 10, 20, 0.85);
+}
+
+.fish-bar-legend-text {
+    display: inline-flex;
+    gap: 0.25rem;
+}
+
+.fish-bar-legend-name {
+    font-weight: 500;
+}
+
+.fish-bar-legend-value {
+    opacity: 0.85;
+}
+

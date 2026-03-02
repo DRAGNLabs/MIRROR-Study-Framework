@@ -65,7 +65,20 @@ async function init() {
       "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb,
       fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb
     )
-  `)
+  `);
+
+  // Ensure resourceAllocations column exists on existing databases created before it was added
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb
+  `);
+
+  // Ensure fish_amount column exists on existing databases created before it was added
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb
+  `);
+
   console.log("✅ Tables checked/created");
 };
 

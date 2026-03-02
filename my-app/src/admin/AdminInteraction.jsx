@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket.js';
 import { getRoom, updateStatus } from '../../services/roomsService.js'
 import { getUser } from '../../services/usersService.js'
+import FishDistributionBar from "../FishDistributionBar";
 
 export default function AdminInteraction(){
     const location = useLocation();
@@ -209,6 +210,21 @@ export default function AdminInteraction(){
 
             <div className="admin-interaction-main-layout">
                 <div className="admin-interaction-chat-container">
+                    {resourceHistory.length > 0 && (() => {
+                        const latestEntry = resourceHistory[resourceHistory.length - 1];
+                        const latestAllocations = latestEntry?.allocations || {};
+                        const latestTotalFish = Object.values(latestAllocations).reduce(
+                            (sum, details) => sum + (details?.fish ?? 0),
+                            0
+                        );
+
+                        return (
+                            <FishDistributionBar
+                                allocations={latestAllocations}
+                                totalFish={latestTotalFish}
+                            />
+                        );
+                    })()}
                     <div className="admin-interaction-chat-box" ref={chatBoxRef}>
                         {messages.length === 0 && (
                             <div className="chat-placeholder">

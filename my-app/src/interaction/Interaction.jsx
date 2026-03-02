@@ -6,6 +6,7 @@ import { getRoom } from "../../services/roomsService";
 import { getUser, getUserRole } from "../../services/usersService";
 import InstructionsModal from "./InstructionsModal";
 import games from "../gameLoader";
+import FishDistributionBar from "../FishDistributionBar";
 
 
 export function Interaction(){
@@ -389,6 +390,22 @@ export function Interaction(){
             </aside>
 
             <div className="chat-container">
+                {resourceHistory.length > 0 && (() => {
+                    const latestEntry = resourceHistory[resourceHistory.length - 1];
+                    const latestAllocations = latestEntry?.allocations || {};
+                    const latestTotalFish = Object.values(latestAllocations).reduce(
+                        (sum, details) => sum + (details?.fish ?? 0),
+                        0
+                    );
+
+                    return (
+                        <FishDistributionBar
+                            allocations={latestAllocations}
+                            totalFish={latestTotalFish}
+                            currentUserKey={user?.userName}
+                        />
+                    );
+                })()}
                 <div className="chat-box" ref={chatBoxRef}>
                     {messages.length === 0 && (
                         <div className="chat-placeholder">
