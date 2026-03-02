@@ -62,7 +62,7 @@ export default function AdminInstructions() {
         await updateStatus(roomCode, "interaction");
         navigate("/admin/interaction", { state: { roomCode } }); // will need to update this once next merge pull request happens (I changed endpoint to /admin/interactions or something like that)
     }
-    
+
     if (loading) {
         return <p> Loading instructions...</p>;
     }
@@ -79,6 +79,9 @@ export default function AdminInstructions() {
 
     const instructions = game.instructions;
     const overview = typeof instructions === "string" ? instructions : instructions?.overview ?? "";
+    const formattedOverview = overview
+      .replace(/\*\*(.*?)\*\*/g, "<h3>$1</h3>")
+      // .replace(/\n/g, "<br />"); // comment this out to count newlines
     const firstRound = instructions?.rounds?.[0];
 
     return (
@@ -87,9 +90,10 @@ export default function AdminInstructions() {
 
     <h3 className="section-title">Instructions</h3>
 
-      <p className="instructions-overview">
+      <p className="instructions-overview" dangerouslySetInnerHTML={{__html: formattedOverview}} />
+      {/* <p className="instructions-overview">
         {overview}
-      </p>
+      </p> */}
 
       {firstRound && (
         <>

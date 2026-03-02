@@ -177,7 +177,8 @@ return (
 
                 <div className="room-meta">
                   <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
-                  <span className="meta-item">Needs {room.usersNeeded} users</span>
+                  <span className="meta-item">{room.modelType}</span>
+                  <span className="meta-item">Needs {room.usersNeeded} user(s)</span>
                   <span className="meta-item">Started: {room.started ? "✅" : "❌"}</span>
                   {status && ( <span className={`meta-item`}>Status: {status}</span> )}
 
@@ -265,6 +266,7 @@ return (
               <option value="gpt-4o">gpt-4o (default)</option>
               <option value="gpt-4.1">gpt-4.1</option>
               <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+              <option value="gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
             </select>
           </div>
         </div>
