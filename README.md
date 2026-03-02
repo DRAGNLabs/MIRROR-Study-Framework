@@ -15,7 +15,7 @@ After installation rerun the commands above to confirm Node.js and npm are insta
 
 ## Create .env file
 In the `backend/` directory, create a `.env` file. See `backend/.env.example` for all required variables. At minimum you need:
-- `OPENAI_MODEL` — the OpenAI model to use (e.g., `gpt-4o`)
+- `OPENAI_MODEL` — the default OpenAI model to use for rooms that do not explicitly select a model in the admin UI (e.g., `gpt-4o`)
 - `OPENAI_API_KEY` — your OpenAI API key
 - `ADMIN_PASSWORD_HASH` — bcrypt hash of your admin login password
 - PostgreSQL connection variables:

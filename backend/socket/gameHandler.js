@@ -63,7 +63,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     await streamLLM(messages, token => {
         buffer += token;
         io.to(room.roomCode).emit("ai-token", token); // allows tokens to be appended to LLM message as they come
-    });
+    }, room.modelType);
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(room.roomCode).emit("ai-end");
 
