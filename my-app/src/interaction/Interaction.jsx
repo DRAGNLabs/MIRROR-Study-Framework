@@ -169,13 +169,15 @@ export function Interaction(){
         socket.on("round-complete", (round) => {
             setCanSend(false);
             setHasSentThisRound(true);
-            refreshResourceAllocations();
+            loadRoomState();
+            // refreshResourceAllocations();
         });
 
         socket.on("game-complete", ()=> {
             setCanSend(false);
             setHasSentThisRound(true);
-            refreshResourceAllocations();
+            loadRoomState();
+            // refreshResourceAllocations();
         });
 
         socket.on("force-return-to-login", () => {
