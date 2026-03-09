@@ -133,7 +133,8 @@ export function Interaction(){
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
-            console.log("Receiving message ", message);
+            // loadRoomState();
+            // console.log("Receiving message ", message);
         });
 
         socket.on("start-user-survey", () => {
@@ -164,20 +165,21 @@ export function Interaction(){
         socket.on("instructions-complete", (round) => {
             setCanSend(true);
             setHasSentThisRound(false);
+            loadRoomState();
         });
 
         socket.on("round-complete", (round) => {
             setCanSend(false);
             setHasSentThisRound(true);
-            loadRoomState();
-            // refreshResourceAllocations();
+            // loadRoomState();
+            refreshResourceAllocations();
         });
 
         socket.on("game-complete", ()=> {
             setCanSend(false);
             setHasSentThisRound(true);
-            loadRoomState();
-            // refreshResourceAllocations();
+            // loadRoomState();
+            refreshResourceAllocations();
         });
 
         socket.on("force-return-to-login", () => {

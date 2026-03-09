@@ -20,10 +20,11 @@ function resolveModel(modelOverride) {
 }
 
 export async function callLLM(messages, modelOverride) {
+  // I'm setting the model to a seperate extraction model as we don't nee dot use the same model as the generation
   const model = resolveModel(modelOverride);
 
   const response = await client.responses.create({
-    model,
+    model: process.env.OPENAI_EXTRACTION_MODEL,
     input: messages,
   });
   return response.output_text;
