@@ -19,6 +19,16 @@ function resolveModel(modelOverride) {
   return envModel;
 }
 
+export async function callLLM(messages, modelOverride) {
+  const model = resolveModel(modelOverride);
+
+  const response = await client.responses.create({
+    model,
+    input: messages,
+  });
+  return response.output_text;
+}
+
 export async function streamLLM(prompt, onToken, modelOverride) {
   const model = resolveModel(modelOverride);
 

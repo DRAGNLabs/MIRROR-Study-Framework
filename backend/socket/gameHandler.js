@@ -1,5 +1,5 @@
 import { loadGames } from "../services/gameLoader.js"
-import { streamLLM } from "../llm.js";
+import { streamLLM, callLLM } from "../llm.js";
 import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount } from "../services/roomsService.js";
 import { jsonrepair } from "jsonrepair";
 
@@ -38,13 +38,13 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     ]
 
     for (let i = 1; i <= round; i++) {
-        if (!game.instructions?.template) {
+        if (!game.instructions?.template) { // basically only puts instructions prompt in if we don't have a template in the file
             messages.push({ "role": "user", "content": instructionsPrompt})
             // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
         } 
         if (!llmInstructions[i]) break;
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        const formattedUserMessages =  ( 
+        const formattedUserMessages =  ( // putting in all user messages as one for context of LLM
             await Promise.all(
                 userMessages[i].map(async ([userId, text]) => {
                     const user = await getUser(userId) 
@@ -53,13 +53,15 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
                 })
             )
         ).join("\n");
-
+        
+        // do we want to put in this user instructions everytime?
         messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i] })} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
+
     if(getInstructions) {
-        await delay(500);
+        await delay(500); // trying to circumvent concurrency issues
     }
 
     console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
@@ -73,7 +75,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(room.roomCode).emit("ai-end");
 
-    if (!getAllocation) {
+    if (!getAllocation) { // if you're just getting instructions we'll return the buffer
         return buffer;
     }
 
@@ -88,11 +90,11 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
         let parsed;
         try {
-            const raw = await callLLM(extractionMessages);
+            const raw = await callLLM(extractionMessages, room.modelType);
             const cleaned = stripFences(raw);
             parsed = JSON.parse(cleaned);
         } catch (err) {
-            const raw = await callLLM(extractionMessages);
+            const raw = await callLLM(extractionMessages, room.modelType);
             const cleaned = stripFences(raw);
             const repaired = jsonrepair(cleaned);
             parsed = JSON.parse(repaired);
