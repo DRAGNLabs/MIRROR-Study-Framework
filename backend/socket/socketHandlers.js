@@ -41,7 +41,7 @@ export async function handleJoinRoom(io, socket, { roomCode, isAdmin, user }) {
         return;
     }
 
-    console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
+    console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id, user.userName);
 }
 
 

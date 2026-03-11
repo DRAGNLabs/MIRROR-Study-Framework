@@ -5,7 +5,7 @@ import { SOCKET_URL } from "./config.js";
 const socketParams = {
     autoConnect: true,
     reconnection: true,
-    reconnectionAttempts: 5, 
+    reconnectionAttempts: 10, 
     reconnectionDelay: 1000, 
 }
 // When SOCKET_URL is empty (production single-service), io() with no URL
