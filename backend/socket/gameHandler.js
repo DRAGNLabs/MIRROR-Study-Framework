@@ -205,8 +205,8 @@ export async function getLlmInstructions(io, roomCode, round) {
         const instruction_message = { sender: "llm", text: instructions, id: `instructions-${round}` };
         // users don't receive instructions from socket if this await delay isn't here
         // hmm maybe this is why? do we need a longer wait delay...
-        // await delay(500); 
-        // io.to(roomCode).emit("receive-message", instruction_message); // would if we just did instructions-complete?
+        await delay(500); 
+        io.to(roomCode).emit("receive-message", instruction_message); // would if we just did instructions-complete?
     } else {
         instructions = await getLlmText(io, roomCode, true, false);
     }
