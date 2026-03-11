@@ -11,6 +11,7 @@ export function initializeSocketServer(httpServer, corsOrigin) {
     });
 
 io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
 //    console.log("Client connected:", socket.id);
 
     // when admin starts room or when user joins roomCode they are joined to this socket instance
@@ -62,10 +63,6 @@ io.on("connection", (socket) => {
         surveyComplete(io, roomCode, surveyId, userId);
     });
 
-    socket.on("connect", () => {
-        console.log("Connected", socket.id);
-    });
-
     // this is for if someone leaves the room while they're waiting
     socket.on("leave-room", () => {
         handleDisconnect(io, socket);
@@ -77,25 +74,25 @@ io.on("connection", (socket) => {
         handleDisconnect(io, socket);
     });
 
-    socket.on("connect_error", (err) => {
-        console.log("Connection error:", err.message);
-    });
+    // socket.on("connect_error", (err) => {
+    //     console.log("Connection error:", err.message);
+    // });
 
-    socket.on("connect_timeout", () => {
-        console.log("Connection timed out:", socket.id);
-    });
+    // socket.on("connect_timeout", () => {
+    //     console.log("Connection timed out:", socket.id);
+    // });
 
-    socket.on("reconnect_attempt", (attempt) => {
-        console.log("Reconnect attempt:", attempt);
-    });
+    // socket.on("reconnect_attempt", (attempt) => {
+    //     console.log("Reconnect attempt:", attempt);
+    // });
 
-    socket.on("reconnect", (attempt) => {
-        console.log("Reconnected after", attempt, "attempts");
-    });
+    // socket.on("reconnect", (attempt) => {
+    //     console.log("Reconnected after", attempt, "attempts");
+    // });
 
-    socket.on("reconnect_failed", () => {
-        console.log("Reconnect failed permanently");
-    });
+    // socket.on("reconnect_failed", () => {
+    //     console.log("Reconnect failed permanently");
+    // });
 });
 
 return io;
