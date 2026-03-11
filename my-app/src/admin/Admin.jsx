@@ -15,6 +15,7 @@ export function Admin() {
     const [newRoomCode, setNewRoomCode] = useState(null);
     // const [ error, setError] = useState("");
     const [roomUsers, setRoomUsers] = useState({});
+    const [completed, setCompleted] = useState(false);
 
     const [ rooms, setRooms ] = useState([]);
     // const [deletingRoom, setDeletingRoom] = useState(null);
@@ -81,10 +82,15 @@ export function Admin() {
 
     
     async function createRoom() { //changes the page to customize the room
+        setCompleted(false);
         const newRoomCode = await generateRoomCode();
         setNewRoomCode(newRoomCode);
         setStart(false);
         setRoomCreated(true);
+    }
+
+    async function completedRooms(){
+      setCompleted(true);
     }
 
     async function buildRoom() { //sends the room into the backend
@@ -157,132 +163,146 @@ return (
       <button className="btn-primary-admin" onClick={createRoom}>
         Create Room
       </button>
+      <button className="btn-primary-admin" onClick={completedRooms}>
+        Completed Rooms
+      </button>
     </div>
 
-    {start && rooms && (
+    {!completed ? (
+    <>
+      {start && rooms && (
+        <div className="rooms-grid">
+          <h2 className="rooms-section-title">Your rooms</h2>
+          <p className="rooms-section-subtitle">
+            Select a room to start or create a new one
+          </p>
+
+          <div className="rooms-container">
+            {rooms.map((room) => {
+              const game = getGameById(room.gameType);
+              const status = room.status;
+
+              return (
+                <div className="room-display" key={room.roomCode}>
+                  <span className="room-code-badge">{room.roomCode}</span>
+
+                  <div className="room-meta">
+                    <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
+                    <span className="meta-item">{room.modelType}</span>
+                    <span className="meta-item">Needs {room.usersNeeded} user(s)</span>
+                    <span className="meta-item">Started: {room.started ? "✅" : "❌"}</span>
+                    {status && ( <span className={`meta-item`}>Status: {status}</span> )}
+
+                    {Array.isArray(roomUsers?.[room.roomCode]) && (
+                      <span className="meta-item users">
+                        Users: {roomUsers[room.roomCode].join(", ")}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="room-display-actions">
+                    <button
+                      className="btn-primary-admin"
+                      onClick={() => startRoom(room.roomCode)}
+                    >
+                      Start
+                    </button>
+                    <button
+                      className="btn-secondary-admin"
+                      onClick={() => closeRoom(room.roomCode)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {roomCreated && (
+        <div className="room-info">
+          <h3 className="room-info-section">Room details</h3>
+          <div className="room-code-highlight">{newRoomCode}</div>
+
+          <h3 className="room-info-section">Participants</h3>
+          <div className="label-inline">
+            <label>Users allowed</label>
+            <input
+              className="text-input small"
+              type="number"
+              min={1}
+              value={count}
+              ref={inputRef}
+              onChange={(e) => setCount(e.target.value)}
+              required
+            />
+          </div>
+
+          <h3 className="room-info-section">Game</h3>
+          <div className="games-options">
+            {games.map((game) => (
+              <label key={game.id} className="custom-radio">
+                <input
+                  type="radio"
+                  name="game"
+                  value={game.id}
+                  checked={selectedGame === game.id}
+                  onChange={() => setSelectedGame(game.id)}
+                />
+                <span className="radio-mark" />
+                <span>{game.title}</span>
+              </label>
+            ))}
+          </div>
+
+          <h3 className="room-info-section">Model</h3>
+          <div className="model-select">
+            <div className="model-select-header">
+              <label htmlFor="modelType" className="model-select-label">
+                ChatGPT model
+              </label>
+              <p className="model-select-helper">
+                Choose which ChatGPT model this session will use.
+              </p>
+            </div>
+            <div className="model-select-control">
+              <select
+                id="modelType"
+                className="model-select-input"
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+              >
+                <option value="gpt-4o">gpt-4o (default)</option>
+                <option value="gpt-4.1">gpt-4.1</option>
+                <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+                <option value="gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
+              </select>
+            </div>
+          </div>
+
+          <button
+            className="btn-primary-admin btn-full"
+            onClick={buildRoom}
+            disabled={!selectedGame}
+          >
+            Save room
+          </button>
+        </div>
+      )}
+      </>
+    ): (
       <div className="rooms-grid">
-        <h2 className="rooms-section-title">Your rooms</h2>
-        <p className="rooms-section-subtitle">
-          Select a room to start or create a new one
-        </p>
-
-        <div className="rooms-container">
-          {rooms.map((room) => {
-            const game = getGameById(room.gameType);
-            const status = room.status;
-
-            return (
-              <div className="room-display" key={room.roomCode}>
-                <span className="room-code-badge">{room.roomCode}</span>
-
-                <div className="room-meta">
-                  <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
-                  <span className="meta-item">{room.modelType}</span>
-                  <span className="meta-item">Needs {room.usersNeeded} user(s)</span>
-                  <span className="meta-item">Started: {room.started ? "✅" : "❌"}</span>
-                  {status && ( <span className={`meta-item`}>Status: {status}</span> )}
-
-                  {Array.isArray(roomUsers?.[room.roomCode]) && (
-                    <span className="meta-item users">
-                      Users: {roomUsers[room.roomCode].join(", ")}
-                    </span>
-                  )}
-                </div>
-
-                <div className="room-display-actions">
-                  <button
-                    className="btn-primary-admin"
-                    onClick={() => startRoom(room.roomCode)}
-                  >
-                    Start
-                  </button>
-                  <button
-                    className="btn-secondary-admin"
-                    onClick={() => closeRoom(room.roomCode)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <h2 className="rooms-section-title">Completed Rooms</h2>
+          <p className="rooms-section-subtitle">Completed room data here.</p>
       </div>
-    )}
-
-    {roomCreated && (
-      <div className="room-info">
-        <h3 className="room-info-section">Room details</h3>
-        <div className="room-code-highlight">{newRoomCode}</div>
-
-        <h3 className="room-info-section">Participants</h3>
-        <div className="label-inline">
-          <label>Users allowed</label>
-          <input
-            className="text-input small"
-            type="number"
-            min={1}
-            value={count}
-            ref={inputRef}
-            onChange={(e) => setCount(e.target.value)}
-            required
-          />
-        </div>
-
-        <h3 className="room-info-section">Game</h3>
-        <div className="games-options">
-          {games.map((game) => (
-            <label key={game.id} className="custom-radio">
-              <input
-                type="radio"
-                name="game"
-                value={game.id}
-                checked={selectedGame === game.id}
-                onChange={() => setSelectedGame(game.id)}
-              />
-              <span className="radio-mark" />
-              <span>{game.title}</span>
-            </label>
-          ))}
-        </div>
-
-        <h3 className="room-info-section">Model</h3>
-        <div className="model-select">
-          <div className="model-select-header">
-            <label htmlFor="modelType" className="model-select-label">
-              ChatGPT model
-            </label>
-            <p className="model-select-helper">
-              Choose which ChatGPT model this session will use.
-            </p>
-          </div>
-          <div className="model-select-control">
-            <select
-              id="modelType"
-              className="model-select-input"
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-            >
-              <option value="gpt-4o">gpt-4o (default)</option>
-              <option value="gpt-4.1">gpt-4.1</option>
-              <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-              <option value="gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
-            </select>
-          </div>
-        </div>
-
-        <button
-          className="btn-primary-admin btn-full"
-          onClick={buildRoom}
-          disabled={!selectedGame}
-        >
-          Save room
-        </button>
-      </div>
-    )}
+    )
+    }
   </div>
 );
 }
+
 
 //     return (
 //     <div className="admin-container admin-dashboard">

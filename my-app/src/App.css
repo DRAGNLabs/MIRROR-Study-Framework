@@ -1194,6 +1194,7 @@ nav button.nav-logout:hover {
   margin: 0 auto 2rem;
   display: flex;
   justify-content: flex-start;
+  gap: 12px;
 }
 
 .btn-primary-admin {
