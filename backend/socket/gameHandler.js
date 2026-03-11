@@ -1,6 +1,6 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM, callLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount } from "../services/roomsService.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound } from "../services/roomsService.js";
 import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
@@ -22,7 +22,8 @@ function fillPrompt(template, values) {
 // used in start-round socket and getLlmResponse function
 async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
     const room = await getRoom(roomCode);
-    const round = currRounds[roomCode];
+    const round = room.curr_round;
+    // const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
     // might want to change the line below to be conditional if there is an instruction prompt (as some games we won't prompt LLM for instructions)
@@ -136,7 +137,8 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
-    const round = currRounds[roomCode];
+    const room = await getRoom(roomCode);
+    const round = room.curr_round;
     let buffer;
     try {
         buffer = await getLlmText(io, roomCode, false, true);
@@ -170,18 +172,19 @@ async function getLlmResponse(io, roomCode) {
             console.log(`Round ${round} completed, waiting for next round...`);
         }
 
-        currRounds[roomCode] += 1;
-        io.to(roomCode).emit("round-complete", currRounds[roomCode]);
-        await getLlmInstructions(io, roomCode, currRounds[roomCode]);
+        await updateCurrRound(round+1, roomCode);
+        // currRounds[roomCode] += 1;
+        io.to(roomCode).emit("round-complete", round+1);
+        await getLlmInstructions(io, roomCode, round+1);
     } catch (err) {
         console.error(`[Round ${round}] getLlmResponse post-processing crashed:`, err);
     }
 }
 
 export async function getLlmInstructions(io, roomCode, round) {
-    if (!currRounds[roomCode]) {
-        currRounds[roomCode] = round
-    }
+    // if (!currRounds[roomCode]) {
+    //     currRounds[roomCode] = round
+    // }
     const room = await getRoom(roomCode);
     const fish_amount = room.fish_amount ?? {};
     const game = games.find(g=> parseInt(g.id) === room.gameType);
@@ -201,8 +204,9 @@ export async function getLlmInstructions(io, roomCode, round) {
         });
         const instruction_message = { sender: "llm", text: instructions, id: `instructions-${round}` };
         // users don't receive instructions from socket if this await delay isn't here
-        await delay(500); 
-        io.to(roomCode).emit("receive-message", instruction_message);
+        // hmm maybe this is why? do we need a longer wait delay...
+        // await delay(500); 
+        // io.to(roomCode).emit("receive-message", instruction_message); // would if we just did instructions-complete?
     } else {
         instructions = await getLlmText(io, roomCode, true, false);
     }
@@ -212,9 +216,10 @@ export async function getLlmInstructions(io, roomCode, round) {
 
 
 export async function submitUserMessages(io, roomCode, userId, userName, text) {
-    const round = currRounds[roomCode];
+    // const round = currRounds[roomCode];
     const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
     const room = await getRoom(roomCode);
+    const round = room.curr_round;
     const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
     const alreadySubmitted = roundMessages.some(
@@ -233,6 +238,8 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
 
     await updateUserMessages(existingUserMessages, roomCode);
     io.to(roomCode).emit("receive-message", userMsg);
+    // we could just call update to database, we might need some time between user messages and getting LLM response
+    // if two users send a message at the same time what happens? Are there cases it doesn't get updated?
 
     if(existingUserMessages[round].length === room.userIds.length) {
         await getLlmResponse(io, roomCode, round); // if a user leaves in middle of round this is called before that user sends their message
