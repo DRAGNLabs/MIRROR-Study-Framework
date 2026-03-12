@@ -133,7 +133,6 @@ export default function App() {
 
   const handleHomeClick = () => {
     const roomCode = sessionStorage.getItem("roomCode");
-    console.log(roomCode);
     // const userId = sessionStorage.getItem("userId");
     if (roomCode) {
       socket.emit("leave-room", {roomCode});

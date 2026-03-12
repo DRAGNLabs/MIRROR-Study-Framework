@@ -31,6 +31,27 @@ export function Interaction(){
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+    // Fetch only resource allocations from DB (no message/canSend side effects)
+    async function refreshResourceAllocations() {
+        try {
+            const room = await getRoom(roomCode);
+            if (room.resourceAllocations) {
+                const parsed = room.resourceAllocations ?? {};
+                const history = Object.keys(parsed)
+                    .sort((a, b) => Number(a) - Number(b))
+                    .map((roundKey) => {
+                        const roundNumber = Number(roundKey);
+                        const entry = parsed[roundKey] || {};
+                        const allocationByUserName = entry.allocationByUserName || {};
+                        return { round: roundNumber, allocations: allocationByUserName };
+                    });
+                setResourceHistory(history);
+            }
+        } catch (err) {
+            console.error("Failed to refresh resource allocations:", err);
+        }
+    }
+
     // Load full room/game state, chat history, and resource allocations
     async function loadRoomState() {
         try {
@@ -112,7 +133,8 @@ export function Interaction(){
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
-            console.log("Receiving message ", message);
+            // loadRoomState();
+            // console.log("Receiving message ", message);
         });
 
         socket.on("start-user-survey", () => {
@@ -143,20 +165,21 @@ export function Interaction(){
         socket.on("instructions-complete", (round) => {
             setCanSend(true);
             setHasSentThisRound(false);
+            loadRoomState();
         });
 
         socket.on("round-complete", (round) => {
             setCanSend(false);
             setHasSentThisRound(true);
-            // Refresh to pull in updated llmResponse and resourceAllocations.
-            loadRoomState();
+            // loadRoomState();
+            refreshResourceAllocations();
         });
 
         socket.on("game-complete", ()=> {
             setCanSend(false);
             setHasSentThisRound(true);
-            // Final refresh so last-round allocations are visible.
-            loadRoomState();
+            // loadRoomState();
+            refreshResourceAllocations();
         });
 
         socket.on("force-return-to-login", () => {
@@ -166,8 +189,6 @@ export function Interaction(){
 
         socket.on("status", (status) => {
             const currentPath = location.pathname;
-            console.log("Current path name in interaction", currentPath);
-            console.log("status", status);
             if(!currentPath.includes(status)) {
                 navigate(`/${status}`, { state: { user } });
             }
@@ -396,13 +417,7 @@ export function Interaction(){
                         </div>
                     )}
                     {messages.map((msg, i) => {
-                        const rawText = typeof msg.text === "string" ? msg.text : "";
-                        const isJsonLike =
-                            rawText.trim().startsWith("{") &&
-                            rawText.includes("allocationByUserName");
-                        const safeText = isJsonLike
-                            ? "An internal allocation update occurred."
-                            : rawText;
+                        const safeText = typeof msg.text === "string" ? msg.text : "";
                         return (
                             <div
                                 key={msg.id ?? i}

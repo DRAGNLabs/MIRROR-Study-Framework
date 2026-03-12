@@ -448,4 +448,33 @@ router.patch("/:roomCode/status", async (req, res) => {
 
 })
 
+
+router.patch("/:roomCode/currRound", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { currRound } = req.body;
+
+    const result = await db.query(
+      'UPDATE rooms SET curr_round = $1 WHERE "roomCode" = $2 RETURNING "roomCode", curr_round',
+      [currRound, roomCode]
+    );
+
+    if (result.rowCount === 0){
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json({
+      roomCode: result.rows[0].roomCode,
+      status: result.rows[0].curr_round,
+      message: "currRound successfully updated!"
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+
+  }
+
+})
+
 export default router;
