@@ -24,7 +24,7 @@ export async function callLLM(messages, modelOverride) {
   const model = resolveModel(modelOverride);
 
   const response = await client.responses.create({
-    model: "gpt-4.1-nano", // hardcoding it for now because Idk how to add env variable to railway
+    model: process.env.OPENAI_EXTRACTION_MODEL, // hardcoding it for now because Idk how to add env variable to railway
     input: messages,
   });
   return response.output_text;
