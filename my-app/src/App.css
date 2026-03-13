@@ -572,6 +572,13 @@ nav button.nav-logout:hover {
   text-align: right;
 }
 
+.resources-fish-chart {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  min-height: 180px;
+}
+
 /* === Chat Container === */
 .chat-container {
   flex: 1;
@@ -1684,6 +1691,10 @@ nav button.nav-logout:hover {
 
 .admin-resources-panel .resources-history-round {
   color: #e2e8f0;
+}
+
+.admin-resources-panel .resources-fish-chart {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Shared: Next button bar (Admin Instructions page) */
