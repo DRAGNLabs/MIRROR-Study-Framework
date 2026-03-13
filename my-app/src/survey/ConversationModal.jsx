@@ -12,7 +12,7 @@ export default function ConversationModal({ open, onClose, messages }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-card"
+        className="modal-card conversation-modal-card"
         onClick={(e) => e.stopPropagation()}
       >
         <button className="modal-close" onClick={onClose}>✕</button>

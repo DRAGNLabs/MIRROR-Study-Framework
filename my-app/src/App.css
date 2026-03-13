@@ -2097,6 +2097,18 @@ for instructions button on interactions page
   text-align: center;
 }
 
+.conversation-modal-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.conversation-modal-card .chat-box {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
 .info-icon-button {
   width: 36px;
   height: 36px;
@@ -2189,8 +2201,6 @@ survey conversation thingy
 }
 
 .reflection-chat {
-  max-height: 50vh;
-  overflow-y: auto;
   padding: 1rem 0;
   display: flex;
   flex-direction: column;
