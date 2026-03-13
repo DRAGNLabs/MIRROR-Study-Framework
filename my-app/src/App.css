@@ -2752,3 +2752,13 @@ survey conversation thingy
   font-size: 1rem;
   font-weight: 500;
 }
+
+.room-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.room-actions button {
+  flex: 1;
+}
