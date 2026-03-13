@@ -2,19 +2,26 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket"; 
 import { getUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms } from "../../services/roomsService";
 import games from "../gameLoader";
+
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
+    // For when you're deleting a room and you are in the process of confirming the delete
+    const [roomPendingDelete, setRoomPendingDelete] = useState(null);
     const [start, setStart] = useState(true);
     const [count, setCount] = useState(3);
+
     const [selectedGame, setSelectedGame] = useState(null);
     const [selectedModel, setSelectedModel] = useState("gpt-4o");
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
+    // Stores the list of completed rooms from the db
+    const [completedRoomList, setCompletedRoomList] = useState([]);
     // const [ error, setError] = useState("");
     const [roomUsers, setRoomUsers] = useState({});
+    // When true shows the completed rooms page.
     const [completed, setCompleted] = useState(false);
 
     const [ rooms, setRooms ] = useState([]);
@@ -26,7 +33,20 @@ export function Admin() {
     const navigate = useNavigate();
     const isAdmin = true;
 
+    const location = useLocation();
 
+
+    async function showCompletedRooms() {
+      try {
+        const data = await fetchCompletedRooms();
+        setCompletedRoomList(data);
+        setCompleted(true);
+        setStart(false);
+        setRoomCreated(false);
+      } catch (error) {
+        console.error("Error loading completed rooms:", error);
+      }
+    }
 
     async function init(){
         const rooms = await getOpenRooms();
@@ -79,6 +99,18 @@ export function Admin() {
         });
     }, [rooms]);
 
+    useEffect(() => {
+        completedRoomList.forEach((room) => {
+          loadUsersForRoom(room);
+        });
+      }, [completedRoomList]);
+
+    /** Navigating back from the room details page it'll take you back where you were. */
+    useEffect(() => {
+      if (location.state?.showCompletedRooms === true) {
+        showCompletedRooms();
+      }
+    }, [location.state?.showCompletedRooms]);
 
     
     async function createRoom() { //changes the page to customize the room
@@ -87,6 +119,12 @@ export function Admin() {
         setNewRoomCode(newRoomCode);
         setStart(false);
         setRoomCreated(true);
+    }
+
+    async function activeRoomsDisplay(){
+      setCompleted(false);
+      setStart(true);
+      setRoomCreated(false);
     }
 
     async function completedRooms(){
@@ -157,15 +195,34 @@ export function Admin() {
 
     }
 
+    async function confirmDeleteCompletedRoom() {
+      if (!roomPendingDelete) return;
+
+      try {
+        setCompletedRoomList((prev) =>
+          prev.filter((r) => r.roomCode !== roomPendingDelete.roomCode)
+        );
+        closeARoom(roomPendingDelete.roomCode);
+        setRoomPendingDelete(null);
+      } catch (error) {
+        console.error("Error deleting room:", error);
+      }
+    }
+
+
 return (
   <div className="admin-container admin-dashboard">
     <div className="admin-top">
+      <button className="btn-primary-admin" onClick={activeRoomsDisplay}>
+        Rooms
+      </button>
+      <button className="btn-primary-admin" onClick={showCompletedRooms}>
+        Completed Rooms
+      </button>
       <button className="btn-primary-admin" onClick={createRoom}>
         Create Room
       </button>
-      <button className="btn-primary-admin" onClick={completedRooms}>
-        Completed Rooms
-      </button>
+      
     </div>
 
     {!completed ? (
@@ -296,9 +353,65 @@ return (
       <div className="rooms-grid">
         <h2 className="rooms-section-title">Completed Rooms</h2>
           <p className="rooms-section-subtitle">Completed room data here.</p>
+        <div className="rooms-container">
+          {Array.isArray(completedRoomList) && completedRoomList.length > 0 ? (
+            completedRoomList.map((room) => (
+              <div className="room-display" key={room.roomCode}>
+                <span className="room-code-badge">Room Code: {room.roomCode}</span>
+
+                <div className="room-meta">
+                  <span className="meta-item">
+                    Users: {Array.isArray(roomUsers?.[room.roomCode])
+                      ? roomUsers[room.roomCode].join(", ")
+                      : "Loading..."}
+                  </span>
+                  
+                  <span className="meta-item">Model used: {room.modelType}</span>
+    
+                </div>
+
+                <div className="room-actions">
+                  <button className="btn-primary-admin" onClick={() => navigate(`/admin/completed-room/${room.roomCode}`)}>View</button>
+                  <button className="btn-secondary-admin"  onClick={() => setRoomPendingDelete(room)}>Delete</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No completed rooms found.</p>
+          )}
+        </div>
       </div>
     )
     }
+      {roomPendingDelete && (
+    <div className="modal-backdrop">
+      <div className="confirm-modal-card">
+        <h3 className="confirm-modal-title">Delete completed room?</h3>
+        <p className="confirm-modal-text">
+          Are you sure you want to delete room{" "}
+          <strong>{roomPendingDelete.roomCode}</strong>?
+        </p>
+        <p className="confirm-modal-subtext">
+          This action cannot be undone.
+        </p>
+
+        <div className="confirm-modal-actions">
+          <button
+            className="btn-secondary-admin"
+            onClick={() => setRoomPendingDelete(null)}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn-danger-admin"
+            onClick={confirmDeleteCompletedRoom}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
   </div>
 );
 }
