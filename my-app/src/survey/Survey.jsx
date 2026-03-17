@@ -9,6 +9,7 @@ import { socket } from '../socket';
 import games from "../gameLoader";
 import ConversationModal from "./ConversationModal";
 import ConversationReflectionStep from "./ConversationReflectionStep";
+import { buildConversation } from "./BuildRoom";
 
 function buildDisplaySteps(questions) {
     const steps = [];
