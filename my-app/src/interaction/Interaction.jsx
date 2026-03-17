@@ -372,6 +372,11 @@ export function Interaction(){
 
         <div className="interaction-main-layout">
             <aside className="resources-panel" aria-label="Fish resource split">
+                {timeRemaining !== null && (
+                    <div className={`timer-warning ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                        ⏱ Time remaining: {formatTime(timeRemaining)}
+                    </div>
+                )}
                 <div className="resources-header">
                     <div>
                         <h2 className="resources-title">Resource Split (Fish)</h2>
@@ -379,11 +384,6 @@ export function Interaction(){
                     </div>
                 </div>
 
-                {timeRemaining !== null && (
-                    <div className={`timer-warning ${timeRemaining <= 30 ? 'urgent' : ''}`}>
-                        ⏱ Time remaining: {formatTime(timeRemaining)}
-                    </div>
-                )}
 
             {/* ── Total allocations (prominent) ── */}
             {resourceHistory.length > 0 ? (() => {

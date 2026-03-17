@@ -17,7 +17,12 @@ function fillPrompt(template, values) {
 
 // used in start-round socket and getLlmResponse function
 async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
-    const room = await getRoom(roomCode);
+    try {
+        const room = await getRoom(roomCode);
+    } catch (error) {
+        console.err(`Failed to get room ${roomCode} while getting LLM text`, error.message);
+        return;
+    }
     const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
@@ -40,11 +45,16 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         } 
         if (!llmInstructions[i]) break;
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        const formattedUserMessages =  ( 
+        const allUserIds = room.userIds || [];
+        const roundMessages = userMessages[i] || [];
+
+        const formattedUserMessages = (
             await Promise.all(
-                userMessages[i].map(async ([userId, text]) => {
-                    const user = await getUser(userId) 
+                allUserIds.map(async (userId) => {
+                    const user = await getUser(userId);
                     const name = user?.userName || `User ${userId}`;
+                    const userResponse = roundMessages.find(([id]) => id === userId);
+                    const text = userResponse ? userResponse[1] : "[No response from this user]";
                     return `${name}: ${text}`;
                 })
             )
@@ -248,14 +258,19 @@ function startRoundTimer(io, roomCode, round, conversationTime) {
     const durationMs = conversationTime * 1000;
     const endTime = Date.now() + durationMs;
 
-    io.to(roomCode).emit("timer-start", { round, duration: durationMs, endTime });
+    io.to(roomCode).emit("timer-start", { duration: durationMs, endTime });
 
     const timeout = setTimeout(async () =>{
-        console.log(`Timer expired for room ${roomCode}, round ${round}`);
-
-        io.to(roomCode).emit("timer-expired", { round });
+        io.to(roomCode).emit("timer-expired");
         await getLlmResponse(io, roomCode);
     }, durationMs);
 
-    roundTimers[roomCode] = { timeout, round, endTime };
+    roundTimers[roomCode] = { timeout, endTime };
+}
+
+export function getTimeLeft(io, roomCode) {
+    if (!roundTimers[roomCode]) return;
+    const { endTime } = roundTimers[roomCode];
+    const timeLeft = endTime - Date.now();
+    io.to(roomCode).emit("timer-start", { duration: timeLeft, endTime });
 }

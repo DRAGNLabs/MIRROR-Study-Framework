@@ -27,10 +27,6 @@ export default function AdminInteraction(){
     const timerIntervalRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    const currentRoundAllocations =
-        resourceHistory.length > 0
-            ? resourceHistory[resourceHistory.length - 1]
-            : null;
 
     const startClientTimer = (endTime) => {
         if (timerIntervalRef.current) {
@@ -275,9 +271,9 @@ export default function AdminInteraction(){
             <header className="admin-interaction-header">
                 <h1 className="admin-interaction-header-title">Admin</h1>
                 <span className="admin-interaction-room-badge">Room {roomCode}</span>
-                {timeRemaining !== null && (
+                {/* {timeRemaining !== null && (
                     <span className="admin-timer-badge">⏱ {formatTime(timeRemaining)}</span>
-                )}
+                )} */}
                 <span className="admin-interaction-header-spacer" aria-hidden="true" />
             </header>
 
@@ -312,6 +308,9 @@ export default function AdminInteraction(){
                     </div>
                 </div>
                 <aside className="admin-resources-panel" aria-label="Fish resource split (admin)">
+                    {timeRemaining !== null && (
+                        <span className="admin-timer-badge">⏱ {formatTime(timeRemaining)}</span>
+                    )}
                     <div className="resources-header">
                         <div>
                             <h2 className="resources-title">Resource Split (Fish)</h2>

@@ -2757,7 +2757,8 @@ survey conversation thingy
 .timer-warning {
     padding: 12px;
     margin-bottom: 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
     color: white;
     border-radius: 8px;
     text-align: center;
@@ -2767,14 +2768,16 @@ survey conversation thingy
 }
 
 .timer-warning.urgent {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
+    /* background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); */
     animation: pulse 1s infinite;
 }
 
 /* Admin timer badge in header */
 .admin-timer-badge {
     padding: 6px 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%, #4c96db 100%);
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
     color: white;
     border-radius: 6px;
     font-weight: 600;

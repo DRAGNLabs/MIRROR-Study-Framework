@@ -1,4 +1,5 @@
 import { getRoom } from '../services/roomsService.js';
+import { getTimeLeft } from './gameHandler.js';
 
 const usersInRoom = {};
 const socketUserMap = {};
@@ -40,6 +41,8 @@ export async function handleJoinRoom(io, socket, { roomCode, isAdmin, user }) {
         console.error("join-room: failed to fetch room for roomCode", roomCode, err?.message || err);
         return;
     }
+
+    getTimeLeft(io, roomCode); // makes sure timer is consistent across refreshes
 
     console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
 }
