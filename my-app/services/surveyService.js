@@ -30,3 +30,12 @@ export async function getSurveyStatus(userId) {
   if(!response.ok) throw new Error("Error getting survey status");
   return response.json();
 }
+
+export async function getUsersSurvey(userId) {
+  const response = await fetch(`${API_BASE}/survey/user/${userId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }   
+  });
+  if (!response.ok) throw new Error("Error getting user's survey");
+  return response.json();
+}
