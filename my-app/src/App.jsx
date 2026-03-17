@@ -17,6 +17,7 @@ import LoginAdmin from "./admin/AdminLogin";
 import Instructions from './interaction/Instructions';
 import AdminInstructions from './admin/AdminInstructions';
 import AdminSurvey from './admin/AdminSurvey';
+import CompletedRoomPage from './admin/CompletedRoomDetails';
 
 function RequireState({ children, fallback = "/" }) {
     const location = useLocation();
@@ -172,6 +173,7 @@ export default function App() {
         <Route path='/admin/survey' element={<RequireState fallback="/adminLogin"> <AdminSurvey/> </RequireState>} />
         {/* add a route to llm page when its added */}
         <Route path="*" element={window.location.pathname.includes("admin") ? ( < Navigate to= "/adminLogin" /> ) : ( <Navigate to="/" />)} />
+        <Route path="/admin/completed-room/:roomCode" element={<CompletedRoomPage />} />
       </Routes>
     </>
     

@@ -1158,6 +1158,8 @@ nav button.nav-logout:hover {
   border-radius: 6px;
   line-height: 1.3;
   white-space: nowrap;
+  /* display: inline-block;
+  width: fit-content; */
 }
 
 .meta-item strong {
@@ -1194,6 +1196,7 @@ nav button.nav-logout:hover {
   margin: 0 auto 2rem;
   display: flex;
   justify-content: flex-start;
+  gap: 12px;
 }
 
 .btn-primary-admin {
@@ -2795,4 +2798,129 @@ survey conversation thingy
         opacity: 0.9;
         transform: scale(1.02);
     }
+}
+  
+.room-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.room-actions button {
+  flex: 1;
+}
+
+.room-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.room-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  flex: 0 0 auto;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.room-badge-users {
+  white-space: normal;
+  width: auto;
+  max-width: 100%;
+  border-radius: 16px;
+}
+
+.survey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.survey-card {
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.survey-card-title {
+  margin: 0 0 0.75rem 0;
+  color: #e2e8f0;
+  font-size: 1.05rem;
+}
+
+.survey-empty {
+  color: #94a3b8;
+  margin: 0;
+}
+
+.survey-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.survey-field {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+}
+
+.survey-question {
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 1rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.survey-answer {
+  color: #cbd5e1;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: left;
+}
+
+.survey-user-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.survey-user-answer-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.survey-user-name {
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 90px; /* adjust if you want */
+}
+
+.survey-answer {
+  display: inline-block;
+  text-align: left;
+  flex: 1;
+}
+
+.survey-answer-list {
+  margin: 0;
+  margin-left: 1rem;   /* extra space after username */
+  padding-left: 1rem; /* indent list numbers */
+  text-align: left;
+}
+
+.survey-answer-list li {
+  margin-bottom: 0.25rem;
 }
