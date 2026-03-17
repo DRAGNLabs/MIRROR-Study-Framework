@@ -17,12 +17,7 @@ function fillPrompt(template, values) {
 
 // used in start-round socket and getLlmResponse function
 async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
-    try {
-        const room = await getRoom(roomCode);
-    } catch (error) {
-        console.err(`Failed to get room ${roomCode} while getting LLM text`, error.message);
-        return;
-    }
+    const room = await getRoom(roomCode);
     const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
@@ -253,6 +248,7 @@ export async function surveyComplete(io, roomCode, surveyId, userId) {
 function startRoundTimer(io, roomCode, round, conversationTime) {
     if (roundTimers[roomCode]) {
         clearTimeout(roundTimers[roomCode].timeout);
+        delete roundTimers[roomCode];
     }
 
     const durationMs = conversationTime * 1000;
@@ -273,4 +269,10 @@ export function getTimeLeft(io, roomCode) {
     const { endTime } = roundTimers[roomCode];
     const timeLeft = endTime - Date.now();
     io.to(roomCode).emit("timer-start", { duration: timeLeft, endTime });
+}
+
+export function deleteTimer(roomCode) {
+    if (!roundTimers[roomCode]) return;
+    clearTimeout(roundTimers[roomCode].timeout);
+    delete roundTimers[roomCode];
 }

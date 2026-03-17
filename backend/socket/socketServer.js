@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import { handleCloseRoom, handleDisconnect, handleJoinRoom } from './socketHandlers.js';
-import { surveyComplete, getLlmInstructions, submitUserMessages } from './gameHandler.js';
+import { surveyComplete, getLlmInstructions, submitUserMessages, deleteTimer } from './gameHandler.js';
 
 export function initializeSocketServer(httpServer, corsOrigin) {
     const io = new Server(httpServer, {
@@ -70,6 +70,7 @@ io.on("connection", (socket) => {
     // this disconnects users entirely from room if admin closes it while they're in it
     socket.on("close-room", ({ roomCode }) => {
         if(!roomCode) return;
+        deleteTimer(roomCode);
         handleCloseRoom(io, roomCode);
     })
 
