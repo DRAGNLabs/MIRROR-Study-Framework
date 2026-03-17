@@ -1158,6 +1158,8 @@ nav button.nav-logout:hover {
   border-radius: 6px;
   line-height: 1.3;
   white-space: nowrap;
+  /* display: inline-block;
+  width: fit-content; */
 }
 
 .meta-item strong {
@@ -2761,4 +2763,31 @@ survey conversation thingy
 
 .room-actions button {
   flex: 1;
+}
+
+.room-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.room-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  flex: 0 0 auto;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.room-badge-users {
+  white-space: normal;
+  width: auto;
+  max-width: 100%;
+  border-radius: 16px;
 }
