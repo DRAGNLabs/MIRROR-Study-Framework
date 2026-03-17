@@ -16,17 +16,41 @@ export default function AdminInteraction(){
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
+    const [awaitingResponse, setAwaitingResponse] = useState(new Set());
+    const [roundTimeout, setRoundTimeout] = useState(null);
+    const [timeRemaining, setTimeRemaining] = useState(null);
+
 
     // const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
     const isStreamingRef = useRef(false);
+    const timerIntervalRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    const currentRoundAllocations =
-        resourceHistory.length > 0
-            ? resourceHistory[resourceHistory.length - 1]
-            : null;
 
+    const startClientTimer = (endTime) => {
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+        }
+
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            setTimeRemaining(remaining);
+
+            if (remaining === 0) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+
+        updateTimer();
+        timerIntervalRef.current = setInterval(updateTimer, 1000);
+    }
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     useEffect(() => {
         const handleConnect = () => {
@@ -42,6 +66,16 @@ export default function AdminInteraction(){
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
+            setAwaitingResponse(prev => {
+                const updated = new Set(prev);
+                updated.delete(message.userId);
+
+                if(updated.size === 0 && roundTimeout) {
+                    clearTimeout(roundTimeout);
+                    handleRoundComplete();
+                }
+                return updated;
+            })
         });
 
 
@@ -60,10 +94,20 @@ export default function AdminInteraction(){
             setStreamingText(prev => prev + token);
         });
 
-        socket.on("ai-end", () => {
+        socket.on("ai-end", async () => {
             isStreamingRef.current = false;
             setCurrentStreamingId(null);
             setStreamingText("");
+            const room = await getRoom(roomCode);
+            const userIds = room.userIds || [];
+
+            setAwaitingResponse(new Set(userIds));
+
+            const timeout = setTimeout(() => {
+                handleRoundComplete();
+            }, RESPONSE_TIMEOUT);
+
+            setRoundTimeout(timeout);
         });
 
         socket.on("force-return-to-login", () => {
@@ -71,7 +115,24 @@ export default function AdminInteraction(){
         });
 
         socket.on("round-complete", (round) => {
+            setTimeRemaining(null); 
+            if (timerIntervalRef.current) { 
+                clearInterval(timerIntervalRef.current);
+            }
             loadRoomState();
+        });
+
+        socket.on("timer-start", ({ duration, endTime }) => {
+            console.log(`Timer started: ${duration}ms`);
+            startClientTimer(endTime);
+        });
+
+        socket.on("timer-expired", () => {
+            console.log("Timer expired");
+            setTimeRemaining(null);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
         });
 
 
@@ -83,6 +144,12 @@ export default function AdminInteraction(){
             socket.off("ai-end");
             socket.off("round-complete");
             socket.off("force-return-to-login");
+            socket.off("timer-start");
+            socket.off("timer-expired");
+    
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
         };
     }, [socket]);
 
@@ -204,6 +271,9 @@ export default function AdminInteraction(){
             <header className="admin-interaction-header">
                 <h1 className="admin-interaction-header-title">Admin</h1>
                 <span className="admin-interaction-room-badge">Room {roomCode}</span>
+                {/* {timeRemaining !== null && (
+                    <span className="admin-timer-badge">⏱ {formatTime(timeRemaining)}</span>
+                )} */}
                 <span className="admin-interaction-header-spacer" aria-hidden="true" />
             </header>
 
@@ -238,6 +308,9 @@ export default function AdminInteraction(){
                     </div>
                 </div>
                 <aside className="admin-resources-panel" aria-label="Fish resource split (admin)">
+                    {timeRemaining !== null && (
+                        <span className="admin-timer-badge">⏱ {formatTime(timeRemaining)}</span>
+                    )}
                     <div className="resources-header">
                         <div>
                             <h2 className="resources-title">Resource Split (Fish)</h2>
