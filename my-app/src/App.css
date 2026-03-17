@@ -2751,3 +2751,45 @@ survey conversation thingy
   font-size: 1rem;
   font-weight: 500;
 }
+
+
+/* Timer warning in sidebar */
+.timer-warning {
+    padding: 12px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.timer-warning.urgent {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    animation: pulse 1s infinite;
+}
+
+/* Admin timer badge in header */
+.admin-timer-badge {
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+/* Pulse animation for urgent timer */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.9;
+        transform: scale(1.02);
+    }
+}

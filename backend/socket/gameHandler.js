@@ -5,6 +5,7 @@ import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
 const currRounds = {} // replace this to rely on database later
+const roundTimers = {}; // maybe make this rely on database?
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -124,6 +125,10 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
     const round = currRounds[roomCode]; 
+    if (roundTimers[roomCode]) {
+        clearTimeout(roundTimers[roomCode].timeout);
+        delete roundTimers[roomCode];
+    }
     const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
     const fish_amount = room.fish_amount ?? {};
@@ -183,7 +188,10 @@ export async function getLlmInstructions(io, roomCode, round) {
         instructions = await getLlmText(io, roomCode, true, false);
     }
     await appendLlmInstructions(roomCode, round, instructions);
+
     io.to(roomCode).emit("instructions-complete", round);
+
+    startRoundTimer(io, roomCode, round, game.conversationTime);
 }
 
 
@@ -231,3 +239,23 @@ export async function surveyComplete(io, roomCode, surveyId, userId) {
     }
 }
 
+
+function startRoundTimer(io, roomCode, round, conversationTime) {
+    if (roundTimers[roomCode]) {
+        clearTimeout(roundTimers[roomCode].timeout);
+    }
+
+    const durationMs = conversationTime * 1000;
+    const endTime = Date.now() + durationMs;
+
+    io.to(roomCode).emit("timer-start", { round, duration: durationMs, endTime });
+
+    const timeout = setTimeout(async () =>{
+        console.log(`Timer expired for room ${roomCode}, round ${round}`);
+
+        io.to(roomCode).emit("timer-expired", { round });
+        await getLlmResponse(io, roomCode);
+    }, durationMs);
+
+    roundTimers[roomCode] = { timeout, round, endTime };
+}

@@ -38,6 +38,22 @@ io.on("connection", (socket) => {
         await getLlmInstructions(io, roomCode, round);
     });
 
+    socket.on('startTimer', () => {
+
+        endTime = Date.now() + totalTime;
+        io.sockets.emit('timerStarted', { endTime: endTime });
+
+        const timerInterval = setInterval(() => {
+        const timeLeft = endTime - Date.now();
+        if (timeLeft <= 0) {
+            io.sockets.emit('timerEnded');
+            clearInterval(timerInterval);
+        } else {
+            io.sockets.emit('timeUpdate', { timeLeft: timeLeft });
+        }
+        }, 1000); 
+    });
+
         // this is called when user submits message on interaction page
     socket.on("submit-round-message", async ({ roomCode, userId, userName, text }) => {
         await submitUserMessages(io, roomCode, userId, userName, text);

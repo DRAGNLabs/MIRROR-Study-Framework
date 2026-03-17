@@ -28,8 +28,35 @@ export function Interaction(){
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
+    const [timeRemaining, setTimeRemaining] = useState(null);
+    const timerIntervalRef = useRef(null);
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+
+    const startClientTimer = (endTime) => {
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+        }
+
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            setTimeRemaining(remaining);
+
+            if (remaining === 0) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+
+        updateTimer();
+        timerIntervalRef.current = setInterval(updateTimer, 1000);
+    }
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     // Load full room/game state, chat history, and resource allocations
     async function loadRoomState() {
@@ -148,6 +175,10 @@ export function Interaction(){
         socket.on("round-complete", (round) => {
             setCanSend(false);
             setHasSentThisRound(true);
+            setTimeRemaining(null); 
+            if (timerIntervalRef.current) { 
+                clearInterval(timerIntervalRef.current);
+            }
             // Refresh to pull in updated llmResponse and resourceAllocations.
             loadRoomState();
         });
@@ -173,6 +204,21 @@ export function Interaction(){
             }
         });
 
+
+        socket.on("timer-start", ({ duration, endTime }) => {
+            console.log(`Timer started: ${duration}ms`);
+            startClientTimer(endTime);
+        });
+
+        socket.on("timer-expired", () => {
+            console.log("Timer expired");
+            setTimeRemaining(null);
+            setCanSend(false);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        });
+
         return () => {
             socket.off("connect", handleConnect);
             socket.off("receive-message");
@@ -186,6 +232,11 @@ export function Interaction(){
             socket.off("game-complete");
             socket.off("force-return-to-login");
             socket.off("status");
+            socket.off("timer-start");
+            socket.off("timer-expired");
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
         };
     }, [socket]);
 
@@ -327,6 +378,12 @@ export function Interaction(){
                         <p className="resources-subtitle">How fish are divided this game</p>
                     </div>
                 </div>
+
+                {timeRemaining !== null && (
+                    <div className={`timer-warning ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                        ⏱ Time remaining: {formatTime(timeRemaining)}
+                    </div>
+                )}
 
             {/* ── Total allocations (prominent) ── */}
             {resourceHistory.length > 0 ? (() => {
