@@ -134,6 +134,7 @@ async function getLlmResponse(io, roomCode) {
         clearTimeout(roundTimers[roomCode].timeout);
         delete roundTimers[roomCode];
     }
+    io.to(roomCode).emit("user-messages-complete");
     const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
     const fish_amount = room.fish_amount ?? {};
@@ -202,7 +203,7 @@ export async function getLlmInstructions(io, roomCode, round) {
 
 export async function submitUserMessages(io, roomCode, userId, userName, text) {
     const round = currRounds[roomCode];
-    const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
+    // const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
     const room = await getRoom(roomCode);
     const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
@@ -221,9 +222,11 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
     }
 
     await updateUserMessages(existingUserMessages, roomCode);
-    io.to(roomCode).emit("receive-message", userMsg);
+    // io.to(roomCode).emit("receive-message", userMsg);
 
     if(existingUserMessages[round].length === room.userIds.length) {
+        await constructUserMessages(io, roomCode, existingUserMessages, round);
+        await delay(100);
         await getLlmResponse(io, roomCode, round); // if a user leaves in middle of round this is called before that user sends their message
     }    
 }
@@ -258,10 +261,31 @@ function startRoundTimer(io, roomCode, round, conversationTime) {
 
     const timeout = setTimeout(async () =>{
         io.to(roomCode).emit("timer-expired");
+        const room = await getRoom(roomCode);
+        const existingUserMessages = room.userMessages; 
+        if (existingUserMessages[round]) {
+            await constructUserMessages(io, roomCode, existingUserMessages, round);
+        }
+        await delay(100);
         await getLlmResponse(io, roomCode);
     }, durationMs);
 
     roundTimers[roomCode] = { timeout, endTime };
+}
+
+async function constructUserMessages(io, roomCode, existingUserMessages, round) {
+    const allUserMessages = await Promise.all(
+    existingUserMessages[round].map(async ([uid, txt]) => {
+        const user = await getUser(uid);
+        return {
+            sender: "user",
+            userId: uid,
+            userName: user?.userName || `User ${uid}`,
+            text: txt
+        };
+    })
+);
+io.to(roomCode).emit("all-user-messages", { round, messages: allUserMessages });
 }
 
 export function getTimeLeft(io, roomCode) {
