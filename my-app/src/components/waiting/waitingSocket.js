@@ -19,14 +19,14 @@ export function useRoomSocket(roomCode, isAdmin, user = null) {
             socket.once("connect", handleJoinRoom);
         }
 
-        socket.on("status", (status) => {
-            const currentPath = location.pathname;
-            const basePath = isAdmin ? "/admin" : "";
-            const state = isAdmin ? { roomCode } : { user };
-            if(!currentPath.includes(status)) {
-                navigate(`${basePath}/${status}`, { state });
-            }
-        });
+        // socket.on("status", (status) => {
+        //     const currentPath = location.pathname;
+        //     const basePath = isAdmin ? "/admin" : "";
+        //     const state = isAdmin ? { roomCode } : { user };
+        //     if(!currentPath.includes(status)) {
+        //         navigate(`${basePath}/${status}`, { state });
+        //     }
+        // });
 
         socket.on("room-users", (userList) => {
             setUsers(userList);
@@ -45,7 +45,7 @@ export function useRoomSocket(roomCode, isAdmin, user = null) {
 
         return () => {
             socket.off("connect", handleJoinRoom);
-            socket.off("status");
+            // socket.off("status");
             socket.off("room-users");
             socket.off("to-instructions");
             socket.off("force-return-to-login");

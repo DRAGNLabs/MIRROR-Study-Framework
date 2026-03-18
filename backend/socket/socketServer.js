@@ -19,19 +19,23 @@ io.on("connection", (socket) => {
     });
 
 
-    socket.on("show-instructions", async ({roomCode}) => {
-        if (!roomCode) return;
+    // socket.on("show-instructions", async ({roomCode}) => {
+    //     if (!roomCode) return;
 
-        io.to(roomCode).emit("to-instructions");
-    });
+    //     io.to(roomCode).emit("to-instructions");
+    // });
+    socket.on("navigate-users", ({ roomCode, status }) => {
+        if(!roomCode) return;
+        io.to(roomCode).emit("change-status", { status });
+    })
 
 
     // this triggers when admin starts game in roomManagement
-    socket.on("start-game", async ({roomCode}) => {
-        if (!roomCode) return;
-        // this one will send users from waitingRoom to interactions page
-        io.to(roomCode).emit("start-chat");
-    });
+    // socket.on("start-game", async ({roomCode}) => {
+    //     if (!roomCode) return;
+    //     // this one will send users from waitingRoom to interactions page
+    //     io.to(roomCode).emit("start-chat");
+    // });
 
     // when admin clicks start on roomManagment page it triggers the round to start and generate the instructions from the LLM
     socket.on("start-round", async ({ roomCode, round }) => {
@@ -61,11 +65,11 @@ io.on("connection", (socket) => {
 
 
     // this triggers when admin clicks next on adminInteraction page
-    socket.on("start-survey", ({roomCode}) => {
-        if (!roomCode) return;
-        // this sends user from interaction page to survey page
-        io.to(roomCode).emit("start-user-survey");
-    });
+    // socket.on("start-survey", ({roomCode}) => {
+    //     if (!roomCode) return;
+    //     // this sends user from interaction page to survey page
+    //     io.to(roomCode).emit("start-user-survey");
+    // });
 
     // this disconnects users entirely from room if admin closes it while they're in it
     socket.on("close-room", ({ roomCode }) => {

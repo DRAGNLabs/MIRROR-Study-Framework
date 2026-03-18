@@ -178,7 +178,8 @@ export default function AdminInteraction(){
     }, [messages]);
 
     async function toSurvey() {
-        socket.emit("start-survey", { roomCode });
+        socket.emit("navigate-users", { roomCode, status: "survey" });
+        // socket.emit("start-survey", { roomCode });
         await updateStatus(roomCode, "survey");
         navigate("/admin/survey", { state: { roomCode } });
     }

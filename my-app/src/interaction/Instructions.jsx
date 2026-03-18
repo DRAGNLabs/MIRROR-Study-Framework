@@ -57,20 +57,20 @@ export default function Instructions() {
             navigate("/");
         });
 
-        socket.on("status", (status) => {
-            const currentPath = location.pathname;
-            console.log("Current path name in instructions", currentPath);
-            console.log("status", status);
-            if(!currentPath.includes(status)) {
-                navigate(`/${status}`, { state: { user } });
-            }
-        });
+        // socket.on("status", (status) => {
+        //     const currentPath = location.pathname;
+        //     console.log("Current path name in instructions", currentPath);
+        //     console.log("status", status);
+        //     if(!currentPath.includes(status)) {
+        //         navigate(`/${status}`, { state: { user } });
+        //     }
+        // });
 
         return () => {
             socket.off("connect", handleConnect);
             socket.off("start-chat", onStart);
             socket.off("force-return-to-login");
-            socket.off("status");
+            // socket.off("status");
         };
     }, [socket]);
 

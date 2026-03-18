@@ -54,7 +54,8 @@ export default function AdminInstructions() {
     }, [socket]);
 
     async function toInteractions() {
-        socket.emit("start-game", { roomCode });
+        // socket.emit("start-game", { roomCode });
+        socket.emit("navigate-users", { roomCode, status: "interaction" });
         socket.emit('start-round', {
             roomCode,
             round: 1

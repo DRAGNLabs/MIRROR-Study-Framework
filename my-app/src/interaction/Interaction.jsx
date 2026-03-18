@@ -204,14 +204,12 @@ export function Interaction(){
             navigate("/");
         })
 
-        socket.on("status", (status) => {
-            const currentPath = location.pathname;
-            console.log("Current path name in interaction", currentPath);
-            console.log("status", status);
-            if(!currentPath.includes(status)) {
-                navigate(`/${status}`, { state: { user } });
-            }
-        });
+        // socket.on("status", (status) => {
+        //     const currentPath = location.pathname;
+        //     if(!currentPath.includes(status)) {
+        //         navigate(`/${status}`, { state: { user } });
+        //     }
+        // });
 
 
         socket.on("timer-start", ({ duration, endTime }) => {
@@ -233,7 +231,6 @@ export function Interaction(){
             socket.off("receive-message");
             socket.off("all-user-messages");
             socket.off("room-users");
-            socket.off("force-return-to-waiting-room");
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");

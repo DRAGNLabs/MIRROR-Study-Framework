@@ -33,7 +33,8 @@ export default function RoomManagement() {
     const game = games.find(g => g.id === roomData.gameType);
     const gameRoles = game.roles;
     await assignRoles(users, gameRoles);
-    socket.emit("show-instructions", { roomCode });
+    socket.emit("navigate-users", { roomCode, status: "instructions" });
+    // socket.emit("show-instructions", { roomCode });
     
     const userIds = users.map(u => u.userId);
     await updateUserIds(userIds, roomCode);
