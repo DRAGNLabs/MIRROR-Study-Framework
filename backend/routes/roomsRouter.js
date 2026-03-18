@@ -465,4 +465,56 @@ router.patch("/:roomCode/status", async (req, res) => {
 
 })
 
+//changes a rooms state from incomplete to complete
+router.put("/complete/:roomCode", async (req, res) => {
+  const { roomCode } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      UPDATE rooms
+      SET completed = TRUE
+      WHERE "roomCode" = $1
+      RETURNING *;
+      `,
+      [roomCode]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+//incase this is needed later to reopen a room, a rooms state is going from complete to incomplete
+//changes a rooms state from incomplete to complete
+router.put("/incomplete/:roomCode", async (req, res) => {
+  const { roomCode } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      UPDATE rooms
+      SET completed = FALSE
+      WHERE "roomCode" = $1
+      RETURNING *;
+      `,
+      [roomCode]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 export default router;

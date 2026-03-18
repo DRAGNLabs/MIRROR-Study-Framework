@@ -2072,6 +2072,19 @@ for instructions button on interactions page
   z-index: 1000;
 }
 
+.confirm-modal-card {
+  background: #ffffff;
+  color: #1e293b;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
 .modal-card {
   background: #ffffff;
   color: #1e293b;

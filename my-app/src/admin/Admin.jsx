@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket"; 
 import { getUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted } from "../../services/roomsService";
 import games from "../gameLoader";
+import { getAllSurveys } from "../../services/surveyService";
 
 
 export function Admin() {
@@ -105,7 +106,7 @@ export function Admin() {
         });
       }, [completedRoomList]);
 
-    /** Navigating back from the room details page it'll take you back where you were. */
+    //Navigating back from the room details page it'll take you back where you were. 
     useEffect(() => {
       if (location.state?.showCompletedRooms === true) {
         showCompletedRooms();
@@ -147,15 +148,11 @@ export function Admin() {
 
     }
 
-    async function closeRoom(roomCode) { // esentially closeRoom should be blocked once admin opens it
+    async function closeRoom(roomCode) { //moves a room to completed page
         const roomCurr = await getRoom(roomCode);
-        if (roomCurr.status === "survey") {
-            alert("You can't close the room it is in survey status");
-            return;
-        }
         try {
-            const response = await closeARoom(roomCode);
-            socket.emit("close-room", { roomCode });
+            const response = await markCompleted(roomCode);
+            socket.emit("close-room", { roomCode }); 
             setRooms(await getOpenRooms());
             // setRooms(prev => prev.filter(r => r.roomCode !== roomCode));           
             
@@ -195,19 +192,55 @@ export function Admin() {
 
     }
 
-    async function confirmDeleteCompletedRoom() {
-      if (!roomPendingDelete) return;
+async function confirmDeleteCompletedRoom() {
+  if (!roomPendingDelete) return;
 
+  try {
+    setStart(false);
+
+    const roomCodeToDelete = roomPendingDelete.roomCode;
+    const userIds = roomPendingDelete.userIds || [];
+
+    for (const userId of userIds) {
       try {
-        setCompletedRoomList((prev) =>
-          prev.filter((r) => r.roomCode !== roomPendingDelete.roomCode)
-        );
-        closeARoom(roomPendingDelete.roomCode);
-        setRoomPendingDelete(null);
+        const survey = await getUsersSurvey(userId);
+        console.log("User Survey", survey);
+
+        if (survey) {
+          const surveyDeleted = await deleteSurvey(userId);
+          console.log("Deleted survey:", surveyDeleted);
+        }
       } catch (error) {
-        console.error("Error deleting room:", error);
+        console.log(`No survey found for user ${userId}`);
       }
     }
+
+    
+
+    const remainingSurveys = await getAllSurveys();
+    console.log("Surveys: ", remainingSurveys);
+
+    const deletedRoom = await closeARoom(roomCodeToDelete);
+    console.log("Deleted room:", deletedRoom);
+
+    setRooms((prev) =>
+      prev.filter((r) => r.roomCode !== roomCodeToDelete)
+    );
+
+    setCompletedRoomList((prev) =>
+      prev.filter((r) => r.roomCode !== roomCodeToDelete)
+    );
+
+    //going from create room to deleting it, it was blank this 
+    //makes it so it shows the message "Your rooms"...
+    setRoomPendingDelete(null);
+    if (start === true){
+      setStart(true);
+    }
+  } catch (error) {
+    console.error("Error deleting room:", error);
+  }
+}
 
 
 return (
@@ -269,6 +302,12 @@ return (
                       onClick={() => closeRoom(room.roomCode)}
                     >
                       Close
+                    </button>
+                    <button
+                      className="btn-secondary-admin"
+                      onClick={() => setRoomPendingDelete(room)}
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -416,86 +455,4 @@ return (
 );
 }
 
-
-//     return (
-//     <div className="admin-container admin-dashboard">
-//         <div className="admin-top">
-//             <button className="btn-primary-admin" onClick={createRoom}>Create Room</button>
-//         </div>
-
-//         {start && rooms && (
-//             <div className="rooms-grid">
-//                 <h2 className="rooms-section-title">Your rooms</h2>
-//                 <p className="rooms-section-subtitle">Select a room to start or create a new one</p>
-//                 <div className="rooms-container">
-//                     {rooms.map(room => {
-//                         const game = getGameById(room.gameType);
-//                         const status = room.status;
-    
-//                         return (
-//                         <div className="room-display" key={room.roomCode}>
-                        
-//                             <span className="room-code-badge">{room.roomCode}</span>
-//                             <div className="room-meta">
-//                                 <span>{game ? game.title : "Unknown"}</span> 
-//                                 <span>{room.usersNeeded} users</span>
-//                                 <span>Game {room.gameType}</span>
-//                                 <span>Started: {room.started ? "✅" : "❌"}</span>
-//                                 <span>Status: {status}</span>
-//                                 <span>{status && <p>Status: {status}</p>}</span>
-//                                 <span>{Array.isArray(roomUsers?.[room.roomCode]) && (
-//                                     <p>Users: {roomUsers[room.roomCode].join(", ")}</p>
-//                                 )} </span>
-//                             </div>
-//                             <div className="room-display-actions">
-//                                 <button className="btn-primary-admin" onClick={() => startRoom(room.roomCode)}>Start</button>
-//                                 <button className="btn-secondary-admin" onClick={() => closeRoom(room.roomCode)}>Close</button>
-//                             </div>
-//                             )}
-//                         )}
-    
-    
-//                 </div>
-//             </div>
-//         )}
-
-//         {roomCreated && (
-//             <div className="room-info">
-//                 <h3 className="room-info-section">Room details</h3>
-//                 <div className="room-code-highlight">{newRoomCode}</div>
-//                 <h3 className="room-info-section">Participants</h3>
-//                 <div className="label-inline">
-//                     <label>Users allowed</label>
-//                     <input
-//                         className="text-input small"
-//                         type="number"
-//                         min={1}
-//                         value={count}
-//                         ref={inputRef}
-//                         onChange={(e) => setCount(e.target.value)}
-//                         required
-//                     />
-//                 </div>
-//                 <h3 className="room-info-section">Game</h3>
-//                 <div className="games-options">
-//                     {games.map((game) => (
-//                         <label key={game.id} className="custom-radio">
-//                             <input
-//                                 type="radio"
-//                                 name="game"
-//                                 value={game.id}
-//                                 checked={selectedGame === game.id}
-//                                 onChange={() => setSelectedGame(game.id)}
-//                             />
-//                             <span className="radio-mark"></span>
-//                             <span>{game.title}</span>
-//                         </label>
-//                     ))}
-//                 </div>
-//                 <button className="btn-primary-admin btn-full" onClick={buildRoom} disabled={!selectedGame}>Save room</button>
-//             </div>
-//         )}
-//     </div>
-// )
-// }
 export default Admin;

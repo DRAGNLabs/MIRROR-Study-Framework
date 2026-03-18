@@ -39,3 +39,17 @@ export async function getUsersSurvey(userId) {
   if (!response.ok) throw new Error("Error getting user's survey");
   return response.json();
 }
+
+//deletes a survey based on the userId
+export async function deleteSurvey(userId) {
+  const response = await fetch(`${API_BASE}/survey/delete/${userId}`, {
+    method: 'DELETE', 
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if (!response.ok) {
+    throw new Error("Error deleting user's survey");
+  }
+
+  return response.json();
+}
