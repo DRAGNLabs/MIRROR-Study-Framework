@@ -25,8 +25,6 @@ export default function WaitingRoom() {
 
     socket.on("status", (status) => {
         const currentPath = location.pathname;
-        console.log("Current path name in waiting room", currentPath);
-        console.log("status", status);
         if(!currentPath.includes(status)) {
             navigate(`/${status}`, { state: { user } });
         }
