@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket"; 
-import { getUser } from "../../services/usersService";
+import { getUser, deleteUser } from "../../services/usersService";
 import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted } from "../../services/roomsService";
 import games from "../gameLoader";
 import { getAllSurveys } from "../../services/surveyService";
@@ -192,11 +192,12 @@ export function Admin() {
 
     }
 
+// This is the function that deletes the room it is used in both the completed rooms and rooms tabs
 async function confirmDeleteCompletedRoom() {
   if (!roomPendingDelete) return;
 
   try {
-    setStart(false);
+    // setStart(false);
 
     const roomCodeToDelete = roomPendingDelete.roomCode;
     const userIds = roomPendingDelete.userIds || [];
@@ -213,9 +214,16 @@ async function confirmDeleteCompletedRoom() {
       } catch (error) {
         console.log(`No survey found for user ${userId}`);
       }
+
+      try {
+        const deletedUser = await deleteUser(userId);
+        console.log("Deleted user:", deletedUser);
+      } catch (error) {
+        console.error(`Failed to delete user ${userId}:`, error);
+      }
     }
 
-    
+
 
     const remainingSurveys = await getAllSurveys();
     console.log("Surveys: ", remainingSurveys);
@@ -231,12 +239,12 @@ async function confirmDeleteCompletedRoom() {
       prev.filter((r) => r.roomCode !== roomCodeToDelete)
     );
 
-    //going from create room to deleting it, it was blank this 
-    //makes it so it shows the message "Your rooms"...
+    // //going from create room to deleting it, it was blank this 
+    // //makes it so it shows the message "Your rooms"...
     setRoomPendingDelete(null);
-    if (start === true){
-      setStart(true);
-    }
+    // if (start === true){
+    //   setStart(true);
+    // }
   } catch (error) {
     console.error("Error deleting room:", error);
   }

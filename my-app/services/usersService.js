@@ -47,3 +47,16 @@ export async function getCreatedUser(userName, roomCode) {
 
   return response.json();
 }
+
+export async function deleteUser(userId) {
+  const response = await fetch(`${API_BASE}/users/delete/${userId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error deleting user ${userId}`);
+  }
+
+  return response.json();
+}
