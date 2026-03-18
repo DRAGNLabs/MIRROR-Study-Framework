@@ -1,0 +1,192 @@
+.waiting-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* vertical centering */
+  align-items: center;       /* horizontal centering */
+  min-height: 50vh;         /* full viewport height */
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.85); /* subtle light card */
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(103, 184, 214, 0.3);
+  max-width: 400px;          /* prevent too wide */
+  margin: 0 auto;            /* center horizontally */
+  animation: fadeIn 0.8s ease forwards; 
+}
+
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  
+  align-items: center;      
+  min-height: 100vh;
+  width: 100%;
+  text-align: center;
+}
+
+/* Room Management card (admin) */
+.room-management-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 2rem 2.25rem;
+  background: #1e293b;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.room-management-card .back-to-rooms {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.room-management-card .back-to-rooms:hover {
+  color: #38bdf8;
+}
+
+.room-management-card h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: #f1f5f9;
+}
+
+.room-code-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.room-code-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2em;
+  color: #f1f5f9;
+}
+
+.room-management-card .room-url {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin: 0 0 1.25rem 0;
+}
+
+.room-qr-wrap {
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+}
+
+.room-qr-label {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+}
+
+.room-management-card .room-qr-wrap img {
+  display: block;
+  margin: 0 auto;
+  border-radius: 4px;
+}
+
+.room-management-card .users-box {
+  margin: 0 0 1rem;
+  width: 89%;
+}
+
+.users-progress {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0 0 0.5rem 0;
+}
+
+.room-start-btn {
+  height: 44px;
+}
+
+.admin-container .users-box {
+  background: #0f172a;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-container .users-box h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #f1f5f9;
+  text-align: center;
+}
+
+.admin-container .users-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-container .users-box li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+}
+
+.admin-container .users-box li:last-child {
+  border-bottom: none;
+}
+
+/* users-card: user-facing waiting room (light theme, keep as-is for contrast) */
+.users-card {
+  background: #e0f2fe;
+  padding: 24px 28px;
+  margin: 30px auto;
+  width: 80%;
+  max-width: 450px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+.users-card h3 {
+  margin-top: 0;
+  margin-bottom: 18px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.users-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.users-card li {
+  font-size: 18px;
+  padding: 8px 0;
+  color: #1e293b;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.users-card li:last-child {
+  border-bottom: none;
+}

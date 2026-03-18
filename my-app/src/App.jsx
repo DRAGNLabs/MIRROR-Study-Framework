@@ -10,8 +10,8 @@ import { socket } from "./socket"
 import Interaction from "./interaction/Interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
-import WaitingRoom from './interaction/WaitingRoom';
-import RoomManagement from './admin/RoomManagement'
+import WaitingRoom from './components/waiting/WaitingRoom';
+import AdminWaitingRoom from './components/waiting/AdminWaitingRoom'
 import AdminInteraction from './admin/AdminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
 import Instructions from './interaction/Instructions';
@@ -175,7 +175,7 @@ export default function App() {
         <Route path="/exit" element={<RequireState> <Exit /> </RequireState>}/>
         <Route path="/admin" element={<Admin />}/>
         <Route path="/waiting" element={<RequireState> <WaitingRoom /> </RequireState>} />
-        <Route path="/admin/waiting" element={<RequireState fallback="/adminLogin"> <RoomManagement /></RequireState>} />
+        <Route path="/admin/waiting" element={<RequireState fallback="/adminLogin"> <AdminWaitingRoom /></RequireState>} />
         <Route path="/admin/interaction" element={<RequireState fallback="/adminLogin"> <AdminInteraction/> </RequireState>} />
         <Route path='/adminLogin' element={<LoginAdmin/>} />
         <Route path='/instructions' element={<RequireState> <Instructions/> </RequireState>} /> 
