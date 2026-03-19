@@ -29,6 +29,7 @@ export function Interaction(){
     const [userRole, setUserRole] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
     const [timeRemaining, setTimeRemaining] = useState(null);
+    const loadCurrUserMessages = useRef(false);
     const timerIntervalRef = useRef(null);
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -61,6 +62,7 @@ export function Interaction(){
     // Load full room/game state, chat history, and resource allocations
     async function loadRoomState() {
         try {
+            console.log("Loadroomstate()");
             const room = await getRoom(roomCode);
             const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
@@ -142,6 +144,11 @@ export function Interaction(){
             console.log("Receiving message ", message);
         });
 
+        socket.on("all-user-messages", ({ round, messages }) => {
+            loadCurrUserMessages.current = true;
+            setMessages((prev) => [...prev, ...messages]);
+        });
+
         socket.on("start-user-survey", () => {
             navigate("/survey", { state: { user }});
         });
@@ -179,6 +186,7 @@ export function Interaction(){
             if (timerIntervalRef.current) { 
                 clearInterval(timerIntervalRef.current);
             }
+            loadCurrUserMessages.current = false;
             // Refresh to pull in updated llmResponse and resourceAllocations.
             loadRoomState();
         });
@@ -186,6 +194,7 @@ export function Interaction(){
         socket.on("game-complete", ()=> {
             setCanSend(false);
             setHasSentThisRound(true);
+            loadCurrUserMessages.current = false;
             // Final refresh so last-round allocations are visible.
             loadRoomState();
         });
@@ -222,6 +231,7 @@ export function Interaction(){
         return () => {
             socket.off("connect", handleConnect);
             socket.off("receive-message");
+            socket.off("all-user-messages");
             socket.off("room-users");
             socket.off("force-return-to-waiting-room");
             socket.off("ai-token");
@@ -288,12 +298,15 @@ export function Interaction(){
             const msgs = Array.isArray(userMessages[round]) ? userMessages[round] : [];
             for (const [msgUserId, text] of msgs) {
                 const userTemp = await getUserName(msgUserId);
-                newMsgs.push({
-                    sender: "user",
-                    msgUserId,
-                    userName: userTemp.userName,
-                    text
-                });
+                if (llmResponse[round] || loadCurrUserMessages.current) {
+                    console.log(`loading user messages for round ${round}`);
+                    newMsgs.push({
+                        sender: "user",
+                        msgUserId,
+                        userName: userTemp.userName,
+                        text
+                    });
+                }
                 if (userId === msgUserId) {
                     userSentThisRound = true;
                 }

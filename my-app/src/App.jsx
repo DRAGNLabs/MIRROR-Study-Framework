@@ -61,7 +61,17 @@ function Home() {
           setError("This room has already started. You are not part of this session.");
           return;
         }
-        navigate("/waiting", { state: { user }});
+        
+        const status = room.status;
+        if (status === "waiting") {
+            navigate("/waiting", { state: { user }});
+        } else if (status === "instructions") {
+            navigate("/instructions", { state: { user }});
+        } else if (status === "interaction") {
+            navigate("/interaction", { state: { user }});
+        } else if (status === "survey") {
+            navigate("/survey", { state: { user }});
+        }
         return;
       }
       const user = await loginUser(name, roomCode);

@@ -25,6 +25,7 @@ export default function AdminInteraction(){
     const chatBoxRef = useRef(null);
     const isStreamingRef = useRef(false);
     const timerIntervalRef = useRef(null);
+    const loadCurrUserMessages = useRef(false);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -77,7 +78,12 @@ export default function AdminInteraction(){
                 return updated;
             })
         });
+        
 
+        socket.on("all-user-messages", ({ round, messages }) => {
+            loadCurrUserMessages.current = true;
+            setMessages((prev) => [...prev, ...messages]);
+        });
 
         socket.on("ai-start", () => {
             isStreamingRef.current = true;
@@ -116,6 +122,7 @@ export default function AdminInteraction(){
 
         socket.on("round-complete", (round) => {
             setTimeRemaining(null); 
+            loadCurrUserMessages.current = false;
             if (timerIntervalRef.current) { 
                 clearInterval(timerIntervalRef.current);
             }
@@ -139,6 +146,7 @@ export default function AdminInteraction(){
         return () => {
             socket.off("connect", handleConnect);
             socket.off("receive-message");
+            socket.off("all-user-messages");
             socket.off("ai-token");
             socket.off("ai-start");
             socket.off("ai-end");
@@ -196,7 +204,9 @@ export default function AdminInteraction(){
             const msgs = userMessages[round] || [];
             for (const [userId, text] of msgs) {
                 const userName = await getUserName(userId);
-                newMsgs.push({ sender: "user", userId, userName: userName, text});
+                if (llmResponse[round] || loadCurrUserMessages.current) {
+                    newMsgs.push({ sender: "user", userId, userName: userName, text});
+                }
             }
             if (llmResponse[round]) {
                 newMsgs.push({ sender: "llm", text: llmResponse[round], id: `llm-${round}`});
