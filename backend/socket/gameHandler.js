@@ -5,6 +5,7 @@ import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
 const currRounds = {} // replace this to rely on database later
+const roundTimers = {}; // maybe make this rely on database?
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -45,11 +46,16 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         } 
         if (!llmInstructions[i]) break;
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        const formattedUserMessages =  ( // putting in all user messages as one for context of LLM
+        const allUserIds = room.userIds || [];
+        const roundMessages = userMessages[i] || [];
+
+        const formattedUserMessages = (
             await Promise.all(
-                userMessages[i].map(async ([userId, text]) => {
-                    const user = await getUser(userId) 
+                allUserIds.map(async (userId) => {
+                    const user = await getUser(userId);
                     const name = user?.userName || `User ${userId}`;
+                    const userResponse = roundMessages.find(([id]) => id === userId);
+                    const text = userResponse ? userResponse[1] : "[No response from this user]";
                     return `${name}: ${text}`;
                 })
             )
@@ -137,6 +143,14 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
+
+    const round = currRounds[roomCode]; 
+    if (roundTimers[roomCode]) {
+        clearTimeout(roundTimers[roomCode].timeout);
+        delete roundTimers[roomCode];
+    }
+    io.to(roomCode).emit("user-messages-complete");
+    const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
     const round = room.curr_round;
     let buffer;
@@ -211,13 +225,16 @@ export async function getLlmInstructions(io, roomCode, round) {
         instructions = await getLlmText(io, roomCode, true, false);
     }
     await appendLlmInstructions(roomCode, round, instructions);
+
     io.to(roomCode).emit("instructions-complete", round);
+
+    startRoundTimer(io, roomCode, round, game.conversationTime);
 }
 
 
 export async function submitUserMessages(io, roomCode, userId, userName, text) {
-    // const round = currRounds[roomCode];
-    const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
+    const round = currRounds[roomCode];
+    // const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
     const room = await getRoom(roomCode);
     const round = room.curr_round;
     const existingUserMessages = room.userMessages;
@@ -237,11 +254,11 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
     }
 
     await updateUserMessages(existingUserMessages, roomCode);
-    io.to(roomCode).emit("receive-message", userMsg);
-    // we could just call update to database, we might need some time between user messages and getting LLM response
-    // if two users send a message at the same time what happens? Are there cases it doesn't get updated?
+    // io.to(roomCode).emit("receive-message", userMsg);
 
     if(existingUserMessages[round].length === room.userIds.length) {
+        await constructUserMessages(io, roomCode, existingUserMessages, round);
+        await delay(100);
         await getLlmResponse(io, roomCode, round); // if a user leaves in middle of round this is called before that user sends their message
     }    
 }
@@ -262,3 +279,56 @@ export async function surveyComplete(io, roomCode, surveyId, userId) {
     }
 }
 
+
+function startRoundTimer(io, roomCode, round, conversationTime) {
+    if (roundTimers[roomCode]) {
+        clearTimeout(roundTimers[roomCode].timeout);
+        delete roundTimers[roomCode];
+    }
+
+    const durationMs = conversationTime * 1000;
+    const endTime = Date.now() + durationMs;
+
+    io.to(roomCode).emit("timer-start", { duration: durationMs, endTime });
+
+    const timeout = setTimeout(async () =>{
+        io.to(roomCode).emit("timer-expired");
+        const room = await getRoom(roomCode);
+        const existingUserMessages = room.userMessages; 
+        if (existingUserMessages[round]) {
+            await constructUserMessages(io, roomCode, existingUserMessages, round);
+        }
+        await delay(100);
+        await getLlmResponse(io, roomCode);
+    }, durationMs);
+
+    roundTimers[roomCode] = { timeout, endTime };
+}
+
+async function constructUserMessages(io, roomCode, existingUserMessages, round) {
+    const allUserMessages = await Promise.all(
+    existingUserMessages[round].map(async ([uid, txt]) => {
+        const user = await getUser(uid);
+        return {
+            sender: "user",
+            userId: uid,
+            userName: user?.userName || `User ${uid}`,
+            text: txt
+        };
+    })
+);
+io.to(roomCode).emit("all-user-messages", { round, messages: allUserMessages });
+}
+
+export function getTimeLeft(io, roomCode) {
+    if (!roundTimers[roomCode]) return;
+    const { endTime } = roundTimers[roomCode];
+    const timeLeft = endTime - Date.now();
+    io.to(roomCode).emit("timer-start", { duration: timeLeft, endTime });
+}
+
+export function deleteTimer(roomCode) {
+    if (!roundTimers[roomCode]) return;
+    clearTimeout(roundTimers[roomCode].timeout);
+    delete roundTimers[roomCode];
+}

@@ -28,6 +28,9 @@ export function Interaction(){
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
+    const [timeRemaining, setTimeRemaining] = useState(null);
+    const loadCurrUserMessages = useRef(false);
+    const timerIntervalRef = useRef(null);
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -52,9 +55,35 @@ export function Interaction(){
         }
     }
 
+
+    const startClientTimer = (endTime) => {
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+        }
+
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            setTimeRemaining(remaining);
+
+            if (remaining === 0) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+
+        updateTimer();
+        timerIntervalRef.current = setInterval(updateTimer, 1000);
+    }
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     // Load full room/game state, chat history, and resource allocations
     async function loadRoomState() {
         try {
+            console.log("Loadroomstate()");
             const room = await getRoom(roomCode);
             const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
@@ -137,6 +166,11 @@ export function Interaction(){
             // console.log("Receiving message ", message);
         });
 
+        socket.on("all-user-messages", ({ round, messages }) => {
+            loadCurrUserMessages.current = true;
+            setMessages((prev) => [...prev, ...messages]);
+        });
+
         socket.on("start-user-survey", () => {
             navigate("/survey", { state: { user }});
         });
@@ -173,6 +207,13 @@ export function Interaction(){
             setHasSentThisRound(true);
             // loadRoomState();
             refreshResourceAllocations();
+            setTimeRemaining(null); 
+            if (timerIntervalRef.current) { 
+                clearInterval(timerIntervalRef.current);
+            }
+            loadCurrUserMessages.current = false;
+            // Refresh to pull in updated llmResponse and resourceAllocations.
+            loadRoomState();
         });
 
         socket.on("game-complete", ()=> {
@@ -180,6 +221,9 @@ export function Interaction(){
             setHasSentThisRound(true);
             // loadRoomState();
             refreshResourceAllocations();
+            loadCurrUserMessages.current = false;
+            // Final refresh so last-round allocations are visible.
+            loadRoomState();
         });
 
         socket.on("force-return-to-login", () => {
@@ -194,9 +238,25 @@ export function Interaction(){
             }
         });
 
+
+        socket.on("timer-start", ({ duration, endTime }) => {
+            console.log(`Timer started: ${duration}ms`);
+            startClientTimer(endTime);
+        });
+
+        socket.on("timer-expired", () => {
+            console.log("Timer expired");
+            setTimeRemaining(null);
+            setCanSend(false);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        });
+
         return () => {
             socket.off("connect", handleConnect);
             socket.off("receive-message");
+            socket.off("all-user-messages");
             socket.off("room-users");
             socket.off("force-return-to-waiting-room");
             socket.off("ai-token");
@@ -207,6 +267,11 @@ export function Interaction(){
             socket.off("game-complete");
             socket.off("force-return-to-login");
             socket.off("status");
+            socket.off("timer-start");
+            socket.off("timer-expired");
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
         };
     }, [socket]);
 
@@ -258,12 +323,15 @@ export function Interaction(){
             const msgs = Array.isArray(userMessages[round]) ? userMessages[round] : [];
             for (const [msgUserId, text] of msgs) {
                 const userTemp = await getUserName(msgUserId);
-                newMsgs.push({
-                    sender: "user",
-                    msgUserId,
-                    userName: userTemp.userName,
-                    text
-                });
+                if (llmResponse[round] || loadCurrUserMessages.current) {
+                    console.log(`loading user messages for round ${round}`);
+                    newMsgs.push({
+                        sender: "user",
+                        msgUserId,
+                        userName: userTemp.userName,
+                        text
+                    });
+                }
                 if (userId === msgUserId) {
                     userSentThisRound = true;
                 }
@@ -342,12 +410,18 @@ export function Interaction(){
 
         <div className="interaction-main-layout">
             <aside className="resources-panel" aria-label="Fish resource split">
+                {timeRemaining !== null && (
+                    <div className={`timer-warning ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                        ⏱ Time remaining: {formatTime(timeRemaining)}
+                    </div>
+                )}
                 <div className="resources-header">
                     <div>
                         <h2 className="resources-title">Resource Split (Fish)</h2>
                         <p className="resources-subtitle">How fish are divided this game</p>
                     </div>
                 </div>
+
 
             {/* ── Total allocations (prominent) ── */}
             {resourceHistory.length > 0 ? (() => {

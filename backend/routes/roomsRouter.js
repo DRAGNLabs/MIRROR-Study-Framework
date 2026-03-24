@@ -301,6 +301,23 @@ router.get("/nonCompleted", async (req, res) => {
 
 });
 
+
+// gets all rooms that are completed in table. These rooms will be shown on /admin page
+router.get("/isCompleted", async (req, res) => {
+
+  try {
+    const result = await db.query(
+      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "roomCode" ASC;'
+    );
+    return res.status(200).json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+
+});
+
 // Lets us know if roomCode is valid or not
 router.post("/valid", async (req, res) => { //return false if found in database because its already taken and not valid
   try {

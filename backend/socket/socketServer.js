@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import { handleCloseRoom, handleDisconnect, handleJoinRoom } from './socketHandlers.js';
-import { surveyComplete, getLlmInstructions, submitUserMessages } from './gameHandler.js';
+import { surveyComplete, getLlmInstructions, submitUserMessages, deleteTimer } from './gameHandler.js';
 
 export function initializeSocketServer(httpServer, corsOrigin) {
     const io = new Server(httpServer, {
@@ -39,6 +39,22 @@ io.on("connection", (socket) => {
         await getLlmInstructions(io, roomCode, round);
     });
 
+    socket.on('startTimer', () => {
+
+        endTime = Date.now() + totalTime;
+        io.sockets.emit('timerStarted', { endTime: endTime });
+
+        const timerInterval = setInterval(() => {
+        const timeLeft = endTime - Date.now();
+        if (timeLeft <= 0) {
+            io.sockets.emit('timerEnded');
+            clearInterval(timerInterval);
+        } else {
+            io.sockets.emit('timeUpdate', { timeLeft: timeLeft });
+        }
+        }, 1000); 
+    });
+
         // this is called when user submits message on interaction page
     socket.on("submit-round-message", async ({ roomCode, userId, userName, text }) => {
         await submitUserMessages(io, roomCode, userId, userName, text);
@@ -55,6 +71,7 @@ io.on("connection", (socket) => {
     // this disconnects users entirely from room if admin closes it while they're in it
     socket.on("close-room", ({ roomCode }) => {
         if(!roomCode) return;
+        deleteTimer(roomCode);
         handleCloseRoom(io, roomCode);
     })
 
