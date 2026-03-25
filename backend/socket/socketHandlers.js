@@ -34,7 +34,7 @@ export async function handleJoinRoom(io, socket, { roomCode, isAdmin, user }) {
 
     getTimeLeft(io, roomCode); // makes sure timer is consistent across refreshes
 
-    console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
+    console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id, user);
 }
 
 

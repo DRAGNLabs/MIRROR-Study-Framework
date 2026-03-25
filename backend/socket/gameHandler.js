@@ -1,6 +1,6 @@
 import { loadGames } from "../services/gameLoader.js"
-import { streamLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount } from "../services/roomsService.js";
+import { streamLLM, callLLM } from "../llm.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound } from "../services/roomsService.js";
 import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
@@ -11,6 +11,11 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function stripFences(text) {
+    if (typeof text !== "string") return "";
+    return text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+}
+
 function fillPrompt(template, values) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => values[key]);
 }
@@ -18,7 +23,8 @@ function fillPrompt(template, values) {
 // used in start-round socket and getLlmResponse function
 async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
     const room = await getRoom(roomCode);
-    const round = currRounds[roomCode];
+    const round = room.curr_round;
+    // const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
     // might want to change the line below to be conditional if there is an instruction prompt (as some games we won't prompt LLM for instructions)
@@ -34,7 +40,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     ]
 
     for (let i = 1; i <= round; i++) {
-        if (!game.instructions?.template) {
+        if (!game.instructions?.template) { // basically only puts instructions prompt in if we don't have a template in the file
             messages.push({ "role": "user", "content": instructionsPrompt})
             // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
         } 
@@ -54,15 +60,18 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
                 })
             )
         ).join("\n");
-
+        
+        // do we want to put in this user instructions everytime?
         messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i] })} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
+
     if(getInstructions) {
-        await delay(500);
+        await delay(500); // trying to circumvent concurrency issues
     }
 
+    console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
     io.to(room.roomCode).emit("ai-start");
 
     let buffer = "";
@@ -73,55 +82,60 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(room.roomCode).emit("ai-end");
 
-    // adding this check (when I do multiple returns with LLMs we won't be storing their messages in JSON objects, so should return buffer otherwise)
-    if (!getAllocation) {
+    if (!getAllocation) { // if you're just getting instructions we'll return the buffer
         return buffer;
     }
-    
-    let parsed;
+
+    // --- Call 2: Extract structured allocation data from natural response ---
+    console.log(`[Round ${round}] Starting extraction call...`);
     try {
-        parsed = JSON.parse(buffer);
-    } catch (err) {
+        const extractionPrompt = game.prompts[0].extraction_prompt;
+        const extractionMessages = [
+            { role: "system", content: extractionPrompt },
+            { role: "user", content: buffer },
+        ];
+
+        let parsed;
         try {
-            const repaired = jsonrepair(buffer);
+            const raw = await callLLM(extractionMessages, room.modelType);
+            const cleaned = stripFences(raw);
+            parsed = JSON.parse(cleaned);
+        } catch (err) {
+            const raw = await callLLM(extractionMessages, room.modelType);
+            const cleaned = stripFences(raw);
+            const repaired = jsonrepair(cleaned);
             parsed = JSON.parse(repaired);
-        } catch(err) {
-            console.error("Unrecoverable JSON", err);
-            fish_amount[round+1] = fish_amount[round];
-            await updateFishAmount(fish_amount, roomCode);
-            return buffer;
         }
+
+        const allocationByUserName =
+            parsed.allocationByUserName && typeof parsed.allocationByUserName === "object"
+                ? parsed.allocationByUserName
+                : {};
+
+        const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
+        if (fish_left < 5) {
+            fish_amount[round + 1] = fish_left;
+        } else if (fish_left > 50) {
+            fish_amount[round + 1] = 100;
+        } else {
+            fish_amount[round + 1] = fish_left * 2;
+        }
+        await updateFishAmount(fish_amount, roomCode);
+
+        const existingResourceAllocations = room.resourceAllocations ?? {};
+        existingResourceAllocations[round] = {
+            allocationByUserName,
+            assistantMessage: buffer
+        };
+        await updateResourceAllocations(existingResourceAllocations, roomCode);
+        console.log(`[Round ${round}] Extraction succeeded, fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
+    } catch (err) {
+        console.error(`[Round ${round}] Extraction failed, continuing with natural response:`, err);
+        fish_amount[round + 1] = fish_amount[round];
+        await updateFishAmount(fish_amount, roomCode);
     }
 
-    const assistantMessage = typeof parsed.assistantMessage === "string"
-        ? parsed.assistantMessage
-        : "";
-    const allocationByUserName =
-        parsed.allocationByUserName && typeof parsed.allocationByUserName === "object"
-            ? parsed.allocationByUserName
-            : {};
-    
-    const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
-    if (fish_left < 5) {
-        fish_amount[round+1] = fish_left;
-    } else if (fish_left > 50) {
-        fish_amount[round+1] = 100;
-    } else {
-        fish_amount[round+1] = fish_left * 2;
-    }
-    await updateFishAmount(fish_amount, roomCode);
-
-    const existingResourceAllocations = room.resourceAllocations ?? {};
-    existingResourceAllocations[round] = {
-        allocationByUserName,
-        assistantMessage: assistantMessage || buffer
-    };
-    await updateResourceAllocations(existingResourceAllocations, roomCode);
-
-    return assistantMessage || "The system updated resource allocation for this round";
-    
-
-    // return buffer;
+    return buffer;
 }
 
 
@@ -129,6 +143,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
+
     const round = currRounds[roomCode]; 
     if (roundTimers[roomCode]) {
         clearTimeout(roundTimers[roomCode].timeout);
@@ -137,38 +152,53 @@ async function getLlmResponse(io, roomCode) {
     io.to(roomCode).emit("user-messages-complete");
     const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
-    const fish_amount = room.fish_amount ?? {};
-    const llmResponses = room.llmResponse ?? {};
-    llmResponses[round] = buffer;
-    await updateLlmResponse(llmResponses, roomCode);
-
-    const totalRounds = room.numRounds;
-    if (round >= totalRounds) {
-        io.to(roomCode).emit("game-complete");
-        const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
-        io.to(roomCode).emit("receive-message", endGameMsg);
-        return;
-    } else if (fish_amount[round+1] < 5) {
-        // abort game if fish is below 5 tons
-        const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
-        // for some reason users don't get message unless you do await delay(500)
-        await delay(500);
-        io.to(roomCode).emit("receive-message", endGameMsg);
-        io.to(roomCode).emit("game-complete");
-        return; 
-    } else {
-        console.log(`Round ${round} completed, waiting for next round...`);
+    const round = room.curr_round;
+    let buffer;
+    try {
+        buffer = await getLlmText(io, roomCode, false, true);
+    } catch (err) {
+        console.error(`[Round ${round}] getLlmText crashed:`, err);
+        io.to(roomCode).emit("ai-end");
+        buffer = "An error occurred generating the response.";
     }
 
-    currRounds[roomCode] += 1; 
-    io.to(roomCode).emit("round-complete", currRounds[roomCode]);
-    await getLlmInstructions(io, roomCode, currRounds[roomCode]);
+    try {
+        const room = await getRoom(roomCode);
+        const fish_amount = room.fish_amount ?? {};
+        const llmResponses = room.llmResponse ?? {};
+        llmResponses[round] = buffer;
+        await updateLlmResponse(llmResponses, roomCode);
+
+        const totalRounds = room.numRounds;
+        if (round >= totalRounds) {
+            io.to(roomCode).emit("game-complete");
+            const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
+            io.to(roomCode).emit("receive-message", endGameMsg);
+            return;
+        } else if (fish_amount[round+1] < 5) {
+            // abort game if fish is below 5 tons
+            const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
+            await delay(500);
+            io.to(roomCode).emit("receive-message", endGameMsg);
+            io.to(roomCode).emit("game-complete");
+            return;
+        } else {
+            console.log(`Round ${round} completed, waiting for next round...`);
+        }
+
+        await updateCurrRound(round+1, roomCode);
+        // currRounds[roomCode] += 1;
+        io.to(roomCode).emit("round-complete", round+1);
+        await getLlmInstructions(io, roomCode, round+1);
+    } catch (err) {
+        console.error(`[Round ${round}] getLlmResponse post-processing crashed:`, err);
+    }
 }
 
 export async function getLlmInstructions(io, roomCode, round) {
-    if (!currRounds[roomCode]) {
-        currRounds[roomCode] = round
-    }
+    // if (!currRounds[roomCode]) {
+    //     currRounds[roomCode] = round
+    // }
     const room = await getRoom(roomCode);
     const fish_amount = room.fish_amount ?? {};
     const game = games.find(g=> parseInt(g.id) === room.gameType);
@@ -188,8 +218,9 @@ export async function getLlmInstructions(io, roomCode, round) {
         });
         const instruction_message = { sender: "llm", text: instructions, id: `instructions-${round}` };
         // users don't receive instructions from socket if this await delay isn't here
+        // hmm maybe this is why? do we need a longer wait delay...
         await delay(500); 
-        io.to(roomCode).emit("receive-message", instruction_message);
+        io.to(roomCode).emit("receive-message", instruction_message); // would if we just did instructions-complete?
     } else {
         instructions = await getLlmText(io, roomCode, true, false);
     }
@@ -205,6 +236,7 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
     const round = currRounds[roomCode];
     // const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
     const room = await getRoom(roomCode);
+    const round = room.curr_round;
     const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
     const alreadySubmitted = roundMessages.some(
