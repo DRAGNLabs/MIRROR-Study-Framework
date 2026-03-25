@@ -4,7 +4,6 @@ import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, 
 import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
-const currRounds = {} // replace this to rely on database later
 const roundTimers = {}; // maybe make this rely on database?
 
 function delay(ms) {
@@ -143,14 +142,12 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
-
-    const round = currRounds[roomCode]; 
     if (roundTimers[roomCode]) {
         clearTimeout(roundTimers[roomCode].timeout);
         delete roundTimers[roomCode];
     }
     io.to(roomCode).emit("user-messages-complete");
-    const buffer = await getLlmText(io, roomCode, false, true);
+    // const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
     const round = room.curr_round;
     let buffer;
@@ -233,7 +230,6 @@ export async function getLlmInstructions(io, roomCode, round) {
 
 
 export async function submitUserMessages(io, roomCode, userId, userName, text) {
-    const round = currRounds[roomCode];
     // const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
     const room = await getRoom(roomCode);
     const round = room.curr_round;
