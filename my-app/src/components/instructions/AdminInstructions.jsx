@@ -1,0 +1,118 @@
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { socket } from '../../socket';
+import { getRoom, updateStatus } from "../../../services/roomsService";
+import games from "../../gameLoader"
+import { socketListener } from "../common/socketListener";
+
+export default function AdminInstructions() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { roomCode } = location.state;
+    const [game, setGame] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const isAdmin = true;
+
+    useEffect(() => {
+
+        async function fetchRoom() {
+            try {
+                const roomData = await getRoom(roomCode);
+                setGame(games.find(g => parseInt(g.id) === roomData.gameType));
+            } catch (err) {
+                console.error("Failed to fetch rom:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchRoom();
+
+    }, [roomCode])
+
+    socketListener(roomCode, isAdmin, null);
+    // useEffect(() => {
+    //   socket.emit("join-room", { roomCode, isAdmin });
+
+    //   const handleConnect = () => {
+    //     sessionStorage.setItem("roomCode", roomCode);
+    //     socket.emit("join-room", { roomCode, isAdmin});
+    //   }
+
+    //   if (socket.connected) {
+    //     handleConnect();
+    //   } else {
+    //     socket.once("connect", handleConnect);
+    //   }
+
+    //   socket.on("force-return-to-login", () => {
+    //     navigate("/admin");
+    //   })
+
+    //   return () => {
+    //     socket.off("connect", handleConnect);
+    //     socket.off("force-return-to-login");
+    //   }
+    // }, [socket]);
+
+    async function toInteractions() {
+        // socket.emit("start-game", { roomCode });
+        socket.emit("navigate-users", { roomCode, status: "interaction" });
+        socket.emit('start-round', {
+            roomCode,
+            round: 1
+        });
+        await updateStatus(roomCode, "interaction");
+        navigate("/admin/interaction", { state: { roomCode } }); // will need to update this once next merge pull request happens (I changed endpoint to /admin/interactions or something like that)
+    }
+
+    if (loading) {
+        return <p> Loading instructions...</p>;
+    }
+
+    if (!game) {
+        return (
+            <div className="admin-container">
+                <div className="instructions-card">
+                    <p>No game found for this room.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const instructions = game.instructions;
+    const overview = typeof instructions === "string" ? instructions : instructions?.overview ?? "";
+    const formattedOverview = overview
+      .replace(/\*\*(.*?)\*\*/g, "<h3>$1</h3>")
+      // .replace(/\n/g, "<br />"); // comment this out to count newlines
+    const firstRound = instructions?.rounds?.[0];
+
+    return (
+  <div className="admin-container">
+    <div className="instructions-card">
+
+    <h3 className="section-title">Instructions</h3>
+
+      <p className="instructions-overview" dangerouslySetInnerHTML={{__html: formattedOverview}} />
+      {/* <p className="instructions-overview">
+        {overview}
+      </p> */}
+
+      {firstRound && (
+        <>
+      <h3 className="section-title">Your Task</h3>
+      <div className="round-content">
+        {firstRound.description}
+      </div>
+        </>
+      )}
+
+    </div>
+        <div className="admin-next-bottom-left">
+                <button onClick={toInteractions}>Next</button>
+        </div>
+  </div>
+);
+
+
+}

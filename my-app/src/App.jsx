@@ -14,8 +14,8 @@ import WaitingRoom from './components/waiting/WaitingRoom';
 import AdminWaitingRoom from './components/waiting/AdminWaitingRoom'
 import AdminInteraction from './admin/AdminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
-import Instructions from './interaction/Instructions';
-import AdminInstructions from './admin/AdminInstructions';
+import Instructions from './components/instructions/Instructions';
+import AdminInstructions from './components/instructions/AdminInstructions';
 import AdminSurvey from './admin/AdminSurvey';
 import CompletedRoomPage from './admin/CompletedRoomDetails';
 

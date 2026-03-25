@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from "../../socket";
 
 // basic socket events in every component
-export function socketListener({ roomCode, isAdmin, user }) {
-    const location = useLocation();
+export function socketListener(roomCode, isAdmin, user) {
+    // const location = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
