@@ -150,6 +150,7 @@ export function Admin() {
 
     async function closeRoom(roomCode) { //moves a room to completed page
         const roomCurr = await getRoom(roomCode);
+
         try {
             const response = await markCompleted(roomCode);
             socket.emit("close-room", { roomCode }); 

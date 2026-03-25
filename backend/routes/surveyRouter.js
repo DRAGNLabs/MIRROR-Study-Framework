@@ -93,6 +93,7 @@ router.get("/:userId", async (req, res) => {
 
 });
 
+//get a users survey based on userId
 router.get("/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;

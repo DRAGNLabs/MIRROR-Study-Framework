@@ -235,8 +235,11 @@ export async function surveyComplete(io, roomCode, surveyId, userId) {
 
     let surveyCompleted = true;
     for (const id of currRoom.userIds) {
-        const { completed } = await getSurveyStatus(userId)
-        if (completed == 0) surveyCompleted = false;
+        const { completed } = await getSurveyStatus(id)
+        if (completed == 0) {
+            surveyCompleted = false;
+            break;
+        }
     }
 
     if(surveyCompleted) {
