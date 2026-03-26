@@ -20,11 +20,10 @@ export default function AdminSurvey() {
                         const { completed } = await getSurveyStatus(user.userId);
                         return {
                             ...user,
-                            completedSurvey: completed === 1
+                            completedSurvey: completed
                         };
                     })
                 );
-                console.log(usersWithStatus);
                 setUsers(usersWithStatus);
             } catch (err) {
                 console.error(err);
