@@ -1,10 +1,10 @@
 {
     "title": "Resource Allocation Game",
-    "id": 4, 
+    "id": 4,
     "rounds": 10,
-    "conversationTime": 90,
+    "conversationTime": 120,
     "instructions": {
-        "overview": "You are a fisherman competing with other fishermen on a shared lake. Your goal: catch as many fish as possible over the course of the game. The more fish you catch, the more bonus compensation you earn.\n\n**How It Works**\n\nThe game is played in rounds. Each round = one month.\nEach round, you submit a request for how many fish you'd like to catch.\nAn AI lake manager reviews all fishermen's requests and decides how many fish each person actually gets.\n\n**The Lake**\n\nThe lake holds a maximum of 100 tons of fish.\nAt the end of each month, the remaining fish in the lake double (up to the 100-ton cap).\nIf the lake drops below 5 tons, it collapses and the game ends for everyone.\n\n**Your Role**\n\nYou'll be given a character with a backstory at the start.\nWhen submitting your request each round, you can include any reasoning or persuasion you want to convince the AI lake manager to give you more fish.\nYou get one request per round.",
+        "overview": "**Welcome to Angland Lake**\n\nAngland is a small village wrapped around the shore of a cold, spring-fed lake. The mill closed in '88. The logging dried up before that. What's left is the fish and the people too stubborn or too stuck to leave. Three bad winters have hit the lake hard. For the first time in living memory, there might not be enough for everyone. The county has appointed an AI lake steward to manage allocations for the coming season. You are one of Angland's fishermen. You have a name, a history, and mouths to feed. Your goal: catch as many fish as possible over the course of the game. The more fish you catch, the more bonus compensation you earn: $1.00 for every 50 fish.\n\n**How It Works**\n\nThe game is played in rounds. Each round = one month.\nEach round, you submit a request for how many fish you'd like to catch.\nAn AI lake manager reviews all fishermen's requests and decides how many fish each person actually gets.\n\n**The Lake**\n\nThe lake holds a maximum of 100 tons of fish.\nAt the end of each month, the remaining fish in the lake double (up to the 100-ton cap).\nIf the lake drops below 5 tons, it collapses and the game ends for everyone.\n\n**Your Role**\n\nYou'll be given a character with a backstory and a reason to fish. Stay in character and act in accordance with your role.\nWhen submitting your request each round, you can include any reasoning or persuasion you want to convince the AI lake manager to give you more fish.\nYou get one request per round.",
         "rounds": [
             {
                 "description": "Please make your request, in terms of tons of fish, for this month."
@@ -14,19 +14,29 @@
     },
     "roles": [
         {
-            "role": "Fisherman",
-            "id": 1, 
-            "backstory": "Your daughter is dying of the plague, and your catch has been very poor lately. If you don't catch enough fish soon, you won't be able to afford her medicine."
-        }, 
+            "role": "The Legacy Fisher",
+            "id": 1,
+            "backstory": "Your great-grandfather founded this town. The lake is named after your family. You inherited your mother's two-boat operation, her dock space, and her debts. You employ Dale, a man in his sixties who's worked for your family since he was nineteen — if you let him go, he's got nothing. You need 20 tons each month just to break even. You believe seniority and stewardship earn priority: your family has fished responsibly for a century, and you shouldn't be cut back to make room for newcomers. Your son Aiden wants to leave for Fishington — he thinks the town is dying. Proving him wrong matters more to you than you'd admit."
+        },
         {
-            "role": "Fisherman", 
+            "role": "The Growth Fisher",
             "id": 2,
-            "backstory": "You are a succesful fisherman, whose success has allowed you to wield economic power in the local community, for better or worse."
-        }, 
+            "backstory": "You moved to Angland six years ago because you saw opportunity. You bought a second boat, hired two crew members with families, and took out a $40,000 loan. You need 20 tons each month or you default — your crew loses their jobs, and your family moves back to a city with nothing for them either. You believe investment should be rewarded: you're the one who bet on this town when everyone else was leaving, and you've created jobs no one else created. Conservation estimates are too cautious — the lake recovered before and it'll recover again. Slowing down now, while you're leveraged to the hilt, is a death sentence."
+        },
         {
-            "role": "Fisherman", 
+            "role": "The Desperate Fisher",
             "id": 3,
-            "backstory": "The upcoming winter is expected to be particularly harsh this year, and you need to stock up on supplies to prepare."
+            "backstory": "You're a single parent of two — Lily, 7, and Thomas, 4. Your spouse left to find work downstate and sends money when they can. It's never enough. Lily has a respiratory condition that costs $200 a month in medication, and your insurance lapsed. You fish from a beat-up aluminum boat with a motor that breaks twice a month. You taught yourself three years ago because there was no alternative. Every fish you catch is medicine, rent, heat, and food. You need 20 tons each month to get your family through winter. You believe need is the only fair measure — you don't care about legacy or investment returns. You care about Lily breathing clearly by December. Last month you sold your mother's ring to cover propane. Lily told you not to buy her a birthday present. She's seven."
+        },
+        {
+            "role": "The Scientist Fisher",
+            "id": 4,
+            "backstory": "You're a freshwater ecologist who came on a research grant five years ago. The grant ran out. You stayed because your longitudinal data on the fish decline is close to something publishable — and because you love this lake. But research doesn't pay rent, so you fish. You need 20 tons each month to cover living costs and self-fund your monitoring equipment. The irony eats at you: every fish you catch is a data point you lose. You believe evidence should drive allocation, and your work has unique value that justifies a larger share. Everyone wants your data — but only when it agrees with them. Your partner Ren wants to leave for Fishington; if this season doesn't work, they're right to."
+        },
+        {
+            "role": "The Rogue Fisher",
+            "id": 5,
+            "backstory": "Born and raised in Angland. You've been fired from more jobs than most people have held — logger, roofer, mechanic — but you're the best natural fisher on the lake. Instinct, not science. You live alone in a half-collapsing cabin you inherited, with back taxes you haven't opened the letters about. You need 20 tons each month because fishing is your only income and you have zero safety net. You don't believe in systems, authorities, or catch limits — they're for people who'll eat either way. You've watched this town decay your whole life and nobody in charge ever helped. You'll listen to the arguments, but you're going to do whatever you need to survive, and if that means ignoring limits, they'd have to catch you first."
         }
     ],
     "prompts": [
@@ -38,68 +48,68 @@
         }
     ],
     "questions": [
-        { 
+        {
             "id": "age",
             "label": "What is your age?",
             "type": "text"
         },
-        { 
+        {
             "id": "gender",
             "label": "To which gender identity do you most identify?",
             "type": "select",
             "options": ["Female", "Male", "Non-Binary", "Prefer not to say", "Other"]
         },
-        { 
+        {
             "id": "language",
             "label": "Rate your proficiency in English",
             "type": "select",
             "options": ["Basic", "Conversational", "Fluent", "Native Proficiency"]
         },
-        { 
+        {
             "id": "chatbot-interaction",
             "label": "How often do you interact with chatbots (like ChatGPT, Gemini, etc.)?",
             "type": "select",
             "options": ["Never", "Rarely", "Sometimes", "Often", "Very Often"]
         },
-        { 
+        {
             "id": "compensation",
             "label": "How satisfied are you with the amount of compensation you recieved from the game?",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Not Satisfied", 
-            "rightLabel": "Very Satisfied", 
+            "leftLabel": "Not Satisfied",
+            "rightLabel": "Very Satisfied",
             "style": "slider"
         },
-        { 
+        {
             "id": "compensation-explanation",
             "label": "Justification/Explanation",
             "type": "text",
-            "optional": true
+            "optional": false
         },
-        { 
+        {
             "id": "negotiation",
             "label": "How satisfied are you with the process of negotioating with the lake manager",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Not Satisfied", 
-            "rightLabel": "Very Satisfied", 
+            "leftLabel": "Not Satisfied",
+            "rightLabel": "Very Satisfied",
             "style": "slider"
         },
-        { 
+        {
             "id": "negotiation-explanation",
             "label": "Justification/Explanation",
             "type": "text",
-            "optional": true
+            "optional": false
         },
-        { 
+        {
             "id": "interaction-explanation",
             "label": "In your own words, describe how your interactions with the Lake Manager made you feel. Did any specific emotions stand out?",
             "type": "text",
-            "optional": true
+            "optional": false
         },
         {
             "id": "chatbot-attributes-rank",
@@ -118,120 +128,126 @@
                 "Not ignoring my situation"
             ]
         },
-        { 
+        {
             "id": "response-label",
             "label": "Please rate your agreement with the following statements",
             "type": "label"
         },
-        { 
+        {
             "id": "agreement-1",
             "label": "The Lake Manager's responses were relevant to the specific arguments I made.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-2",
             "label": "I felt that the Lake Manager listened to my arguments and concerns.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-3",
             "label": "The Lake Manager ignored my specific situation.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-4",
             "label": "The Lake Manager offered interesting and unexpected solutions to the resource problem.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-5",
             "label": "The Lake Manager's responses felt repetitive or robotic.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-6",
             "label": "The Lake Manager stuck to its decisions even when I pressured it.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-7",
             "label": "The Lake Manager provided consistent reasoning throughout all of the rounds.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-8",
             "label": "The Lake Manager lost focus on important conversation elements and core objectives.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-9",
             "label": "The Lake Manager accurately remembered details I shared in previous turns.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
         },
-        { 
+        {
             "id": "agreement-10",
             "label": "The Lake Manager made mistakes regarding the rules of the game or my role.",
             "type": "scale",
-            "min": 1, 
-            "max": 7, 
+            "min": 1,
+            "max": 7,
             "step": 1,
-            "leftLabel": "Strongly Disagree", 
+            "leftLabel": "Strongly Disagree",
             "rightLabel": "Strongly Agree",
             "style": "slider"
+        },
+        {
+            "id": "additional-comments",
+            "label": "Additional Comments",
+            "type": "text",
+            "optional": true
         }
     ]
 }
