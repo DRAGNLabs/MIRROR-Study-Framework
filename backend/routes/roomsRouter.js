@@ -345,10 +345,14 @@ router.post("/valid", async (req, res) => { //return false if found in database 
 
 router.get("/:roomCode/login", async (req, res) => {
   try {
-    const roomCode = req.params.roomCode;
+    const roomCode = parseInt(req.params.roomCode);
+    if (isNaN(roomCode)) {
+      return res.status(400).json({error: "Invalid room code format"});
+    }
+
     const result = await db.query(
       'SELECT * FROM rooms WHERE "roomCode" = $1', 
-      [parseInt(roomCode)]
+      [roomCode]
     );
 
     const room = result.rows[0];
