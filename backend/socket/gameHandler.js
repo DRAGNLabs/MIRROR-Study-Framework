@@ -149,6 +149,10 @@ async function getLlmResponse(io, roomCode) {
     io.to(roomCode).emit("user-messages-complete");
     // const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
+    if (room.status === "survey") {
+        // console.log("In survey mode, skipping LLM response")
+        return;
+    }
     const round = room.curr_round;
     let buffer;
     try {
@@ -197,6 +201,10 @@ export async function getLlmInstructions(io, roomCode, round) {
     //     currRounds[roomCode] = round
     // }
     const room = await getRoom(roomCode);
+    if (room.status === "survey") {
+        // console.log(`[Round ${round}] Skipping instructions - room is in survey mode`);
+        return;
+    }
     const fish_amount = room.fish_amount ?? {};
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     let instructions = "";
