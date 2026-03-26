@@ -24,6 +24,7 @@ export default function AdminSurvey() {
                         };
                     })
                 );
+                console.log(usersWithStatus);
                 setUsers(usersWithStatus);
             } catch (err) {
                 console.error(err);

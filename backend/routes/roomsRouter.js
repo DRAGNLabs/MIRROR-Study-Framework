@@ -385,6 +385,7 @@ router.delete("/delete/:roomCode", async (req,res) => {
 
 });
 
+// gets room
 router.get("/:roomCode", async (req, res) => {
   try {
 
@@ -422,9 +423,14 @@ router.get("/:roomCode/users", async (req, res) => {
     }
 
     const result = await db.query(
-      'SELECT * FROM users WHERE "roomCode" = $1 ORDER BY "userId" ASC;', 
+      `SELECT u.* FROM users u WHERE u."userId" = ANY(
+        SELECT jsonb_array_elements_text("userIds")::INTEGER
+        FROM rooms 
+        WHERE "roomCode" = $1
+      )
+      ORDER BY u."userId" ASC;`,
       [roomCode]
-    );
+    )
   
     if (result.rowCount === 0) return res.status(404).json({ message: "users not found with corresponding roomCode" });
 
