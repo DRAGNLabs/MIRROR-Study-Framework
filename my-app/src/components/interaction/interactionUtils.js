@@ -9,7 +9,7 @@ export const formatTime = (seconds) => {
 };
 
 
-export async function loadRoomState(isAdmin, roomCode, user=null, isStreamingRef) {
+export async function loadRoomState(isAdmin, roomCode, user=null, isStreamingRef, loadCurrUserMessages) {
     try {
         const room = await getRoom(roomCode);
         // stuff below only for user:
@@ -35,7 +35,9 @@ export async function loadRoomState(isAdmin, roomCode, user=null, isStreamingRef
             userMessages,
             llmResponse,
             numRounds,
-            fish_amount
+            fish_amount,
+            user?.userId,
+            loadCurrUserMessages?.current
         );
 
         // Parse resourceAllocations history if present on the room.
@@ -83,7 +85,7 @@ export async function loadRoomState(isAdmin, roomCode, user=null, isStreamingRef
                 canSend: canSend, 
                 hasSentThisRound: hasSentThisRound,
                 game: gameData,
-                userRole: role
+                userRole: role,
             }
         }
         // setMessages(messages);
@@ -108,7 +110,7 @@ async function getUserName(id) {
     }
 }
 
-async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount) {
+async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount, userId = null, loadCurrUserMessages = false) {
     const newMsgs = [];
     let lastRound = -1;
     let userSentThisRound = false;
@@ -130,7 +132,7 @@ async function resetMessages(llmInstructions, userMessages, llmResponse, numRoun
         const msgs = Array.isArray(userMessages[round]) ? userMessages[round] : [];
         for (const [msgUserId, text] of msgs) {
             const userTemp = await getUserName(msgUserId);
-            if (llmResponse[round] || loadCurrUserMessages.current) {
+            if (llmResponse[round] || loadCurrUserMessages) {
                 newMsgs.push({
                     sender: "user", 
                     id: msgUserId, 

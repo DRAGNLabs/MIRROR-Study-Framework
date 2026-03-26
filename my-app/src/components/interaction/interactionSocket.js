@@ -14,7 +14,17 @@ handleRoundComplete()
 setTimeout ? where is this from
 RESPONSE_TIMEOUT where is this from?
 */
-export function useInteractionSocket(roomCode, isAdmin, user = null, setMessages, setTimeRemaining, loadRoomState, adminHandlers={}) {
+export function useInteractionSocket(
+    roomCode, 
+    isAdmin, 
+    user = null, 
+    setMessages, 
+    setTimeRemaining, 
+    onRoundComplete,
+    onTimerStart,
+    onTimerExpired,
+    adminHandlers={}
+) {
 
     // const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState("");
@@ -24,7 +34,7 @@ export function useInteractionSocket(roomCode, isAdmin, user = null, setMessages
 
     const isStreamingRef = useRef(false);
     const timerIntervalRef = useRef(null);
-    const loadCurrUserMessages = useRef();
+    const loadCurrUserMessages = useRef(false);
 
     // basic socketListener
     socketListener(roomCode, isAdmin, user);
