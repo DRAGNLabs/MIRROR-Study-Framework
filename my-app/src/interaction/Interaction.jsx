@@ -6,6 +6,7 @@ import { getRoom } from "../../services/roomsService";
 import { getUser, getUserRole } from "../../services/usersService";
 import InstructionsModal from "./InstructionsModal";
 import games from "../gameLoader";
+import MarkdownMessage from "../components/MarkdownMessage.jsx";
 
 
 export function Interaction(){
@@ -500,7 +501,7 @@ export function Interaction(){
                                 <span className="message-sender">
                                     {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
                                 </span>
-                                <span className="message-text">{safeText}</span>
+                                <MarkdownMessage text={safeText} />
                             </div>
                         );
                     })}

@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket.js';
 import { getRoom, updateStatus } from '../../services/roomsService.js'
 import { getUser } from '../../services/usersService.js'
+import MarkdownMessage from '../components/MarkdownMessage.jsx'
 
 export default function AdminInteraction(){
     const location = useLocation();
@@ -325,7 +326,7 @@ export default function AdminInteraction(){
                                     <span className="message-sender">
                                         {msg.sender === "user" ? (msg?.userName || "Participant") : "LLM"}
                                     </span>
-                                    <span className="message-text">{safeText}</span>
+                                    <MarkdownMessage text={safeText} />
                                 </div>
                             );
                         })}

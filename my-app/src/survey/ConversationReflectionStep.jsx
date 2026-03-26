@@ -1,5 +1,7 @@
 /** Reflection step: user reviews conversation and marks up to 3 moments with optional notes. */
 
+import MarkdownMessage from "../components/MarkdownMessage.jsx";
+
 const MAX_MARKS = 3;
 const PROMPT =
   "Review the conversation below. Mark up to three moments that stood out to you—for any reason. You can add a short note to each if you'd like.";
@@ -60,7 +62,7 @@ export default function ConversationReflectionStep({ messages, marks, onMarksCha
                     {rank}
                   </span>
                 )}
-                <span className="reflection-message-text">{label}</span>
+                <MarkdownMessage text={label} />
               </button>
               {isMarked && (
                 <div className="reflection-note-wrap">

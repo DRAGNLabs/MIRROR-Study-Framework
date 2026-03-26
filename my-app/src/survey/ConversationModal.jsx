@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import MarkdownMessage from "../components/MarkdownMessage.jsx";
 export default function ConversationModal({ open, onClose, messages }) {
   if (!open) return null;
   const chatBoxRef = useRef(null);
@@ -28,9 +29,7 @@ export default function ConversationModal({ open, onClose, messages }) {
               <span className="message-sender">
                 {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
               </span>
-              <span className="message-text">
-                {msg.text}
-              </span>
+              <MarkdownMessage text={msg.text} />
             </div>
           ))}
         </div>
