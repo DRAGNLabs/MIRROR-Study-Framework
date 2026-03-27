@@ -17,8 +17,6 @@ export default function AdminInteraction(){
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
-    const [awaitingResponse, setAwaitingResponse] = useState(new Set());
-    const [roundTimeout, setRoundTimeout] = useState(null);
     const [timeRemaining, setTimeRemaining] = useState(null);
 
 
@@ -27,7 +25,6 @@ export default function AdminInteraction(){
     const isStreamingRef = useRef(false);
     const timerIntervalRef = useRef(null);
     const loadCurrUserMessages = useRef(false);
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
     const startClientTimer = (endTime) => {
@@ -68,16 +65,6 @@ export default function AdminInteraction(){
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
-            setAwaitingResponse(prev => {
-                const updated = new Set(prev);
-                updated.delete(message.userId);
-
-                if(updated.size === 0 && roundTimeout) {
-                    clearTimeout(roundTimeout);
-                    handleRoundComplete();
-                }
-                return updated;
-            })
         });
         
 
@@ -105,16 +92,6 @@ export default function AdminInteraction(){
             isStreamingRef.current = false;
             setCurrentStreamingId(null);
             setStreamingText("");
-            const room = await getRoom(roomCode);
-            const userIds = room.userIds || [];
-
-            setAwaitingResponse(new Set(userIds));
-
-            const timeout = setTimeout(() => {
-                handleRoundComplete();
-            }, RESPONSE_TIMEOUT);
-
-            setRoundTimeout(timeout);
         });
 
         socket.on("force-return-to-login", () => {
