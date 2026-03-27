@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket.js';
 import { getRoom, updateStatus } from '../../services/roomsService.js'
 import { getUser } from '../../services/usersService.js'
+import FishPerRoundChart from '../components/FishPerRoundChart.jsx'
 
 export default function AdminInteraction(){
     const location = useLocation();
@@ -393,6 +394,7 @@ export default function AdminInteraction(){
                                     </li>
                                 ))}
                             </ul>
+                            <FishPerRoundChart resourceHistory={resourceHistory} playerKey="userId" dark={true} />
                         </div>
                     )}
                 </aside>
