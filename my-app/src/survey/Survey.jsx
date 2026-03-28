@@ -194,7 +194,7 @@ export function Survey() {
 
     /** Move one item from fromIndex to toIndex; other items shift. Returns new array. */
     function moveItemInArray(arr, fromIndex, toIndex) {
-        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= arr.length || toIndex >= arr.length) {
+        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= arr.length || toIndex > arr.length) {
             return arr;
         }
         const copy = [...arr];
@@ -229,7 +229,7 @@ export function Survey() {
         setSortRankDropTargetIndex(null);
         sortRankDragSourceRef.current = null;
 
-        if (!Array.isArray(options) || Number.isNaN(fromIndex) || fromIndex < 0 || toIndex < 0 || fromIndex >= options.length || toIndex >= options.length) {
+        if (!Array.isArray(options) || Number.isNaN(fromIndex) || fromIndex < 0 || toIndex < 0 || fromIndex >= options.length || toIndex > options.length) {
             return;
         }
 
@@ -570,6 +570,23 @@ export function Survey() {
                                                         </Fragment>
                                                     );
                                                 })}
+                                                {sortRankDropTargetIndex === sortOptions.length && (
+                                                    <li
+                                                        className="sort-rank-drop-indicator"
+                                                        aria-hidden
+                                                        onDragOver={(e) => handleSortRankDragOver(e, sortOptions.length)}
+                                                        onDrop={(e) => handleSortRankDrop(e, sortOptions.length)}
+                                                    />
+                                                )}
+                                                <li
+                                                    className="sort-rank-anchor"
+                                                    draggable={false}
+                                                    aria-hidden
+                                                    onDragOver={(e) => handleSortRankDragOver(e, sortOptions.length)}
+                                                    onDrop={(e) => handleSortRankDrop(e, sortOptions.length)}
+                                                >
+                                                    <span className="sort-rank-anchor-inner">&nbsp;</span>
+                                                </li>
                                             </ul>
                                         </div>
                                     );

@@ -63,7 +63,6 @@ export function Admin() {
             );
 
             const usernames = users.map(u => u.userName);
-            console.log(usernames);
 
             setRoomUsers(prev => ({
                 ...prev,

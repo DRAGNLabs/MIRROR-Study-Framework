@@ -345,10 +345,14 @@ router.post("/valid", async (req, res) => { //return false if found in database 
 
 router.get("/:roomCode/login", async (req, res) => {
   try {
-    const roomCode = req.params.roomCode;
+    const roomCode = parseInt(req.params.roomCode);
+    if (isNaN(roomCode)) {
+      return res.status(400).json({error: "Invalid room code format"});
+    }
+
     const result = await db.query(
       'SELECT * FROM rooms WHERE "roomCode" = $1', 
-      [parseInt(roomCode)]
+      [roomCode]
     );
 
     const room = result.rows[0];
@@ -385,6 +389,7 @@ router.delete("/delete/:roomCode", async (req,res) => {
 
 });
 
+// gets room
 router.get("/:roomCode", async (req, res) => {
   try {
 
@@ -422,9 +427,14 @@ router.get("/:roomCode/users", async (req, res) => {
     }
 
     const result = await db.query(
-      'SELECT * FROM users WHERE "roomCode" = $1 ORDER BY "userId" ASC;', 
+      `SELECT u.* FROM users u WHERE u."userId" = ANY(
+        SELECT jsonb_array_elements_text("userIds")::INTEGER
+        FROM rooms 
+        WHERE "roomCode" = $1
+      )
+      ORDER BY u."userId" ASC;`,
       [roomCode]
-    );
+    )
   
     if (result.rowCount === 0) return res.status(404).json({ message: "users not found with corresponding roomCode" });
 
@@ -455,6 +465,35 @@ router.patch("/:roomCode/status", async (req, res) => {
       roomCode: result.rows[0].roomCode,
       status: result.rows[0].status,
       message: "status successfully updated!"
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+
+  }
+
+})
+
+
+router.patch("/:roomCode/currRound", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { currRound } = req.body;
+
+    const result = await db.query(
+      'UPDATE rooms SET curr_round = $1 WHERE "roomCode" = $2 RETURNING "roomCode", curr_round',
+      [currRound, roomCode]
+    );
+
+    if (result.rowCount === 0){
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json({
+      roomCode: result.rows[0].roomCode,
+      status: result.rows[0].curr_round,
+      message: "currRound successfully updated!"
     });
 
   } catch (err) {

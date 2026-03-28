@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../socket.js';
 import { getRoom, updateStatus } from '../../services/roomsService.js'
 import { getUser } from '../../services/usersService.js'
+import FishPerRoundChart from '../components/FishPerRoundChart.jsx'
 
 export default function AdminInteraction(){
     const location = useLocation();
@@ -16,8 +17,6 @@ export default function AdminInteraction(){
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
-    const [awaitingResponse, setAwaitingResponse] = useState(new Set());
-    const [roundTimeout, setRoundTimeout] = useState(null);
     const [timeRemaining, setTimeRemaining] = useState(null);
 
 
@@ -26,7 +25,6 @@ export default function AdminInteraction(){
     const isStreamingRef = useRef(false);
     const timerIntervalRef = useRef(null);
     const loadCurrUserMessages = useRef(false);
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
     const startClientTimer = (endTime) => {
@@ -67,16 +65,6 @@ export default function AdminInteraction(){
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]);
-            setAwaitingResponse(prev => {
-                const updated = new Set(prev);
-                updated.delete(message.userId);
-
-                if(updated.size === 0 && roundTimeout) {
-                    clearTimeout(roundTimeout);
-                    handleRoundComplete();
-                }
-                return updated;
-            })
         });
         
 
@@ -104,16 +92,6 @@ export default function AdminInteraction(){
             isStreamingRef.current = false;
             setCurrentStreamingId(null);
             setStreamingText("");
-            const room = await getRoom(roomCode);
-            const userIds = room.userIds || [];
-
-            setAwaitingResponse(new Set(userIds));
-
-            const timeout = setTimeout(() => {
-                handleRoundComplete();
-            }, RESPONSE_TIMEOUT);
-
-            setRoundTimeout(timeout);
         });
 
         socket.on("force-return-to-login", () => {
@@ -223,6 +201,26 @@ export default function AdminInteraction(){
         return newMsgs;
     }
 
+    async function refreshResourceAllocations() {
+        try {
+            const room = await getRoom(roomCode);
+            if (room.resourceAllocations) {
+                const parsed = room.resourceAllocations ?? {};
+                const history = Object.keys(parsed)
+                    .sort((a, b) => Number(a) - Number(b))
+                    .map((roundKey) => {
+                        const roundNumber = Number(roundKey);
+                        const entry = parsed[roundKey] || {};
+                        const allocationByUserName = entry.allocationByUserName || {};
+                        return { round: roundNumber, allocations: allocationByUserName };
+                    });
+                setResourceHistory(history);
+            }
+        } catch (err) {
+            console.error("Failed to refresh resource allocations:", err);
+        }
+    }
+
     // Load full room state: chat history + resource allocations
     async function loadRoomState() {
         try {
@@ -297,13 +295,7 @@ export default function AdminInteraction(){
                             </div>
                         )}
                         {messages.map((msg, i) => {
-                            const rawText = typeof msg.text === "string" ? msg.text : "";
-                            const isJsonLike =
-                                rawText.trim().startsWith("{") &&
-                                rawText.includes("allocationByUserId");
-                            const safeText = isJsonLike
-                                ? "An internal allocation update occurred."
-                                : rawText;
+                            const safeText = typeof msg.text === "string" ? msg.text : "";
                             return (
                                 <div
                                     key={msg.id ?? i}
@@ -380,6 +372,7 @@ export default function AdminInteraction(){
                                     </li>
                                 ))}
                             </ul>
+                            <FishPerRoundChart resourceHistory={resourceHistory} playerKey="userId" dark={true} />
                         </div>
                     )}
                 </aside>

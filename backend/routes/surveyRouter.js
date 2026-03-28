@@ -73,7 +73,8 @@ router.get("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const result = await db.query(`SELECT EXISTS (
+    const result = await db.query(`
+    SELECT EXISTS (
       SELECT 1
       FROM survey
       WHERE "userId" = $1
