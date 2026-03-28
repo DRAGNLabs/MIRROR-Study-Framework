@@ -20,7 +20,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     const room = await getRoom(roomCode);
     if (!room) {
     deleteTimer(roomCode);
-    return;
+    return null;
     }
     const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
@@ -138,9 +138,14 @@ async function getLlmResponse(io, roomCode) {
         clearTimeout(roundTimers[roomCode].timeout);
         delete roundTimers[roomCode];
     }
+    const roomBefore = await getRoom(roomCode);
+    if (!roomBefore) {
+        deleteTimer(roomCode);
+        return;
+    }
     const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
-    if (!room) {
+    if (buffer == null) {
     deleteTimer(roomCode);
     return;
     }
@@ -279,9 +284,21 @@ function startRoundTimer(io, roomCode, round, conversationTime) {
 
     io.to(roomCode).emit("timer-start", { duration: durationMs, endTime });
 
-    const timeout = setTimeout(async () =>{
-        io.to(roomCode).emit("timer-expired");
-        await getLlmResponse(io, roomCode);
+    const timeout = setTimeout(async () => {
+        try {
+            const room = await getRoom(roomCode);
+
+            if (!room) {
+                deleteTimer(roomCode);
+                return;
+            }
+
+            io.to(roomCode).emit("timer-expired");
+            await getLlmResponse(io, roomCode);
+        } catch (err) {
+            console.error(`Timer error for room ${roomCode}:`, err);
+            deleteTimer(roomCode);
+        }
     }, durationMs);
 
     roundTimers[roomCode] = { timeout, endTime };
