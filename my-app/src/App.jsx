@@ -17,6 +17,7 @@ import LoginAdmin from "./admin/AdminLogin";
 import Instructions from './interaction/Instructions';
 import AdminInstructions from './admin/AdminInstructions';
 import AdminSurvey from './admin/AdminSurvey';
+import CompletedRoomPage from './admin/CompletedRoomDetails';
 
 function RequireState({ children, fallback = "/" }) {
     const location = useLocation();
@@ -60,7 +61,17 @@ function Home() {
           setError("This room has already started. You are not part of this session.");
           return;
         }
-        navigate("/waiting", { state: { user }});
+        
+        const status = room.status;
+        if (status === "waiting") {
+            navigate("/waiting", { state: { user }});
+        } else if (status === "instructions") {
+            navigate("/instructions", { state: { user }});
+        } else if (status === "interaction") {
+            navigate("/interaction", { state: { user }});
+        } else if (status === "survey") {
+            navigate("/survey", { state: { user }});
+        }
         return;
       }
       const user = await loginUser(name, roomCode);
@@ -133,7 +144,6 @@ export default function App() {
 
   const handleHomeClick = () => {
     const roomCode = sessionStorage.getItem("roomCode");
-    console.log(roomCode);
     // const userId = sessionStorage.getItem("userId");
     if (roomCode) {
       socket.emit("leave-room", {roomCode});
@@ -172,6 +182,7 @@ export default function App() {
         <Route path='/admin/survey' element={<RequireState fallback="/adminLogin"> <AdminSurvey/> </RequireState>} />
         {/* add a route to llm page when its added */}
         <Route path="*" element={window.location.pathname.includes("admin") ? ( < Navigate to= "/adminLogin" /> ) : ( <Navigate to="/" />)} />
+        <Route path="/admin/completed-room/:roomCode" element={<CompletedRoomPage />} />
       </Routes>
     </>
     

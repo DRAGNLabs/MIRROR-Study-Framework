@@ -93,5 +93,32 @@ router.get("/:userId", async (req, res) => {
 
 });
 
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await db.query(
+      `
+      SELECT "surveyId", "userId", data
+      FROM survey
+      WHERE "userId" = $1
+      ORDER BY "surveyId" DESC
+      LIMIT 1;
+      `,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "No survey found for that user" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+
+});
+
 
 export default router;

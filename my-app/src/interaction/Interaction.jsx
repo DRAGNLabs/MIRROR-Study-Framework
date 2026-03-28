@@ -5,6 +5,7 @@ import { socket } from '../socket';
 import { getRoom } from "../../services/roomsService";
 import { getUser, getUserRole } from "../../services/usersService";
 import InstructionsModal from "./InstructionsModal";
+import FishPerRoundChart from "../components/FishPerRoundChart";
 import games from "../gameLoader";
 
 
@@ -28,12 +29,62 @@ export function Interaction(){
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
+    const [timeRemaining, setTimeRemaining] = useState(null);
+    const loadCurrUserMessages = useRef(false);
+    const timerIntervalRef = useRef(null);
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Fetch only resource allocations from DB (no message/canSend side effects)
+    async function refreshResourceAllocations() {
+        try {
+            const room = await getRoom(roomCode);
+            if (room.resourceAllocations) {
+                const parsed = room.resourceAllocations ?? {};
+                const history = Object.keys(parsed)
+                    .sort((a, b) => Number(a) - Number(b))
+                    .map((roundKey) => {
+                        const roundNumber = Number(roundKey);
+                        const entry = parsed[roundKey] || {};
+                        const allocationByUserName = entry.allocationByUserName || {};
+                        return { round: roundNumber, allocations: allocationByUserName };
+                    });
+                setResourceHistory(history);
+            }
+        } catch (err) {
+            console.error("Failed to refresh resource allocations:", err);
+        }
+    }
+
+
+    const startClientTimer = (endTime) => {
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+        }
+
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            setTimeRemaining(remaining);
+
+            if (remaining === 0) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+
+        updateTimer();
+        timerIntervalRef.current = setInterval(updateTimer, 1000);
+    }
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     // Load full room/game state, chat history, and resource allocations
     async function loadRoomState() {
         try {
+            console.log("Loadroomstate()");
             const room = await getRoom(roomCode);
             const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
@@ -112,7 +163,13 @@ export function Interaction(){
 
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
-            console.log("Receiving message ", message);
+            // loadRoomState();
+            // console.log("Receiving message ", message);
+        });
+
+        socket.on("all-user-messages", ({ round, messages }) => {
+            loadCurrUserMessages.current = true;
+            setMessages((prev) => [...prev, ...messages]);
         });
 
         socket.on("start-user-survey", () => {
@@ -143,11 +200,19 @@ export function Interaction(){
         socket.on("instructions-complete", (round) => {
             setCanSend(true);
             setHasSentThisRound(false);
+            loadRoomState();
         });
 
         socket.on("round-complete", (round) => {
             setCanSend(false);
             setHasSentThisRound(true);
+            // loadRoomState();
+            refreshResourceAllocations();
+            setTimeRemaining(null); 
+            if (timerIntervalRef.current) { 
+                clearInterval(timerIntervalRef.current);
+            }
+            loadCurrUserMessages.current = false;
             // Refresh to pull in updated llmResponse and resourceAllocations.
             loadRoomState();
         });
@@ -155,6 +220,9 @@ export function Interaction(){
         socket.on("game-complete", ()=> {
             setCanSend(false);
             setHasSentThisRound(true);
+            // loadRoomState();
+            refreshResourceAllocations();
+            loadCurrUserMessages.current = false;
             // Final refresh so last-round allocations are visible.
             loadRoomState();
         });
@@ -166,16 +234,30 @@ export function Interaction(){
 
         socket.on("status", (status) => {
             const currentPath = location.pathname;
-            console.log("Current path name in interaction", currentPath);
-            console.log("status", status);
             if(!currentPath.includes(status)) {
                 navigate(`/${status}`, { state: { user } });
+            }
+        });
+
+
+        socket.on("timer-start", ({ duration, endTime }) => {
+            console.log(`Timer started: ${duration}ms`);
+            startClientTimer(endTime);
+        });
+
+        socket.on("timer-expired", () => {
+            console.log("Timer expired");
+            setTimeRemaining(null);
+            setCanSend(false);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
             }
         });
 
         return () => {
             socket.off("connect", handleConnect);
             socket.off("receive-message");
+            socket.off("all-user-messages");
             socket.off("room-users");
             socket.off("force-return-to-waiting-room");
             socket.off("ai-token");
@@ -186,6 +268,11 @@ export function Interaction(){
             socket.off("game-complete");
             socket.off("force-return-to-login");
             socket.off("status");
+            socket.off("timer-start");
+            socket.off("timer-expired");
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
         };
     }, [socket]);
 
@@ -237,12 +324,15 @@ export function Interaction(){
             const msgs = Array.isArray(userMessages[round]) ? userMessages[round] : [];
             for (const [msgUserId, text] of msgs) {
                 const userTemp = await getUserName(msgUserId);
-                newMsgs.push({
-                    sender: "user",
-                    msgUserId,
-                    userName: userTemp.userName,
-                    text
-                });
+                if (llmResponse[round] || loadCurrUserMessages.current) {
+                    console.log(`loading user messages for round ${round}`);
+                    newMsgs.push({
+                        sender: "user",
+                        msgUserId,
+                        userName: userTemp.userName,
+                        text
+                    });
+                }
                 if (userId === msgUserId) {
                     userSentThisRound = true;
                 }
@@ -321,12 +411,18 @@ export function Interaction(){
 
         <div className="interaction-main-layout">
             <aside className="resources-panel" aria-label="Fish resource split">
+                {timeRemaining !== null && (
+                    <div className={`timer-warning ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                        ⏱ Time remaining: {formatTime(timeRemaining)}
+                    </div>
+                )}
                 <div className="resources-header">
                     <div>
                         <h2 className="resources-title">Resource Split (Fish)</h2>
                         <p className="resources-subtitle">How fish are divided this game</p>
                     </div>
                 </div>
+
 
             {/* ── Total allocations (prominent) ── */}
             {resourceHistory.length > 0 ? (() => {
@@ -384,6 +480,7 @@ export function Interaction(){
                                 </li>
                             ))}
                         </ul>
+                        <FishPerRoundChart resourceHistory={resourceHistory} playerKey="userName" dark={false} />
                     </div>
                 )}
             </aside>
@@ -396,13 +493,7 @@ export function Interaction(){
                         </div>
                     )}
                     {messages.map((msg, i) => {
-                        const rawText = typeof msg.text === "string" ? msg.text : "";
-                        const isJsonLike =
-                            rawText.trim().startsWith("{") &&
-                            rawText.includes("allocationByUserName");
-                        const safeText = isJsonLike
-                            ? "An internal allocation update occurred."
-                            : rawText;
+                        const safeText = typeof msg.text === "string" ? msg.text : "";
                         return (
                             <div
                                 key={msg.id ?? i}

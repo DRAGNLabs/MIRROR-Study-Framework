@@ -90,6 +90,13 @@ export async function roomCompleted(roomCode) {
     return response.json();
 }
 
+// gets all completed rooms 
+export async function completedRooms() {
+  const response = await fetch(`${API_BASE}/rooms/isCompleted`);
+  if (!response.ok) throw new Error("Can't get completed rooms.");
+  return response.json();
+}
+
 // checks if roomCode is valid when creating new room
 export async function validRoomCode(roomCode){
   const response = await fetch(`${API_BASE}/rooms/valid`,{

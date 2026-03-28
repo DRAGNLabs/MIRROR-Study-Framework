@@ -19,6 +19,17 @@ function resolveModel(modelOverride) {
   return envModel;
 }
 
+export async function callLLM(messages, modelOverride) {
+  // I'm setting the model to a seperate extraction model as we don't nee dot use the same model as the generation
+  const model = resolveModel(modelOverride);
+
+  const response = await client.responses.create({
+    model: process.env.OPENAI_EXTRACTION_MODEL, // hardcoding it for now because Idk how to add env variable to railway
+    input: messages,
+  });
+  return response.output_text;
+}
+
 export async function streamLLM(prompt, onToken, modelOverride) {
   const model = resolveModel(modelOverride);
 

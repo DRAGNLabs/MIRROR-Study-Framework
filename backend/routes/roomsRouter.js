@@ -301,6 +301,23 @@ router.get("/nonCompleted", async (req, res) => {
 
 });
 
+
+// gets all rooms that are completed in table. These rooms will be shown on /admin page
+router.get("/isCompleted", async (req, res) => {
+
+  try {
+    const result = await db.query(
+      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "roomCode" ASC;'
+    );
+    return res.status(200).json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+
+});
+
 // Lets us know if roomCode is valid or not
 router.post("/valid", async (req, res) => { //return false if found in database because its already taken and not valid
   try {
@@ -438,6 +455,35 @@ router.patch("/:roomCode/status", async (req, res) => {
       roomCode: result.rows[0].roomCode,
       status: result.rows[0].status,
       message: "status successfully updated!"
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+
+  }
+
+})
+
+
+router.patch("/:roomCode/currRound", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { currRound } = req.body;
+
+    const result = await db.query(
+      'UPDATE rooms SET curr_round = $1 WHERE "roomCode" = $2 RETURNING "roomCode", curr_round',
+      [currRound, roomCode]
+    );
+
+    if (result.rowCount === 0){
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json({
+      roomCode: result.rows[0].roomCode,
+      status: result.rows[0].curr_round,
+      message: "currRound successfully updated!"
     });
 
   } catch (err) {
