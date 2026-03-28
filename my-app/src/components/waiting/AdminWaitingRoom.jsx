@@ -50,7 +50,7 @@ export default function RoomManagement() {
       try {
         await setRole(user.userId, roleToAssign.id);
       } catch (error) {
-        console.log(error.message);
+        console.err(error.message);
       }
     }
   }
