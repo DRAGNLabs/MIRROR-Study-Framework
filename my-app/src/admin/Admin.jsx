@@ -205,8 +205,7 @@ async function confirmDeleteCompletedRoom() {
 
     for (const userId of userIds) {
       try {
-        const survey = await getUsersSurvey(userId);
-        console.log("User Survey", survey);
+
 
         if (survey) {
           const surveyDeleted = await deleteSurvey(userId);

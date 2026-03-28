@@ -229,8 +229,8 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
 }
 
 
-export async function surveyComplete(io, roomCode, surveyId, userId) {
-    io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
+export async function surveyComplete(io, roomCode, roomCode, userId) {
+    io.to(roomCode).emit("user-survey-complete", { userId, roomCode });
     const currRoom = await getRoom(roomCode);
 
     let surveyCompleted = true;

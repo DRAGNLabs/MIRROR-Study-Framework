@@ -64,7 +64,6 @@ export function Survey() {
     const [currentStep, setCurrentStep] = useState(0);
     const [fromReview, setFromReview] = useState(false);
     const navigate = useNavigate();
-    const surveyId = 1;
     const [showConversation, setShowConversation] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
     const [conversationMarks, setConversationMarks] = useState([]);
@@ -138,7 +137,7 @@ export function Survey() {
 
         try {
             await sendSurvey(1, userId, { answers, conversationMarks });
-            socket.emit("survey-complete", { roomCode, userId, surveyId });
+            socket.emit("survey-complete", { roomCode, userId, roomCode });
             navigate("/exit", { state: { userId } });
         } catch (err) {
             console.error("Error:", err);

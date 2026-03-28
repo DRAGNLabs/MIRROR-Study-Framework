@@ -22,10 +22,10 @@ async function init() {
  */
   await db.query(`
     CREATE TABLE IF NOT EXISTS survey (
-      "surveyId" INTEGER NOT NULL,
+      "roomCode" INTEGER NOT NULL,
       "userId" INTEGER NOT NULL,
       data JSONB NOT NULL DEFAULT '{}'::jsonb,
-      PRIMARY KEY ("surveyId", "userId")
+      PRIMARY KEY ("roomCode", "userId")
     )
   `);
 
