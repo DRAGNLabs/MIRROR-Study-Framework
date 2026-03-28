@@ -1,3 +1,6 @@
+import { allUsers } from "../../services/usersService";
+import { getCreatedRooms } from "../../services/roomsService";
+
 export async function deleteCompletedRoomFlow({
   roomPendingDelete,
   deleteUser,
@@ -13,6 +16,9 @@ export async function deleteCompletedRoomFlow({
   const roomCodeToDelete = roomPendingDelete.roomCode;
   const userIds = roomPendingDelete.userIds || [];
 
+  const users = await allUsers();
+  console.log("All users before:", users);
+
   for (const userId of userIds) {
     try {
       await deleteUser(userId);
@@ -20,6 +26,9 @@ export async function deleteCompletedRoomFlow({
       console.error(`Failed to delete user ${userId}:`, error);
     }
   }
+
+  const usersAfter = await allUsers();
+  console.log("All users after:", usersAfter);
 
 
   const surveys = await getAllSurveys();
@@ -38,8 +47,11 @@ export async function deleteCompletedRoomFlow({
   const surveysLeft = await getAllSurveys();
   console.log("Surveys Now:", surveysLeft);
 
-
+  const roomsNow = await getCreatedRooms();
+  console.log("Getting open rooms:", roomsNow);
   await closeARoom(roomCodeToDelete);
+  const roomsAfter = await getCreatedRooms();
+  console.log("Getting open rooms:", roomsAfter);
 
   setRooms((prev) => prev.filter((r) => r.roomCode !== roomCodeToDelete));
   setCompletedRoomList((prev) =>

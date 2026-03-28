@@ -1,5 +1,15 @@
 import { API_BASE } from "../src/config.js";
 
+export async function allUsers() {
+  const response = await fetch(`${API_BASE}/users/all`);
+
+  if (!response.ok) {
+    throw new Error("Error getting all users");
+  }
+
+  return response.json();
+}
+
 // creates new user in user table (logs them in)
 export async function loginUser(userName, roomCode) {
   const response = await fetch(`${API_BASE}/users`, {
@@ -60,3 +70,4 @@ export async function deleteUser(userId) {
 
   return response.json();
 }
+
