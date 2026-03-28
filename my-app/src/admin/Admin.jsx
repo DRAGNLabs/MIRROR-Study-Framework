@@ -4,7 +4,8 @@ import { socket } from "../socket";
 import { getUser, deleteUser } from "../../services/usersService";
 import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted } from "../../services/roomsService";
 import games from "../gameLoader";
-import { getAllSurveys } from "../../services/surveyService";
+import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
+import { deleteCompletedRoomFlow } from "./deleteCompletedRoom";
 
 
 export function Admin() {
@@ -167,6 +168,23 @@ export function Admin() {
         setStart(true);
     }
 
+    async function confirmDeleteCompletedRoom() {
+      try {
+        await deleteCompletedRoomFlow({
+          roomPendingDelete,
+          deleteUser,
+          deleteSurvey,
+          getAllSurveys,
+          closeARoom,
+          setRooms,
+          setCompletedRoomList,
+          setRoomPendingDelete,
+        });
+      } catch (error) {
+        console.error("Error deleting room:", error);
+      }
+    }
+
     async function startRoom(roomCode) {
         try {
             await roomStarted(roomCode);
@@ -193,62 +211,6 @@ export function Admin() {
 
     }
 
-// This is the function that deletes the room it is used in both the completed rooms and rooms tabs
-async function confirmDeleteCompletedRoom() {
-  if (!roomPendingDelete) return;
-
-  try {
-    // setStart(false);
-
-    const roomCodeToDelete = roomPendingDelete.roomCode;
-    const userIds = roomPendingDelete.userIds || [];
-
-    for (const userId of userIds) {
-      try {
-
-
-        if (survey) {
-          const surveyDeleted = await deleteSurvey(userId);
-          console.log("Deleted survey:", surveyDeleted);
-        }
-      } catch (error) {
-        console.log(`No survey found for user ${userId}`);
-      }
-
-      try {
-        const deletedUser = await deleteUser(userId);
-        console.log("Deleted user:", deletedUser);
-      } catch (error) {
-        console.error(`Failed to delete user ${userId}:`, error);
-      }
-    }
-
-
-
-    const remainingSurveys = await getAllSurveys();
-    console.log("Surveys: ", remainingSurveys);
-
-    const deletedRoom = await closeARoom(roomCodeToDelete);
-    console.log("Deleted room:", deletedRoom);
-
-    setRooms((prev) =>
-      prev.filter((r) => r.roomCode !== roomCodeToDelete)
-    );
-
-    setCompletedRoomList((prev) =>
-      prev.filter((r) => r.roomCode !== roomCodeToDelete)
-    );
-
-    // //going from create room to deleting it, it was blank this 
-    // //makes it so it shows the message "Your rooms"...
-    setRoomPendingDelete(null);
-    // if (start === true){
-    //   setStart(true);
-    // }
-  } catch (error) {
-    console.error("Error deleting room:", error);
-  }
-}
 
 
 return (

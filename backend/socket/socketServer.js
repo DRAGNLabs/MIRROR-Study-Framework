@@ -74,9 +74,9 @@ io.on("connection", (socket) => {
         handleCloseRoom(io, roomCode);
     })
 
-    socket.on("survey-complete", async ({ roomCode, userId, surveyId }) => {
+    socket.on("survey-complete", async ({ roomCode, userId }) => {
         if (!roomCode) return;
-        surveyComplete(io, roomCode, surveyId, userId);
+        surveyComplete(io, roomCode, userId);
     });
 
     // this is for if someone leaves the room while they're waiting

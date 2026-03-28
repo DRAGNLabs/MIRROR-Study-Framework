@@ -136,6 +136,10 @@ async function getLlmResponse(io, roomCode) {
     }
     const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
+    if (!room) {
+    deleteTimer(roomCode);
+    return;
+    }
     const fish_amount = room.fish_amount ?? {};
     const llmResponses = room.llmResponse ?? {};
     llmResponses[round] = buffer;
@@ -169,6 +173,10 @@ export async function getLlmInstructions(io, roomCode, round) {
         currRounds[roomCode] = round
     }
     const room = await getRoom(roomCode);
+    if (!room) {
+    deleteTimer(roomCode);
+    return;
+    }
     const fish_amount = room.fish_amount ?? {};
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     let instructions = "";
@@ -204,6 +212,10 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
     const round = currRounds[roomCode];
     const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
     const room = await getRoom(roomCode);
+    if (!room) {
+    deleteTimer(roomCode);
+    return;
+    }
     const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
     const alreadySubmitted = roundMessages.some(
@@ -229,9 +241,13 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
 }
 
 
-export async function surveyComplete(io, roomCode, roomCode, userId) {
+export async function surveyComplete(io, roomCode, userId) {
     io.to(roomCode).emit("user-survey-complete", { userId, roomCode });
     const currRoom = await getRoom(roomCode);
+    if (!currRoom) {
+    deleteTimer(roomCode);
+    return;
+    }
 
     let surveyCompleted = true;
     for (const id of currRoom.userIds) {

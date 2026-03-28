@@ -122,7 +122,7 @@ router.get("/user/:userId", async (req, res) => {
 });
 
 //deletes a rooms surveys based on the roomCode
-router.delete("/delete/roomCode", async (req, res) => {
+router.delete("/delete/:roomCode", async (req, res) => {
   const { roomCode } = req.params;
 
   try {

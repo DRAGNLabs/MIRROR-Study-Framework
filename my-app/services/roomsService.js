@@ -21,8 +21,14 @@ export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, model
 // get room with specified roomCode
 export async function getRoom(roomCode) {
   const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
-  if (!response.ok) throw new Error("Can't get room.");
+  if (response.status === 404) {
+    return null;
+  }
 
+  if (!response.ok) {
+    throw new Error("Can't get room.");
+  }
+  
   return response.json();
 }
 
