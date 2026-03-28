@@ -18,6 +18,10 @@ function fillPrompt(template, values) {
 // used in start-round socket and getLlmResponse function
 async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
     const room = await getRoom(roomCode);
+    if (!room) {
+    deleteTimer(roomCode);
+    return;
+    }
     const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
