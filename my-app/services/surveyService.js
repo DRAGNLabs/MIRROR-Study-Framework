@@ -1,11 +1,11 @@
 import { API_BASE } from "../src/config.js";
 
 // creates new survey data in survey table
-export async function sendSurvey(surveyId, userId, data) {
+export async function sendSurvey(roomCode, userId, data) {
   const response = await fetch(`${API_BASE}/survey`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({surveyId, userId, data})
+    body: JSON.stringify({roomCode, userId, data})
   });
 
   if(!response.ok) throw new Error("Error sending survey.");
@@ -40,9 +40,9 @@ export async function getUsersSurvey(userId) {
   return response.json();
 }
 
-//deletes a survey based on the userId
-export async function deleteSurvey(userId) {
-  const response = await fetch(`${API_BASE}/survey/delete/${userId}`, {
+//deletes a survey based on the roomCode
+export async function deleteSurvey(roomCode) {
+  const response = await fetch(`${API_BASE}/survey/delete/${roomCode}`, {
     method: 'DELETE', 
     headers: { 'Content-Type': 'application/json' }
   });

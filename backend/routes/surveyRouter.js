@@ -121,18 +121,18 @@ router.get("/user/:userId", async (req, res) => {
 
 });
 
-//deletes a survey based on the userId
-router.delete("/delete/userId", async (req, res) => {
-  const { userId } = req.params;
+//deletes a rooms surveys based on the roomCode
+router.delete("/delete/roomCode", async (req, res) => {
+  const { roomCode } = req.params;
 
   try {
     const result = await db.query(
-      'DELETE FROM survey WHERE "userId" = $1 RETURNING *;',
-      [userId]
+      'DELETE FROM survey WHERE "roomCode" = $1 RETURNING *;',
+      [roomCode]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "No survey found for that userId" });
+      return res.status(404).json({ error: "No survey found for that roomCode" });
     }
 
     return res.status(200).json({
