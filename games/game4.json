@@ -73,7 +73,7 @@
         },
         {
             "id": "compensation",
-            "label": "How satisfied are you with the amount of compensation you recieved from the game?",
+            "label": "How satisfied are you with the amount of compensation you received from the game?",
             "type": "scale",
             "min": 1,
             "max": 7,
@@ -90,7 +90,7 @@
         },
         {
             "id": "negotiation",
-            "label": "How satisfied are you with the process of negotioating with the lake manager",
+            "label": "How satisfied are you with the process of negotiating with the lake manager",
             "type": "scale",
             "min": 1,
             "max": 7,
@@ -116,16 +116,21 @@
             "label": "Based on what you just experienced, which attribute of the chatbot behavior did you find yourselves caring about, and which did you not care about?",
             "type": "sortRank",
             "options": [
-                "Tone and friendliness",
-                "Accuracy of the response",
-                "Speed of response",
-                "Relevance to what I said / listening to my arguments",
-                "Consistency of reasoning",
-                "Not feeling repetitive or robotic",
-                "Remembering context and details",
-                "Fairness",
-                "Transparency and explainability",
-                "Not ignoring my situation"
+                "Creative",
+                "Emotionally Responsive",
+                "Factually Accurate",
+                "Attentive",
+                "Surprising",
+                "Equitable",
+                "Confident",
+                "Honest",
+                "Negotiable",
+                "Empathetic",
+                "Consistent in reasoning",
+                "Transparent",
+                "Polite",
+                "Firm",
+                "Compromising"
             ]
         },
         {
