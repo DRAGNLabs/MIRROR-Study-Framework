@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
     const sql = `
       INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType") 
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType";
+      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt";
     `;
 
     const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType]);
@@ -275,7 +275,7 @@ router.patch("/:roomCode/completed", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT * FROM rooms ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
@@ -290,7 +290,7 @@ router.get("/nonCompleted", async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT * FROM rooms WHERE completed = FALSE ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms WHERE completed = FALSE ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
@@ -307,7 +307,7 @@ router.get("/isCompleted", async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
