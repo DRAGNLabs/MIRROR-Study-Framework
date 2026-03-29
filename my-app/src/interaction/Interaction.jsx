@@ -5,6 +5,7 @@ import { socket } from '../socket';
 import { getRoom } from "../../services/roomsService";
 import { getUser, getUserRole } from "../../services/usersService";
 import InstructionsModal from "./InstructionsModal";
+import FishPerRoundChart from "../components/FishPerRoundChart";
 import games from "../gameLoader";
 import MarkdownMessage from "../components/MarkdownMessage.jsx";
 
@@ -480,6 +481,7 @@ export function Interaction(){
                                 </li>
                             ))}
                         </ul>
+                        <FishPerRoundChart resourceHistory={resourceHistory} playerKey="userName" dark={false} />
                     </div>
                 )}
             </aside>
