@@ -7,12 +7,12 @@ import { useState } from "react";
 import { loginUser, getCreatedUser } from '../services/usersService';
 import { getRoom, loginRoom } from '../services/roomsService';
 import { socket } from "./socket"
-import Interaction from "./interaction/Interaction";
+import Interaction from "./components/interaction/Interaction";
 import Exit from "./Exit"
 import Admin from "./admin/Admin"
 import WaitingRoom from './components/waiting/WaitingRoom';
 import AdminWaitingRoom from './components/waiting/AdminWaitingRoom'
-import AdminInteraction from './admin/AdminInteraction'
+import AdminInteraction from './components/interaction/AdminInteraction'
 import LoginAdmin from "./admin/AdminLogin";
 import Instructions from './components/instructions/Instructions';
 import AdminInstructions from './components/instructions/AdminInstructions';

@@ -1,12 +1,14 @@
 /*This page is where the users will interact with the llm*/
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { socket } from '../socket';
-import { getRoom } from "../../services/roomsService";
-import { getUser, getUserRole } from "../../services/usersService";
-import InstructionsModal from "./InstructionsModal";
-import { formatTime } from "./interactionUtils";
-import games from "../gameLoader";
+import { socket } from '../../socket';
+import { getRoom } from "../../../services/roomsService";
+import { getUser, getUserRole } from "../../../services/usersService";
+import InstructionsModal from "../../interaction/InstructionsModal"
+import games from "../../gameLoader";
+import ChatBox from "./ChatMessages";
+import ResourcesPanel from "./ResourcePanel";
+import './interaction.css'
 
 
 export function Interaction(){
@@ -26,7 +28,7 @@ export function Interaction(){
     const isStreamingRef = useRef(false);
     const [showInstructions, setShowInstructions] = useState(false);
     const [game, setGame] = useState(null);
-    // const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
     const [timeRemaining, setTimeRemaining] = useState(null);
@@ -35,230 +37,255 @@ export function Interaction(){
     const chatBoxRef = useRef(null);
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+    // Fetch only resource allocations from DB (no message/canSend side effects)
+    async function refreshResourceAllocations() {
+        try {
+            const room = await getRoom(roomCode);
+            if (room.resourceAllocations) {
+                const parsed = room.resourceAllocations ?? {};
+                const history = Object.keys(parsed)
+                    .sort((a, b) => Number(a) - Number(b))
+                    .map((roundKey) => {
+                        const roundNumber = Number(roundKey);
+                        const entry = parsed[roundKey] || {};
+                        const allocationByUserName = entry.allocationByUserName || {};
+                        return { round: roundNumber, allocations: allocationByUserName };
+                    });
+                setResourceHistory(history);
+            }
+        } catch (err) {
+            console.error("Failed to refresh resource allocations:", err);
+        }
+    }
 
-    // const startClientTimer = (endTime) => {
-    //     if (timerIntervalRef.current) {
-    //         clearInterval(timerIntervalRef.current);
-    //     }
 
-    //     const updateTimer = () => {
-    //         const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-    //         setTimeRemaining(remaining);
+    const startClientTimer = (endTime) => {
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+        }
 
-    //         if (remaining === 0) {
-    //             clearInterval(timerIntervalRef.current);
-    //         }
-    //     };
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            setTimeRemaining(remaining);
 
-    //     updateTimer();
-    //     timerIntervalRef.current = setInterval(updateTimer, 1000);
-    // }
+            if (remaining === 0) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
 
-    // const formatTime = (seconds) => {
-    //     const mins = Math.floor(seconds / 60);
-    //     const secs = seconds % 60;
-    //     return `${mins}:${secs.toString().padStart(2, '0')}`;
-    // };
+        updateTimer();
+        timerIntervalRef.current = setInterval(updateTimer, 1000);
+    }
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     // Load full room/game state, chat history, and resource allocations
+    async function loadRoomState() {
+        try {
+            console.log("Loadroomstate()");
+            const room = await getRoom(roomCode);
+            const gameData = games.find(g => parseInt(g.id) === room.gameType);
+            const { role } = await getUserRole(user.userId);
+            setUserRole(gameData.roles[parseInt(role) - 1]);
+            setGame(gameData);
+
+            const llmInstructions = room.llmInstructions ?? {};
+            const userMessages = room.userMessages ?? {};
+            const llmResponse = room.llmResponse ?? {};
+            const numRounds = room.numRounds ?? 1;
+            const fish_amount = room.fish_amount ?? {};
+
+            const { messages, canSend, hasSentThisRound } = await resetMessages(
+                llmInstructions,
+                userMessages,
+                llmResponse,
+                numRounds,
+                fish_amount
+            );
+
+            // Parse resourceAllocations history if present on the room.
+            if (room.resourceAllocations) {
+                try {
+                    const parsed = room.resourceAllocations ?? {};
+
+                    const history = Object.keys(parsed)
+                        .sort((a, b) => Number(a) - Number(b))
+                        .map((roundKey) => {
+                            const roundNumber = Number(roundKey);
+                            const entry = parsed[roundKey] || {};
+                            const allocationByUserName = entry.allocationByUserName || {};
+                            return {
+                                round: roundNumber,
+                                allocations: allocationByUserName
+                            };
+                        });
+
+                    setResourceHistory(history);
+                } catch (err) {
+                    console.error("Error parsing resourceAllocations:", err);
+                    setResourceHistory([]);
+                }
+            } else {
+                setResourceHistory([]);
+            }
+
+            if (isStreamingRef.current) {
+                return;
+            }
+            setMessages(messages);
+            setCanSend(canSend);
+            setHasSentThisRound(hasSentThisRound);
+        } catch (err) {
+            console.error("Failed to load room state:", err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        loadRoomState();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [roomCode]);
+
+    useEffect(() => {
+        const handleConnect = () => {
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", { roomCode, isAdmin, user }); 
+        }
+
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
+
+        socket.on("receive-message", (message) => {
+            setMessages((prev) => [...prev, message]); 
+            // loadRoomState();
+            // console.log("Receiving message ", message);
+        });
+
+        socket.on("all-user-messages", ({ round, messages }) => {
+            loadCurrUserMessages.current = true;
+            setMessages((prev) => [...prev, ...messages]);
+        });
+
+        socket.on("start-user-survey", () => {
+            navigate("/survey", { state: { user }});
+        });
+
+        socket.on("ai-start", () => {
+            isStreamingRef.current = true;
+            const newId = Date.now();
+            setCurrentStreamingId(newId);
+            setStreamingText("");
+            setMessages((prev) => [
+                ...prev,
+                {sender: "llm", text: "", id: newId},
+            ]);
+        });
+
+        socket.on("ai-token", (token) => {
+            setStreamingText(prev => prev + token);
+        });
+
+        socket.on("ai-end", () => {
+            isStreamingRef.current = false;
+            setCurrentStreamingId(null);
+            setStreamingText("");
+        });
+
+        socket.on("instructions-complete", (round) => {
+            setCanSend(true);
+            setHasSentThisRound(false);
+            loadRoomState();
+        });
+
+        socket.on("round-complete", (round) => {
+            setCanSend(false);
+            setHasSentThisRound(true);
+            // loadRoomState();
+            refreshResourceAllocations();
+            setTimeRemaining(null); 
+            if (timerIntervalRef.current) { 
+                clearInterval(timerIntervalRef.current);
+            }
+            loadCurrUserMessages.current = false;
+            // Refresh to pull in updated llmResponse and resourceAllocations.
+            loadRoomState();
+        });
+
+        socket.on("game-complete", ()=> {
+            setCanSend(false);
+            setHasSentThisRound(true);
+            // loadRoomState();
+            refreshResourceAllocations();
+            loadCurrUserMessages.current = false;
+            // Final refresh so last-round allocations are visible.
+            loadRoomState();
+        });
+
+        socket.on("force-return-to-login", () => {
+            socket.emit("leave-room");
+            navigate("/");
+        })
+
+        // socket.on("status", (status) => {
+        //     const currentPath = location.pathname;
+        //     if(!currentPath.includes(status)) {
+        //         navigate(`/${status}`, { state: { user } });
+        //     }
+        // });
 
 
-    // async function loadRoomState() {
-    //     try {
-    //         console.log("Loadroomstate()");
-    //         const room = await getRoom(roomCode);
-    //         const gameData = games.find(g => parseInt(g.id) === room.gameType);
-    //         const { role } = await getUserRole(user.userId);
-    //         setUserRole(gameData.roles[parseInt(role) - 1]);
-    //         setGame(gameData);
+        socket.on("timer-start", ({ duration, endTime }) => {
+            console.log(`Timer started: ${duration}ms`);
+            startClientTimer(endTime);
+        });
 
-    //         const llmInstructions = room.llmInstructions ?? {};
-    //         const userMessages = room.userMessages ?? {};
-    //         const llmResponse = room.llmResponse ?? {};
-    //         const numRounds = room.numRounds ?? 1;
-    //         const fish_amount = room.fish_amount ?? {};
+        socket.on("timer-expired", () => {
+            console.log("Timer expired");
+            setTimeRemaining(null);
+            setCanSend(false);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        });
 
-    //         const { messages, canSend, hasSentThisRound } = await resetMessages(
-    //             llmInstructions,
-    //             userMessages,
-    //             llmResponse,
-    //             numRounds,
-    //             fish_amount
-    //         );
+        return () => {
+            socket.off("connect", handleConnect);
+            socket.off("receive-message");
+            socket.off("all-user-messages");
+            socket.off("room-users");
+            socket.off("ai-token");
+            socket.off("ai-start");
+            socket.off("ai-end");
+            socket.off("instructions-complete");
+            socket.off("round-complete");
+            socket.off("game-complete");
+            socket.off("force-return-to-login");
+            socket.off("status");
+            socket.off("timer-start");
+            socket.off("timer-expired");
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+    }, [socket]);
 
-    //         // Parse resourceAllocations history if present on the room.
-    //         if (room.resourceAllocations) {
-    //             try {
-    //                 const parsed = room.resourceAllocations ?? {};
+    useEffect(() => {
+        if (!streamingText || !currentStreamingId) return;
 
-    //                 const history = Object.keys(parsed)
-    //                     .sort((a, b) => Number(a) - Number(b))
-    //                     .map((roundKey) => {
-    //                         const roundNumber = Number(roundKey);
-    //                         const entry = parsed[roundKey] || {};
-    //                         const allocationByUserName = entry.allocationByUserName || {};
-    //                         return {
-    //                             round: roundNumber,
-    //                             allocations: allocationByUserName
-    //                         };
-    //                     });
-
-    //                 setResourceHistory(history);
-    //             } catch (err) {
-    //                 console.error("Error parsing resourceAllocations:", err);
-    //                 setResourceHistory([]);
-    //             }
-    //         } else {
-    //             setResourceHistory([]);
-    //         }
-
-    //         if (isStreamingRef.current) {
-    //             return;
-    //         }
-    //         setMessages(messages);
-    //         setCanSend(canSend);
-    //         setHasSentThisRound(hasSentThisRound);
-    //     } catch (err) {
-    //         console.error("Failed to load room state:", err);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     loadRoomState();
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [roomCode]);
-
-    // useEffect(() => {
-    //     const handleConnect = () => {
-    //         sessionStorage.setItem("roomCode", roomCode);
-    //         socket.emit("join-room", { roomCode, isAdmin, user }); 
-    //     }
-
-    //     if (socket.connected) {
-    //         handleConnect();
-    //     } else {
-    //         socket.once("connect", handleConnect);
-    //     }
-
-    //     socket.on("receive-message", (message) => {
-    //         setMessages((prev) => [...prev, message]); 
-    //         console.log("Receiving message ", message);
-    //     });
-
-    //     socket.on("all-user-messages", ({ round, messages }) => {
-    //         loadCurrUserMessages.current = true;
-    //         setMessages((prev) => [...prev, ...messages]);
-    //     });
-
-    //     socket.on("start-user-survey", () => {
-    //         navigate("/survey", { state: { user }});
-    //     });
-
-    //     socket.on("ai-start", () => {
-    //         isStreamingRef.current = true;
-    //         const newId = Date.now();
-    //         setCurrentStreamingId(newId);
-    //         setStreamingText("");
-    //         setMessages((prev) => [
-    //             ...prev,
-    //             {sender: "llm", text: "", id: newId},
-    //         ]);
-    //     });
-
-    //     socket.on("ai-token", (token) => {
-    //         setStreamingText(prev => prev + token);
-    //     });
-
-    //     socket.on("ai-end", () => {
-    //         isStreamingRef.current = false;
-    //         setCurrentStreamingId(null);
-    //         setStreamingText("");
-    //     });
-
-    //     socket.on("instructions-complete", (round) => {
-    //         setCanSend(true);
-    //         setHasSentThisRound(false);
-    //     });
-
-    //     socket.on("round-complete", (round) => {
-    //         setCanSend(false);
-    //         setHasSentThisRound(true);
-    //         setTimeRemaining(null); 
-    //         if (timerIntervalRef.current) { 
-    //             clearInterval(timerIntervalRef.current);
-    //         }
-    //         loadCurrUserMessages.current = false;
-    //         // Refresh to pull in updated llmResponse and resourceAllocations.
-    //         loadRoomState();
-    //     });
-
-    //     socket.on("game-complete", ()=> {
-    //         setCanSend(false);
-    //         setHasSentThisRound(true);
-    //         loadCurrUserMessages.current = false;
-    //         // Final refresh so last-round allocations are visible.
-    //         loadRoomState();
-    //     });
-
-    //     socket.on("force-return-to-login", () => {
-    //         socket.emit("leave-room");
-    //         navigate("/");
-    //     })
-
-    //     // socket.on("status", (status) => {
-    //     //     const currentPath = location.pathname;
-    //     //     if(!currentPath.includes(status)) {
-    //     //         navigate(`/${status}`, { state: { user } });
-    //     //     }
-    //     // });
-
-
-    //     socket.on("timer-start", ({ duration, endTime }) => {
-    //         console.log(`Timer started: ${duration}ms`);
-    //         startClientTimer(endTime);
-    //     });
-
-    //     socket.on("timer-expired", () => {
-    //         console.log("Timer expired");
-    //         setTimeRemaining(null);
-    //         setCanSend(false);
-    //         if (timerIntervalRef.current) {
-    //             clearInterval(timerIntervalRef.current);
-    //         }
-    //     });
-
-    //     return () => {
-    //         socket.off("connect", handleConnect);
-    //         socket.off("receive-message");
-    //         socket.off("all-user-messages");
-    //         socket.off("room-users");
-    //         socket.off("ai-token");
-    //         socket.off("ai-start");
-    //         socket.off("ai-end");
-    //         socket.off("instructions-complete");
-    //         socket.off("round-complete");
-    //         socket.off("game-complete");
-    //         socket.off("force-return-to-login");
-    //         socket.off("status");
-    //         socket.off("timer-start");
-    //         socket.off("timer-expired");
-    //         if (timerIntervalRef.current) {
-    //             clearInterval(timerIntervalRef.current);
-    //         }
-    //     };
-    // }, [socket]);
-
-    // useEffect(() => {
-    //     if (!streamingText || !currentStreamingId) return;
-
-    //     setMessages((prev) =>
-    //         prev.map((msg) =>
-    //             msg.id === currentStreamingId ? { ...msg, text: streamingText } : msg
-    //         )
-    //     );
-    // }, [streamingText,currentStreamingId]);
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.id === currentStreamingId ? { ...msg, text: streamingText } : msg
+            )
+        );
+    }, [streamingText,currentStreamingId]);
 
 
     useEffect(() => {
@@ -267,77 +294,77 @@ export function Interaction(){
         }
     }, [messages]);
 
-    // async function getUserName(id) {
-    //     try {
-    //         const user = await getUser(id);
-    //         return user;
-    //     } catch (error) {
-    //         console.error("Error fetching user:", error);
-    //         return { userName: "Unknown" };
-    //     }
-    // }
+    async function getUserName(id) {
+        try {
+            const user = await getUser(id);
+            return user;
+        } catch (error) {
+            console.error("Error fetching user:", error);
+            return { userName: "Unknown" };
+        }
+    }
 
-    // async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount) {
-    //     const newMsgs = [];
-    //     let lastRound = -1;
-    //     let userSentThisRound = false;
-    //     let llmResponded = false;
+    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount) {
+        const newMsgs = [];
+        let lastRound = -1;
+        let userSentThisRound = false;
+        let llmResponded = false;
 
-    //     const rounds = Object.keys(llmInstructions || {}).sort((a,b) => Number(a) - Number(b));
-    //     for (const round of rounds) {
-    //         userSentThisRound = false;
-    //         llmResponded = false;
-    //         lastRound = round;
-    //         if (llmInstructions[round]) {
-    //             newMsgs.push({
-    //                 sender: "llm",
-    //                 text: llmInstructions[round],
-    //                 id: `llm-instructions-${round}`
-    //             });
-    //         }
-    //         const msgs = Array.isArray(userMessages[round]) ? userMessages[round] : [];
-    //         for (const [msgUserId, text] of msgs) {
-    //             const userTemp = await getUserName(msgUserId);
-    //             if (llmResponse[round] || loadCurrUserMessages.current) {
-    //                 console.log(`loading user messages for round ${round}`);
-    //                 newMsgs.push({
-    //                     sender: "user",
-    //                     msgUserId,
-    //                     userName: userTemp.userName,
-    //                     text
-    //                 });
-    //             }
-    //             if (userId === msgUserId) {
-    //                 userSentThisRound = true;
-    //             }
-    //         }
-    //         if (llmResponse[round]) {
-    //             llmResponded = true;
-    //             newMsgs.push({
-    //                 sender: "llm",
-    //                 text: llmResponse[round],
-    //                 id: `llm-${round}`
-    //             });
-    //         }
-    //         if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) {
-    //             newMsgs.push({
-    //                 sender: "user",
-    //                 userName: "Admin",
-    //                 text: "All rounds are complete, game is ended.",
-    //                 id: "admin-end"
-    //             });
-    //         }
-    //         if(fish_amount[parseInt(round)+1] < 5) {
-    //             newMsgs.push({ sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" });
-    //         }
+        const rounds = Object.keys(llmInstructions || {}).sort((a,b) => Number(a) - Number(b));
+        for (const round of rounds) {
+            userSentThisRound = false;
+            llmResponded = false;
+            lastRound = round;
+            if (llmInstructions[round]) {
+                newMsgs.push({
+                    sender: "llm",
+                    text: llmInstructions[round],
+                    id: `llm-instructions-${round}`
+                });
+            }
+            const msgs = Array.isArray(userMessages[round]) ? userMessages[round] : [];
+            for (const [msgUserId, text] of msgs) {
+                const userTemp = await getUserName(msgUserId);
+                if (llmResponse[round] || loadCurrUserMessages.current) {
+                    console.log(`loading user messages for round ${round}`);
+                    newMsgs.push({
+                        sender: "user",
+                        msgUserId,
+                        userName: userTemp.userName,
+                        text
+                    });
+                }
+                if (userId === msgUserId) {
+                    userSentThisRound = true;
+                }
+            }
+            if (llmResponse[round]) {
+                llmResponded = true;
+                newMsgs.push({
+                    sender: "llm",
+                    text: llmResponse[round],
+                    id: `llm-${round}`
+                });
+            }
+            if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) {
+                newMsgs.push({
+                    sender: "user",
+                    userName: "Admin",
+                    text: "All rounds are complete, game is ended.",
+                    id: "admin-end"
+                });
+            }
+            if(fish_amount[parseInt(round)+1] < 5) {
+                newMsgs.push({ sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" });
+            }
             
-    //     }
-    //     return {
-    //         messages: newMsgs,
-    //         canSend: !!llmInstructions[lastRound] && !userSentThisRound && !llmResponded,
-    //         hasSentThisRound: userSentThisRound
-    //     };
-    // }
+        }
+        return {
+            messages: newMsgs,
+            canSend: !!llmInstructions[lastRound] && !userSentThisRound && !llmResponded,
+            hasSentThisRound: userSentThisRound
+        };
+    }
 
     const handleSubmit = async(e) => {
         e.preventDefault();
@@ -384,108 +411,20 @@ export function Interaction(){
         </header>
 
         <div className="interaction-main-layout">
-            <aside className="resources-panel" aria-label="Fish resource split">
-                {timeRemaining !== null && (
-                    <div className={`timer-warning ${timeRemaining <= 30 ? 'urgent' : ''}`}>
-                        ⏱ Time remaining: {formatTime(timeRemaining)}
-                    </div>
-                )}
-                <div className="resources-header">
-                    <div>
-                        <h2 className="resources-title">Resource Split (Fish)</h2>
-                        <p className="resources-subtitle">How fish are divided this game</p>
-                    </div>
-                </div>
 
-
-            {/* ── Total allocations (prominent) ── */}
-            {resourceHistory.length > 0 ? (() => {
-                // Aggregate fish across all rounds per user
-                const totals = {};
-                resourceHistory.forEach(({ allocations }) => {
-                    Object.entries(allocations).forEach(([userName, details]) => {
-                        totals[userName] = (totals[userName] ?? 0) + (details?.fish ?? 0);
-                    });
-                });
-
-                return (
-                    <>
-                        <div className="resources-section-label">Total (all rounds)</div>
-                        <ul className="resources-list">
-                            {Object.entries(totals).map(([userName, total]) => {
-                                const isYou = String(userName) === String(user.userName);
-                                return (
-                                    <li key={userName} className="resources-row">
-                                        <div className="resources-row-main">
-                                            <span className="resources-row-name">User {userName}</span>
-                                            {isYou && (
-                                                <span className="resources-row-you">You</span>
-                                            )}
-                                        </div>
-                                        <span className="resources-row-fish">{total} fish</span>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </>
-                );
-            })() : (
-                <div className="resources-empty">
-                    <p>Fish allocations will appear here after the first round.</p>
-                </div>
-            )}
-
-            {/* ── Per-round history (smaller) ── */}
-                {resourceHistory.length > 0 && (
-                    <div className="resources-history">
-                        <div className="resources-section-label">Round breakdown</div>
-                        <ul className="resources-history-list">
-                            {resourceHistory.map((entry) => (
-                                <li key={entry.round} className="resources-history-item">
-                                    <span className="resources-history-round">Round {entry.round}</span>
-                                    <span className="resources-history-summary">
-                                        {Object.entries(entry.allocations)
-                                            .map(([userName, details]) => {
-                                                const fishCount = details?.fish ?? 0;
-                                                return `${userName}: ${fishCount}`;
-                                            })
-                                            .join(", ")}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </aside>
+            <ResourcesPanel
+                resourceHistory={resourceHistory}
+                timeRemaining={timeRemaining}
+                formatTime={formatTime}
+                currentUserName={user.userName}
+                isAdmin={false}
+            />
 
             <div className="chat-container">
-                <div className="chat-box" ref={chatBoxRef}>
-                    {messages.length === 0 && (
-                        <div className="chat-placeholder">
-                            <p>Messages will appear here once the round starts.</p>
-                        </div>
-                    )}
-                    {messages.map((msg, i) => {
-                        const rawText = typeof msg.text === "string" ? msg.text : "";
-                        const isJsonLike =
-                            rawText.trim().startsWith("{") &&
-                            rawText.includes("allocationByUserName");
-                        const safeText = isJsonLike
-                            ? "An internal allocation update occurred."
-                            : rawText;
-                        return (
-                            <div
-                                key={msg.id ?? i}
-                                className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
-                            >
-                                <span className="message-sender">
-                                    {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
-                                </span>
-                                <span className="message-text">{safeText}</span>
-                            </div>
-                        );
-                    })}
-                </div>
+                <ChatBox
+                    messages={messages}
+                    chatBoxRef={chatBoxRef}
+                />
 
                 <form className="chat-form" onSubmit={handleSubmit}>
                     <textarea

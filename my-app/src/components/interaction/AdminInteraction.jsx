@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { socket } from '../socket.js';
-import { getRoom, updateStatus } from '../../services/roomsService.js'
-import { getUser } from '../../services/usersService.js'
-import { useInteractionSocket } from "./interactionSocket.js";
+import { socket } from '../../socket.js';
+import { getRoom, updateStatus } from '../../../services/roomsService.js'
+import { getUser } from '../../../services/usersService.js'
+import ChatBox from "./ChatMessages.jsx";
+import ResourcesPanel from "./ResourcePanel.jsx";
+import './interaction.css'
 
 export default function AdminInteraction(){
     const location = useLocation();
@@ -13,156 +15,141 @@ export default function AdminInteraction(){
     const { roomCode } = location.state;
     const isAdmin = true;
 
-    const [messages, setMessages] = useState([]); // pass into interaction socket
-    // const [streamingText, setStreamingText] = useState(""); 
-    // const [currentStreamingId, setCurrentStreamingId] = useState(null);
+    const [messages, setMessages] = useState([]); 
+    const [streamingText, setStreamingText] = useState(""); 
+    const [currentStreamingId, setCurrentStreamingId] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
-
-    // this one used in startClientTimer?
-    const [timeRemaining, setTimeRemaining] = useState(null); // pass into interaction socket2
+    const [timeRemaining, setTimeRemaining] = useState(null);
 
 
     // const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
-    // const isStreamingRef = useRef(false);
-    // const timerIntervalRef = useRef(null);
-    // const loadCurrUserMessages = useRef(false);
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const isStreamingRef = useRef(false);
+    const timerIntervalRef = useRef(null);
+    const loadCurrUserMessages = useRef(false);
 
-    // can I pull this out into another file?
-    // const startClientTimer = (endTime) => {
-    //     if (timerIntervalRef.current) {
-    //         clearInterval(timerIntervalRef.current);
-    //     }
 
-    //     const updateTimer = () => {
-    //         const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-    //         setTimeRemaining(remaining);
+    const startClientTimer = (endTime) => {
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+        }
 
-    //         if (remaining === 0) {
-    //             clearInterval(timerIntervalRef.current);
-    //         }
-    //     };
+        const updateTimer = () => {
+            const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            setTimeRemaining(remaining);
 
-    //     updateTimer();
-    //     timerIntervalRef.current = setInterval(updateTimer, 1000);
-    // }
+            if (remaining === 0) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
 
-    // const formatTime = (seconds) => {
-    //     const mins = Math.floor(seconds / 60);
-    //     const secs = seconds % 60;
-    //     return `${mins}:${secs.toString().padStart(2, '0')}`;
-    // };
+        updateTimer();
+        timerIntervalRef.current = setInterval(updateTimer, 1000);
+    }
 
-    let {  streamingText, 
-            currentStreamingId,  
-            isStreamingRef, 
-            timerIntervalRef, 
-            loadCurrUserMessages } = useInteractionSocket(roomCode, isAdmin, user = null, setMessages, setTimeReamining);
-    // useEffect(() => {
-    //     const handleConnect = () => {
-    //         sessionStorage.setItem("roomCode", roomCode);
-    //         socket.emit("join-room", { roomCode, isAdmin}); 
-    //     }
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
-    //     if (socket.connected) {
-    //         handleConnect();
-    //     } else {
-    //         socket.once("connect", handleConnect);
-    //     }
+    useEffect(() => {
+        const handleConnect = () => {
+            sessionStorage.setItem("roomCode", roomCode);
+            socket.emit("join-room", { roomCode, isAdmin}); 
+        }
 
-    //     socket.on("receive-message", (message) => {
-    //         setMessages((prev) => [...prev, message]);
-    //     });
+        if (socket.connected) {
+            handleConnect();
+        } else {
+            socket.once("connect", handleConnect);
+        }
+
+        socket.on("receive-message", (message) => {
+            setMessages((prev) => [...prev, message]);
+        });
         
 
-    //     socket.on("all-user-messages", ({ round, messages }) => {
-    //         loadCurrUserMessages.current = true;
-    //         setMessages((prev) => [...prev, ...messages]);
-    //     });
+        socket.on("all-user-messages", ({ round, messages }) => {
+            loadCurrUserMessages.current = true;
+            setMessages((prev) => [...prev, ...messages]);
+        });
 
-    //     socket.on("ai-start", () => {
-    //         isStreamingRef.current = true;
-    //         const newId = Date.now();
-    //         setCurrentStreamingId(newId);
-    //         setStreamingText("");
-    //         setMessages((prev) => [
-    //             ...prev,
-    //             {sender: "llm", text: "", id: newId},
-    //         ]);
-    //     });
+        socket.on("ai-start", () => {
+            isStreamingRef.current = true;
+            const newId = Date.now();
+            setCurrentStreamingId(newId);
+            setStreamingText("");
+            setMessages((prev) => [
+                ...prev,
+                {sender: "llm", text: "", id: newId},
+            ]);
+        });
 
-    //     socket.on("ai-token", (token) => {
-    //         setStreamingText(prev => prev + token);
-    //     });
+        socket.on("ai-token", (token) => {
+            setStreamingText(prev => prev + token);
+        });
 
-    //     socket.on("ai-end", async () => {
-    //         isStreamingRef.current = false;
-    //         setCurrentStreamingId(null);
-    //         setStreamingText("");
-    //         const room = await getRoom(roomCode);
-    //         const userIds = room.userIds || [];
+        socket.on("ai-end", async () => {
+            isStreamingRef.current = false;
+            setCurrentStreamingId(null);
+            setStreamingText("");
+        });
 
-    //         setTimeout(() => {
-    //             handleRoundComplete();
-    //         }, RESPONSE_TIMEOUT);
+        socket.on("force-return-to-login", () => {
+            navigate("/admin");
+        });
 
-    //     });
+        socket.on("round-complete", (round) => {
+            setTimeRemaining(null); 
+            loadCurrUserMessages.current = false;
+            if (timerIntervalRef.current) { 
+                clearInterval(timerIntervalRef.current);
+            }
+            loadRoomState();
+        });
 
-    //     socket.on("force-return-to-login", () => {
-    //         navigate("/admin");
-    //     });
+        socket.on("timer-start", ({ duration, endTime }) => {
+            console.log(`Timer started: ${duration}ms`);
+            startClientTimer(endTime);
+        });
 
-    //     socket.on("round-complete", (round) => {
-    //         setTimeRemaining(null); 
-    //         loadCurrUserMessages.current = false;
-    //         if (timerIntervalRef.current) { 
-    //             clearInterval(timerIntervalRef.current);
-    //         }
-    //         loadRoomState();
-    //     });
-
-    //     socket.on("timer-start", ({ duration, endTime }) => {
-    //         console.log(`Timer started: ${duration}ms`);
-    //         startClientTimer(endTime);
-    //     });
-
-    //     socket.on("timer-expired", () => {
-    //         console.log("Timer expired");
-    //         setTimeRemaining(null);
-    //         if (timerIntervalRef.current) {
-    //             clearInterval(timerIntervalRef.current);
-    //         }
-    //     });
+        socket.on("timer-expired", () => {
+            console.log("Timer expired");
+            setTimeRemaining(null);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        });
 
 
-    //     return () => {
-    //         socket.off("connect", handleConnect);
-    //         socket.off("receive-message");
-    //         socket.off("all-user-messages");
-    //         socket.off("ai-token");
-    //         socket.off("ai-start");
-    //         socket.off("ai-end");
-    //         socket.off("round-complete");
-    //         socket.off("force-return-to-login");
-    //         socket.off("timer-start");
-    //         socket.off("timer-expired");
+        return () => {
+            socket.off("connect", handleConnect);
+            socket.off("receive-message");
+            socket.off("all-user-messages");
+            socket.off("ai-token");
+            socket.off("ai-start");
+            socket.off("ai-end");
+            socket.off("round-complete");
+            socket.off("force-return-to-login");
+            socket.off("timer-start");
+            socket.off("timer-expired");
     
-    //         if (timerIntervalRef.current) {
-    //             clearInterval(timerIntervalRef.current);
-    //         }
-    //     };
-    // }, [socket]);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+    }, [socket]);
 
-    // useEffect(() => {
-    //     if (!streamingText) return;
+    useEffect(() => {
+        if (!streamingText) return;
 
-    //     setMessages((prev) =>
-    //         prev.map((msg) =>
-    //             msg.id === currentStreamingId ? { ...msg, text: streamingText } : msg
-    //         )
-    //     );
-    // }, [streamingText]);
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.id === currentStreamingId ? { ...msg, text: streamingText } : msg
+            )
+        );
+    }, [streamingText]);
 
     useEffect(() => {
         if (chatBoxRef.current) {
@@ -177,205 +164,143 @@ export default function AdminInteraction(){
         navigate("/admin/survey", { state: { roomCode } });
     }
 
-    // async function getUserName(userId) {
-    //     try {
-    //         const user = await getUser(userId);
-    //         return user.userName;
-    //     } catch (error) {
-    //         console.error("Error:", error);
-    //         // setError(error.message || "something went wrong.");
-    //     }
-    // }
+    async function getUserName(userId) {
+        try {
+            const user = await getUser(userId);
+            return user.userName;
+        } catch (error) {
+            console.error("Error:", error);
+            // setError(error.message || "something went wrong.");
+        }
+    }
 
-    // async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount) {
-    //     const newMsgs = [];
+    async function resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount) {
+        const newMsgs = [];
 
-    //     const rounds = Object.keys(llmInstructions).sort((a,b) => a-b);
-    //     for (const round of rounds) {
-    //         if (llmInstructions[round]) {
-    //             newMsgs.push({ sender: "llm", text: llmInstructions[round], id: `llm-instructions-${round}`});
-    //         }
-    //         const msgs = userMessages[round] || [];
-    //         for (const [userId, text] of msgs) {
-    //             const userName = await getUserName(userId);
-    //             if (llmResponse[round] || loadCurrUserMessages.current) {
-    //                 newMsgs.push({ sender: "user", userId, userName: userName, text});
-    //             }
-    //         }
-    //         if (llmResponse[round]) {
-    //             newMsgs.push({ sender: "llm", text: llmResponse[round], id: `llm-${round}`});
-    //         }
-    //         if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) { // this check needs to change
-    //             newMsgs.push({ sender: "user", userName: "Admin", text: "All rounds are complete, game is ended."});
-    //         }
-    //         if(fish_amount[parseInt(round)+1] < 5) {
-    //             newMsgs.push({ sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" });
-    //         }
+        const rounds = Object.keys(llmInstructions).sort((a,b) => a-b);
+        for (const round of rounds) {
+            if (llmInstructions[round]) {
+                newMsgs.push({ sender: "llm", text: llmInstructions[round], id: `llm-instructions-${round}`});
+            }
+            const msgs = userMessages[round] || [];
+            for (const [userId, text] of msgs) {
+                const userName = await getUserName(userId);
+                if (llmResponse[round] || loadCurrUserMessages.current) {
+                    newMsgs.push({ sender: "user", userId, userName: userName, text});
+                }
+            }
+            if (llmResponse[round]) {
+                newMsgs.push({ sender: "llm", text: llmResponse[round], id: `llm-${round}`});
+            }
+            if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) { // this check needs to change
+                newMsgs.push({ sender: "user", userName: "Admin", text: "All rounds are complete, game is ended."});
+            }
+            if(fish_amount[parseInt(round)+1] < 5) {
+                newMsgs.push({ sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" });
+            }
             
-    //     }
-    //     return newMsgs;
-    // }
+        }
+        return newMsgs;
+    }
+
+    async function refreshResourceAllocations() {
+        try {
+            const room = await getRoom(roomCode);
+            if (room.resourceAllocations) {
+                const parsed = room.resourceAllocations ?? {};
+                const history = Object.keys(parsed)
+                    .sort((a, b) => Number(a) - Number(b))
+                    .map((roundKey) => {
+                        const roundNumber = Number(roundKey);
+                        const entry = parsed[roundKey] || {};
+                        const allocationByUserName = entry.allocationByUserName || {};
+                        return { round: roundNumber, allocations: allocationByUserName };
+                    });
+                setResourceHistory(history);
+            }
+        } catch (err) {
+            console.error("Failed to refresh resource allocations:", err);
+        }
+    }
 
     // Load full room state: chat history + resource allocations
-    // async function loadRoomState() {
-    //     try {
-    //         const room = await getRoom(roomCode);
-    //         const llmInstructions = room.llmInstructions ?? {};
-    //         const userMessages = room.userMessages ?? {};
-    //         const llmResponse = room.llmResponse ?? {};
-    //         const numRounds = room.numRounds ?? 1;
-    //         const fish_amount = room.fish_amount ?? {};
+    async function loadRoomState() {
+        try {
+            const room = await getRoom(roomCode);
+            const llmInstructions = room.llmInstructions ?? {};
+            const userMessages = room.userMessages ?? {};
+            const llmResponse = room.llmResponse ?? {};
+            const numRounds = room.numRounds ?? 1;
+            const fish_amount = room.fish_amount ?? {};
 
-    //         const newMsgs = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount);
+            const newMsgs = await resetMessages(llmInstructions, userMessages, llmResponse, numRounds, fish_amount);
 
-    //         // Parse resourceAllocations if present
-    //         if (room.resourceAllocations) {
-    //             try {
-    //                 const parsed = room.resourceAllocations ?? {};
+            // Parse resourceAllocations if present
+            if (room.resourceAllocations) {
+                try {
+                    const parsed = room.resourceAllocations ?? {};
 
-    //                 const history = Object.keys(parsed)
-    //                     .sort((a, b) => Number(a) - Number(b))
-    //                     .map((roundKey) => {
-    //                         const roundNumber = Number(roundKey);
-    //                         const entry = parsed[roundKey] || {};
-    //                         const allocationByUserName = entry.allocationByUserName || {};
-    //                         return {
-    //                             round: roundNumber,
-    //                             allocations: allocationByUserName
-    //                         };
-    //                     });
+                    const history = Object.keys(parsed)
+                        .sort((a, b) => Number(a) - Number(b))
+                        .map((roundKey) => {
+                            const roundNumber = Number(roundKey);
+                            const entry = parsed[roundKey] || {};
+                            const allocationByUserName = entry.allocationByUserName || {};
+                            return {
+                                round: roundNumber,
+                                allocations: allocationByUserName
+                            };
+                        });
 
-    //                 setResourceHistory(history);
-    //             } catch (err) {
-    //                 console.error("Error parsing resourceAllocations (admin):", err);
-    //                 setResourceHistory([]);
-    //             }
-    //         } else {
-    //             setResourceHistory([]);
-    //         }
+                    setResourceHistory(history);
+                } catch (err) {
+                    console.error("Error parsing resourceAllocations (admin):", err);
+                    setResourceHistory([]);
+                }
+            } else {
+                setResourceHistory([]);
+            }
 
-    //         if (isStreamingRef.current) {
-    //             return;
-    //         }
-    //         setMessages(newMsgs);
-    //     } catch (error) {
-    //         console.error("Error loading admin room state:", error);
-    //     }
-    // }
+            if (isStreamingRef.current) {
+                return;
+            }
+            setMessages(newMsgs);
+        } catch (error) {
+            console.error("Error loading admin room state:", error);
+        }
+    }
 
 
-    // useEffect(() => {
-    //     loadRoomState();
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [roomCode]);
+    useEffect(() => {
+        loadRoomState();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [roomCode]);
 
     return (
-        <>
         <div className="admin-interaction-page">
             <header className="admin-interaction-header">
                 <h1 className="admin-interaction-header-title">Admin</h1>
                 <span className="admin-interaction-room-badge">Room {roomCode}</span>
-                {/* {timeRemaining !== null && (
-                    <span className="admin-timer-badge">⏱ {formatTime(timeRemaining)}</span>
-                )} */}
                 <span className="admin-interaction-header-spacer" aria-hidden="true" />
             </header>
 
             <div className="admin-interaction-main-layout">
+
                 <div className="admin-interaction-chat-container">
-                    <div className="admin-interaction-chat-box" ref={chatBoxRef}>
-                        {messages.length === 0 && (
-                            <div className="chat-placeholder">
-                                <p>Conversation will appear here as participants and the LLM respond.</p>
-                            </div>
-                        )}
-                        {messages.map((msg, i) => {
-                            const rawText = typeof msg.text === "string" ? msg.text : "";
-                            const isJsonLike =
-                                rawText.trim().startsWith("{") &&
-                                rawText.includes("allocationByUserId");
-                            const safeText = isJsonLike
-                                ? "An internal allocation update occurred."
-                                : rawText;
-                            return (
-                                <div
-                                    key={msg.id ?? i}
-                                    className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
-                                >
-                                    <span className="message-sender">
-                                        {msg.sender === "user" ? (msg?.userName || "Participant") : "LLM"}
-                                    </span>
-                                    <span className="message-text">{safeText}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
+                    <ChatBox
+                        messages={messages}
+                        chatBoxRef={chatBoxRef}
+                        placeholder="Conversation will appear here as participants and the LLM respond."
+                        isAdmin="Admin"
+                    />
                 </div>
-                <aside className="admin-resources-panel" aria-label="Fish resource split (admin)">
-                    {timeRemaining !== null && (
-                        <span className="admin-timer-badge">⏱ {formatTime(timeRemaining)}</span>
-                    )}
-                    <div className="resources-header">
-                        <div>
-                            <h2 className="resources-title">Resource Split (Fish)</h2>
-                            <p className="resources-subtitle">Per-user allocations by round</p>
-                        </div>
-                    </div>
 
-                    {/* ── Total allocations (prominent) ── */}
-                    {resourceHistory.length > 0 ? (() => {
-                        const totals = {};
-                        resourceHistory.forEach(({ allocations }) => {
-                            Object.entries(allocations).forEach(([userId, details]) => {
-                                totals[userId] = (totals[userId] ?? 0) + (details?.fish ?? 0);
-                            });
-                        });
-
-                        return (
-                            <>
-                                <div className="resources-section-label">Total (all rounds)</div>
-                                <ul className="resources-list">
-                                    {Object.entries(totals).map(([userId, total]) => (
-                                        <li key={userId} className="resources-row">
-                                            <div className="resources-row-main">
-                                                <span className="resources-row-name">User {userId}</span>
-                                            </div>
-                                            <span className="resources-row-fish">{total} fish</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </>
-                        );
-                    })() : (
-                        <div className="resources-empty">
-                            <p>Fish allocations will appear here after the first round.</p>
-                        </div>
-                    )}
-
-                    {/* ── Per-round history (smaller) ── */}
-                    {resourceHistory.length > 0 && (
-                        <div className="resources-history">
-                            <div className="resources-section-label">Round breakdown</div>
-                            <ul className="resources-history-list">
-                                {resourceHistory.map((entry) => (
-                                    <li key={entry.round} className="resources-history-item">
-                                        <span className="resources-history-round">
-                                            Round {entry.round}
-                                        </span>
-                                        <span className="resources-history-summary">
-                                            {Object.entries(entry.allocations)
-                                                .map(([userId, details]) => {
-                                                    const fishCount = details?.fish ?? 0;
-                                                    return `${userId}: ${fishCount}`;
-                                                })
-                                                .join(", ")}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </aside>
+                <ResourcesPanel
+                    resourceHistory={resourceHistory}
+                    timeRemaining={timeRemaining}
+                    formatTime={formatTime}
+                    isAdmin={true}
+                />
             </div>
 
             <footer className="admin-interaction-footer">
@@ -388,7 +313,5 @@ export default function AdminInteraction(){
                 </button>
             </footer>
         </div>
-     </>
-    )
-
+    );
 };

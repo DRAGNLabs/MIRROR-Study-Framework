@@ -4,7 +4,7 @@ import { socket } from "../../socket";
 
 // basic socket events in every component
 export function socketListener(roomCode, isAdmin, user) {
-    // const location = useLocation();
+    const location = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -26,8 +26,13 @@ export function socketListener(roomCode, isAdmin, user) {
 
         // should replace to-instructions, start-chat, start-user-survey
         socket.on("change-status", ({ status }) => {
-            const basePath = isAdmin ? "/admin" : "";
-            navigate(`${basePath}/${status}`);
+            // const basePath = isAdmin ? "/admin" : "";
+            // console.log(`${basePath}/${status}`);
+            if (isAdmin) {
+                navigate(`admin/${status}`, { state: { roomCode }});
+            } else {
+                navigate(`/${status}`, { state: { user }})
+            }
         });
         /*
         idea is to make one socket event that admins call to renavigate users, 
