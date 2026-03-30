@@ -1,4 +1,4 @@
-import FishPerRoundChart from "../FishPerRoundChart";
+import FishPerRoundChart from "./FishPerRoundChart";
 
 export default function ResourcesPanel({ 
     resourceHistory, 

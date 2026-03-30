@@ -5,7 +5,7 @@ import { socket } from '../socket';
 import { getRoom } from "../../services/roomsService";
 import { getUser, getUserRole } from "../../services/usersService";
 import InstructionsModal from "./InstructionsModal";
-import FishPerRoundChart from "../components/FishPerRoundChart";
+import FishPerRoundChart from "../components/interaction/FishPerRoundChart";
 import games from "../gameLoader";
 
 
