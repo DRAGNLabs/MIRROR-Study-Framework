@@ -3,13 +3,6 @@ import { getUser, getUserRole } from "../../../services/usersService";
 import { getRoom } from "../../../services/roomsService"; 
 import games from "../../gameLoader"; 
     
-export const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
-
-
 export async function loadRoomState(
     isAdmin, 
     roomCode, 
@@ -25,10 +18,6 @@ export async function loadRoomState(
 ) {
     try {
         const room = await getRoom(roomCode);
-        // stuff below only for user:
-        // return role and gameData and set it in user
-        // let gameData;
-        // let userRole;
         if (!isAdmin && user) {
             const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
@@ -88,10 +77,6 @@ export async function loadRoomState(
     } catch (err) {
         console.error("Failed to load room state:", err);
     } 
-    // finally {
-    //     // do I need this (only on user side)
-    //     // setLoading(false);
-    // }
 }
 
 async function getUserName(id) {
@@ -190,3 +175,28 @@ export const startClientTimer = (endTime, timerIntervalRef, setTimeRemaining) =>
     updateTimer();
     timerIntervalRef.current = setInterval(updateTimer, 1000);
 }
+
+export const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+    // async function refreshResourceAllocations() {
+    //     try {
+    //         const room = await getRoom(roomCode);
+    //         if (room.resourceAllocations) {
+    //             const parsed = room.resourceAllocations ?? {};
+    //             const history = Object.keys(parsed)
+    //                 .sort((a, b) => Number(a) - Number(b))
+    //                 .map((roundKey) => {
+    //                     const roundNumber = Number(roundKey);
+    //                     const entry = parsed[roundKey] || {};
+    //                     const allocationByUserName = entry.allocationByUserName || {};
+    //                     return { round: roundNumber, allocations: allocationByUserName };
+    //                 });
+    //             setResourceHistory(history);
+    //         }
+    //     } catch (err) {
+    //         console.error("Failed to refresh resource allocations:", err);
+    //     }
+    // }
