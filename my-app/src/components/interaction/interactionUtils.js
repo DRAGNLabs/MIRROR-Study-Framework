@@ -1,6 +1,7 @@
 
-import { getUser, getUserRole } from "../../services/usersService";   
-import games from "../gameLoader"; 
+import { getUser, getUserRole } from "../../../services/usersService";  
+import { getRoom } from "../../../services/roomsService"; 
+import games from "../../gameLoader"; 
     
 export const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -9,20 +10,31 @@ export const formatTime = (seconds) => {
 };
 
 
-export async function loadRoomState(isAdmin, roomCode, user=null, isStreamingRef, loadCurrUserMessages) {
+export async function loadRoomState(
+    isAdmin, 
+    roomCode, 
+    user=null, 
+    isStreamingRef, 
+    loadCurrUserMessages, 
+    setMessages,
+    setResourceHistory,
+    setCanSend=null, 
+    setHasSentThisRound=null, 
+    setGame=null, 
+    setUserRole=null
+) {
     try {
         const room = await getRoom(roomCode);
         // stuff below only for user:
         // return role and gameData and set it in user
-        let gameData;
-        let userRole;
+        // let gameData;
+        // let userRole;
         if (!isAdmin && user) {
-            gameData = games.find(g => parseInt(g.id) === room.gameType);
+            const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
-            userRole = role;
+            setUserRole(gameData.roles[parseInt(role) - 1]);
+            setGame(gameData);
         }
-        // setUserRole(gameData.roles[parseInt(role) - 1]);
-        // setGame(gameData);
 
         const llmInstructions = room.llmInstructions ?? {};
         const userMessages = room.userMessages ?? {};
@@ -41,7 +53,6 @@ export async function loadRoomState(isAdmin, roomCode, user=null, isStreamingRef
         );
 
         // Parse resourceAllocations history if present on the room.
-        let resourceHistory = []
         if (room.resourceAllocations) {
             try {
                 const parsed = room.resourceAllocations ?? {};
@@ -57,40 +68,23 @@ export async function loadRoomState(isAdmin, roomCode, user=null, isStreamingRef
                             allocations: allocationByUserName
                         };
                     });
-                resourceHistory = history;
-                // setResourceHistory(history);
+                setResourceHistory(history);
             } catch (err) {
                 console.error("Error parsing resourceAllocations:", err);
-                resourceHistory = [];
-                // setResourceHistory([]);
+                setResourceHistory([]);
             }
         } else {
-            resourceHistory = [];
-            // setResourceHistory([]);
+            setResourceHistory([]);
         }
 
         if (isStreamingRef.current) {
             return;
         }
-        // could return messages, canSend, hasSentThisRound
-        if (isAdmin) {
-            return {
-                messages: messages,
-                resourceHistory: resourceHistory
-            }
-        } else {
-            return {
-                messages: messages,
-                resourceHistory: resourceHistory,
-                canSend: canSend, 
-                hasSentThisRound: hasSentThisRound,
-                game: gameData,
-                userRole: role,
-            }
+        setMessages(messages);
+        if(!isAdmin) {
+            setCanSend(canSend);
+            setHasSentThisRound(hasSentThisRound);
         }
-        // setMessages(messages);
-        // setCanSend(canSend);
-        // setHasSentThisRound(hasSentThisRound);
     } catch (err) {
         console.error("Failed to load room state:", err);
     } 
@@ -176,4 +170,23 @@ async function resetMessages(llmInstructions, userMessages, llmResponse, numRoun
         canSend: !!llmInstructions[lastRound] && !userSentThisRound && !llmResponded,
         hasSentThisRound: userSentThisRound
     };
+}
+
+
+export const startClientTimer = (endTime, timerIntervalRef, setTimeRemaining) => {
+    if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+    }
+
+    const updateTimer = () => {
+        const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+        setTimeRemaining(remaining);
+
+        if (remaining === 0) {
+            clearInterval(timerIntervalRef.current);
+        }
+    };
+
+    updateTimer();
+    timerIntervalRef.current = setInterval(updateTimer, 1000);
 }
