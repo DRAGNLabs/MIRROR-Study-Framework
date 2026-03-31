@@ -160,15 +160,13 @@ export function Interaction(){
                 </form>
             </div>
         </div>
+        </div>
         <InstructionsModal
             open={showInstructions}
             onClose={() => setShowInstructions(false)}
             game={game}
             role={userRole}
         />
-        </div>
-
-
         </>
     )
 

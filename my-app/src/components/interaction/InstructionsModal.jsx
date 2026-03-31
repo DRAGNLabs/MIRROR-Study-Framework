@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+
 export default function InstructionsModal({ open, onClose, game, role }) {
   if (!open) return null;
 
@@ -5,7 +7,7 @@ export default function InstructionsModal({ open, onClose, game, role }) {
   const overview = typeof instructions === "string" ? instructions : instructions?.overview ?? "";
   const firstRound = instructions?.rounds?.[0];
 
-  return (
+  const modalContent = (
     <div className="modal-backdrop" onClick={onClose}>
       <div
         className="modal-card"
@@ -41,4 +43,6 @@ export default function InstructionsModal({ open, onClose, game, role }) {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

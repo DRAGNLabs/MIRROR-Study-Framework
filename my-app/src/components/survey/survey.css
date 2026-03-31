@@ -126,9 +126,9 @@
   cursor: not-allowed;
 }
 
-.survey-nav-prev {
-  /* Back button specific styles if needed */
-}
+/* .survey-nav-prev {
+  /* Back button specific styles if needed 
+} */
 
 .survey-nav-next {
   background: #334155;
@@ -261,9 +261,9 @@
   margin: 0;
 }
 
-.age-input-field[type="number"] {
+/* .age-input-field[type="number"] {
   -moz-appearance: textfield;
-}
+} */
 
 /* === Scale/Slider Input === */
 .scale-wrapper {
