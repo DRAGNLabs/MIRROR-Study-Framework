@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-// import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useCallback } from "react";
 import { socket } from '../../socket'
 import { socketListener } from "../common/socketListener";
 import { loadRoomState, startClientTimer } from "./interactionUtils";
@@ -92,11 +91,8 @@ export function useInteractionSocket(
             }
             // Refresh to pull in updated llmResponse and resourceAllocations.
             refreshRoomState();
-            // loadRoomState(isAdmin, roomCode, user, isStreamingRef, setMessages, setCanSend, setHasSentThisRound, setGame, setUserRole);
         });
 
-        // only in users
-        // diff between users/admin, game-complete, timer-expired, round-complete, ai-end
         if (!isAdmin) {
             socket.on("game-complete", ()=> {
                 setCanSend(false);
@@ -142,8 +138,6 @@ export function useInteractionSocket(
                 socket.off("game-complete"); // in users
                 socket.off("instructions-complete");
             }
-            // socket.off("force-return-to-login");
-            // socket.off("status");
             socket.off("timer-start");
             socket.off("timer-expired");
             if (timerIntervalRef.current) {
