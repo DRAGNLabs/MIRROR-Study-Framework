@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { socket } from "../socket"; 
-import { getUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms } from "../../services/roomsService";
-import games from "../gameLoader";
+import { socket } from "../../socket"; 
+import { getUser } from "../../../services/usersService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms } from "../../../services/roomsService";
+import games from "../../gameLoader";
+import './admin.css';
 
 
 export function Admin() {

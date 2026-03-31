@@ -5,10 +5,10 @@ import { getRoom } from "../../../services/roomsService";
 import { useLocation } from "react-router-dom";
 import { getUserRole } from "../../../services/usersService";
 import { socketListener } from "../common/socketListener";
+import './instructions.css';
 
 export default function Instructions() {
     const location = useLocation();
-    // const navigate = useNavigate();
     const { user } = location.state;
     const roomCode = parseInt(user.roomCode);
     const isAdmin = false;
@@ -35,45 +35,6 @@ export default function Instructions() {
     }, [roomCode])
 
     socketListener(roomCode, isAdmin, user);
-    // useEffect(() => {
-    //     const handleConnect = () => {
-    //         sessionStorage.setItem("roomCode", roomCode);
-    //         socket.emit("join-room", { roomCode, isAdmin, user }); 
-    //     }
-
-    //     if (socket.connected) {
-    //         handleConnect();
-    //     } else {
-    //         socket.once("connect", handleConnect);
-    //     }
-
-    //     const onStart = () => {
-    //         navigate("/interaction", { state: { user }});
-    //     }
-
-    //     socket.on("start-chat", onStart);
-
-    //     socket.on("force-return-to-login", () => {
-    //         socket.emit("leave-room");
-    //         navigate("/");
-    //     });
-
-    //     // socket.on("status", (status) => {
-    //     //     const currentPath = location.pathname;
-    //     //     console.log("Current path name in instructions", currentPath);
-    //     //     console.log("status", status);
-    //     //     if(!currentPath.includes(status)) {
-    //     //         navigate(`/${status}`, { state: { user } });
-    //     //     }
-    //     // });
-
-    //     return () => {
-    //         socket.off("connect", handleConnect);
-    //         socket.off("start-chat", onStart);
-    //         socket.off("force-return-to-login");
-    //         // socket.off("status");
-    //     };
-    // }, [socket]);
 
 
         if (loading) {

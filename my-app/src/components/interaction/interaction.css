@@ -73,23 +73,20 @@
 .resources-panel {
   flex: 0 0 320px;
   max-width: 360px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  align-self: stretch;
-  overflow-y: auto;
 }
 
 @media (max-width: 960px) {
   .resources-panel {
-    max-width: 100%;
-    flex: 1 1 auto;
-    min-height: 300px;
+    width: 100%;
+    max-width: none;
   }
 }
 
@@ -98,37 +95,93 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  max-width: 700px;
-  background: rgba(255, 255, 255, 0.9);
+  max-width: 52rem;
+  width: 100%;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+  background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
   overflow: hidden;
+  min-height: 0;
 }
 
 .chat-box {
   flex: 1;
+  min-height: 12rem;
+  max-height: calc(100vh - 14rem);
+  padding: 1.25rem 1.5rem;
   overflow-y: auto;
-  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: transparent;
-  scroll-behavior: smooth;
+  background: #fafafa;
 }
 
 .chat-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  text-align: center;
-  color: #94a3b8;
-  font-size: 0.9375rem;
-  padding: 2rem;
+  flex: 1;
+  min-height: 8rem;
 }
 
+.chat-placeholder p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #94a3b8;
+}
+/* === Message Bubbles === */
 .message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.message-sender {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.9;
+}
+
+.message-text {
+  white-space: pre-wrap;
+}
+
+.message--user {
+  align-self: flex-end;
+  background: #2563eb;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.message--user .message-sender {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.message--bot {
+  align-self: flex-start;
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.message--bot .message-sender {
+  color: #64748b;
+}
+
+
+/* .message {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
@@ -175,7 +228,7 @@
   font-size: 0.9375rem;
   line-height: 1.5;
   white-space: pre-wrap;
-}
+} */
 
 /* === Chat Form (light mode) === */
 .chat-form {
@@ -189,19 +242,18 @@
 
 .chat-input {
   flex: 1;
-  resize: none;
-  min-height: 40px;
-  max-height: 120px;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
+  min-height: 2.75rem;
+  max-height: 8rem;
+  padding: 0.625rem 1rem;
   font-size: 0.9375rem;
   line-height: 1.5;
-  font-family: inherit;
-  background: #ffffff;
   color: #1e293b;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  resize: none;
   overflow-y: auto;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .chat-input:focus {
@@ -279,6 +331,20 @@
   color: #64748b;
 }
 
+.resources-round-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: #e0f2fe;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .resources-section-label {
   font-size: 0.8125rem;
   font-weight: 600;
@@ -291,7 +357,7 @@
 .resources-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0.5rem 0 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -346,43 +412,38 @@
 }
 
 .resources-history {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
 }
 
 .resources-history-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0.5rem 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 }
 
 .resources-history-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.625rem 0.75rem;
-  background: #fafbfc;
-  border-radius: 8px;
-  border: 1px solid #f1f3f5;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.2rem;
+  padding: 0.3rem 0.2rem;
+  font-size: 0.8rem;
+  color: #64748b;
 }
 
 .resources-history-round {
-  font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
 }
 
 .resources-history-summary {
-  font-size: 0.8125rem;
-  color: #475569;
-  line-height: 1.4;
+  text-align: right;
 }
+
 
 /* === ADMIN INTERACTION STYLES (Dark Mode) === */
 
@@ -501,6 +562,10 @@
   border: 1px solid rgba(71, 85, 105, 0.5);
 }
 
+.admin-interaction-chat-box .message--bot .message-sender {
+  color: #94a3b8;
+}
+
 .admin-interaction-chat-box .message-text {
   font-size: 0.9375rem;
   line-height: 1.5;
@@ -512,6 +577,20 @@
 .admin-resources-panel {
   flex: 0 0 320px;
   max-width: 360px;
+  background: #1e293b;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+
+/* .admin-resources-panel {
+  flex: 0 0 320px;
+  max-width: 360px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -521,10 +600,15 @@
   border: 1px solid rgba(71, 85, 105, 0.4);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   overflow-y: auto;
-}
+} */
 
 .admin-resources-panel .resources-title {
   color: #e2e8f0;
+}
+
+.admin-resources-panel .resources-round-pill {
+  color: #0f172a;
+  background: #38bdf8;
 }
 
 .admin-resources-panel .resources-subtitle {
@@ -565,6 +649,10 @@
 
 .admin-resources-panel .resources-history-summary {
   color: #cbd5e1;
+}
+
+.admin-resources-panel .resources-fish-chart {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Admin Footer */

@@ -4,6 +4,7 @@ import { socket } from '../../socket';
 import { getRoom, updateStatus } from "../../../services/roomsService";
 import games from "../../gameLoader"
 import { socketListener } from "../common/socketListener";
+import './instructions.css';
 
 export default function AdminInstructions() {
     const navigate = useNavigate();
@@ -27,33 +28,11 @@ export default function AdminInstructions() {
         }
 
         fetchRoom();
-        
+
     }, [roomCode])
 
     socketListener(roomCode, isAdmin, null);
-    // useEffect(() => {
-    //   socket.emit("join-room", { roomCode, isAdmin });
 
-    //   const handleConnect = () => {
-    //     sessionStorage.setItem("roomCode", roomCode);
-    //     socket.emit("join-room", { roomCode, isAdmin});
-    //   }
-
-    //   if (socket.connected) {
-    //     handleConnect();
-    //   } else {
-    //     socket.once("connect", handleConnect);
-    //   }
-
-    //   socket.on("force-return-to-login", () => {
-    //     navigate("/admin");
-    //   })
-
-    //   return () => {
-    //     socket.off("connect", handleConnect);
-    //     socket.off("force-return-to-login");
-    //   }
-    // }, [socket]);
 
     async function toInteractions() {
         // socket.emit("start-game", { roomCode });

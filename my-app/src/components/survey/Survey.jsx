@@ -2,55 +2,15 @@
 
 import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { sendSurvey  } from "../../services/surveyService";
-import { getRoom } from "../../services/roomsService"
-import { socket } from '../socket';
-import games from "../gameLoader";
+import { sendSurvey } from "../../../services/surveyService";
+import { getRoom } from "../../../services/roomsService";
+import { socket } from '../../socket'
+import games from "../../gameLoader";
 import ConversationModal from "./ConversationModal";
 import ConversationReflectionStep from "./ConversationReflectionStep";
-import { buildConversation } from "./BuildRoom";
+import { buildConversation, buildDisplaySteps, formatAnswer } from "./surveyUtils";
+import './survey.css'
 
-function buildDisplaySteps(questions) {
-    const steps = [];
-    for (let i = 0; i < questions.length; i++) {
-        const q = questions[i];
-
-        // Group specific survey questions onto shared pages:
-        // - compensation-explanation (Q6) + negotiation (Q7)
-        // - negotiation-explanation (Q8) + interaction-explanation (Q9)
-        if (q.id === "compensation-explanation" && questions[i + 1]?.id === "negotiation") {
-            // Show the main satisfaction question first, then the justification textbox
-            steps.push({ questions: [questions[i + 1], q] });
-            i++;
-            continue;
-        }
-        if (q.id === "negotiation-explanation" && questions[i + 1]?.id === "interaction-explanation") {
-            // Show the interaction explanation before its justification textbox
-            steps.push({ questions: [questions[i + 1], q] });
-            i++;
-            continue;
-        }
-
-        if (q.type === "label" && questions[i + 1]?.type === "scale") {
-            steps.push({ sectionLabel: q, questions: [questions[i + 1]] });
-            i++;
-        } else if (q.type !== "label") {
-            steps.push({ questions: [q] });
-        }
-    }
-    return steps;
-}
-
-function formatAnswer(q, answers) {
-    const val = answers[q.id];
-    if (val == null || val === "") return "(No response)";
-    if (q.type === "select") return String(val);
-    if (q.type === "scale") return String(val);
-    if (q.type === "sortRank" && Array.isArray(val)) {
-        return val.map((opt, i) => `${i + 1}. ${opt}`).join(", ");
-    }
-    return String(val);
-}
 
 export function Survey() {
     const location = useLocation();
@@ -64,11 +24,11 @@ export function Survey() {
     const [survey, setSurvey] = useState(null);
     const [currentStep, setCurrentStep] = useState(0);
     const [fromReview, setFromReview] = useState(false);
-    const surveyId = 1;
     const [showConversation, setShowConversation] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
     const [conversationMarks, setConversationMarks] = useState([]);
 
+    const surveyId = 1;
     const displaySteps = useMemo(
         () => (survey ? buildDisplaySteps(survey.questions) : []),
         [survey]

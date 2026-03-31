@@ -1,0 +1,617 @@
+/* === Admin Container (Full Page Layout) === */
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  text-align: center;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.admin-container h1 {
+  color: #f1f5f9;
+}
+
+/* === Admin Dashboard Layout === */
+.admin-dashboard {
+  flex-direction: column;
+  padding: 2rem;
+  align-items: stretch;
+}
+
+.admin-top {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+/* === Admin Buttons === */
+.btn-primary-admin {
+  background: #38bdf8;
+  color: #0f172a;
+  border: none;
+  border-radius: 8px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary-admin:hover:not(:disabled) {
+  background: #0ea5e9;
+  color: #0f172a;
+}
+
+.btn-primary-admin:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary-admin {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary-admin:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+}
+
+.btn-danger-admin {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-danger-admin:hover {
+  background: #dc2626;
+}
+
+.btn-full {
+  width: 100%;
+  height: 44px;
+}
+
+/* === Rooms Grid === */
+.rooms-grid {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: left;
+  padding: 0 1rem;
+}
+
+.rooms-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 0.25rem 0;
+}
+
+.rooms-section-subtitle {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0 0 1.5rem 0;
+}
+
+.rooms-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* === Room Display Card === */
+.room-display {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.room-display:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.room-code-badge {
+  display: inline-block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: #f1f5f9;
+  padding: 0.35rem 0.75rem;
+  background: rgba(56, 189, 248, 0.15);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.room-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.meta-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.meta-item strong {
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.meta-item.users {
+  grid-column: 1 / -1;
+  white-space: normal;
+  font-size: 0.8rem;
+  color: #cbd5f5;
+}
+
+.room-display .room-display-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.room-display .room-display-actions .btn-primary-admin,
+.room-display .room-display-actions .btn-secondary-admin {
+  flex: 1;
+}
+
+/* === Room Creation Form === */
+.room-info {
+  margin: 0 auto;
+  background: #1e293b;
+  padding: 2rem 2.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.room-info-section {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 1.25rem 0 0.5rem 0;
+}
+
+.room-info-section:first-child {
+  margin-top: 0;
+}
+
+.room-code-highlight {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  color: #f1f5f9;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.room-info .label-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.room-info .label-inline label {
+  font-size: 0.9375rem;
+  color: #f1f5f9;
+}
+
+.room-info .games-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.room-info .model-select {
+  margin-top: 0.5rem;
+  padding: 0.75rem 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.room-info .btn-full {
+  margin-top: 1.5rem;
+}
+
+/* === Text Inputs === */
+.text-input {
+  width: 60px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  text-align: center;
+}
+
+.label-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #e5e7eb;
+}
+
+.text-input.small {
+  width: 40px;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.4rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.text-input.small:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  outline: none;
+}
+
+/* === Model Select Dropdown === */
+.model-select-header {
+  margin-bottom: 0.5rem;
+}
+
+.model-select-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  margin-bottom: 0.15rem;
+}
+
+.model-select-helper {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.model-select-control {
+  position: relative;
+}
+
+.model-select-input {
+  width: 100%;
+  padding: 0.6rem 2.5rem 0.6rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.model-select-input:hover {
+  border-color: rgba(148, 163, 184, 0.9);
+}
+
+.model-select-input:focus {
+  outline: none;
+  border-color: #7bc7de;
+  box-shadow: 0 0 0 2px rgba(123, 199, 222, 0.35);
+  background: #020617;
+}
+
+.model-select-control::after {
+  content: "▾";
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* === Games Options === */
+.games-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.games-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #f1f5f9;
+}
+
+.games-options-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* === Custom Radio Buttons === */
+.admin-container .custom-radio {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 10px;
+  margin: 8px 0;
+  user-select: none;
+  font-size: 16px;
+  color: #f1f5f9;
+}
+
+.admin-container .custom-radio input[type="radio"] {
+  display: none;
+}
+
+.admin-container .custom-radio .radio-mark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  transition: border-color 0.2s ease;
+}
+
+.admin-container .custom-radio input[type="radio"]:checked + .radio-mark::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: #38bdf8;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.admin-container .custom-radio:hover .radio-mark {
+  border-color: #38bdf8;
+}
+
+/* === Checkbox Labels === */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #6366f1;
+  cursor: pointer;
+  margin: 0;
+  transform: none;
+}
+
+/* === Room Management Card === */
+.room-management-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 2rem 2.25rem;
+  background: #1e293b;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.room-management-card .back-to-rooms {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.room-management-card .back-to-rooms:hover {
+  color: #38bdf8;
+}
+
+.room-management-card h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: #f1f5f9;
+}
+
+/* === Completed Rooms === */
+.room-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 0.5rem 0;
+}
+
+.room-section-subtitle {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0 0 1rem 0;
+}
+
+.room-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.room-actions button {
+  flex: 1;
+}
+
+.room-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.room-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  flex: 0 0 auto;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.room-badge-users {
+  white-space: normal;
+  width: auto;
+  max-width: 100%;
+  border-radius: 16px;
+}
+
+/* === Confirm Modal === */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.confirm-modal-card {
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.confirm-modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 0.75rem 0;
+}
+
+.confirm-modal-text {
+  font-size: 1rem;
+  color: #cbd5e1;
+  margin: 0 0 0.5rem 0;
+}
+
+.confirm-modal-subtext {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0 0 1.5rem 0;
+}
+
+.confirm-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* === Users Box (Waiting Room) === */
+.admin-container .users-box {
+  background: #0f172a;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-container .users-box h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #f1f5f9;
+  text-align: center;
+}
+
+.admin-container .users-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-container .users-box li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+}
+
+.admin-container .users-box li:last-child {
+  border-bottom: none;
+}
+
+/* === Survey Fields in Completed Room === */
+.survey-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 1rem 0;
+}
+
+.survey-admin-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

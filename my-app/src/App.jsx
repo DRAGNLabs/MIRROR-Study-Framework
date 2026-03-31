@@ -7,15 +7,15 @@ import Login from "./components/login/Login";
 import WaitingRoom from "./components/waiting/WaitingRoom";
 import Instructions from './components/instructions/Instructions';
 import Interaction from "./components/interaction/Interaction";
-import Survey from "./survey/Survey";
-import Exit from "./Exit";
+import Survey from "./components/survey/Survey";
+import Exit from "./components/survey/Exit";
 import AdminLogin from './components/login/AdminLogin';
-import Admin from "./admin/Admin";
-import CompletedRoomPage from './admin/CompletedRoomDetails';
+import Admin from "./components/admin/Admin";
+import CompletedRoomPage from './components/admin/CompletedRoomDetails';
 import AdminWaitingRoom from './components/waiting/AdminWaitingRoom';
 import AdminInstructions from './components/instructions/AdminInstructions';
 import AdminInteraction from './components/interaction/AdminInteraction';
-import AdminSurvey from './admin/AdminSurvey';
+import AdminSurvey from './components/survey/AdminSurvey';
 
 
 function RequireState({ children, fallback = "/" }) {
