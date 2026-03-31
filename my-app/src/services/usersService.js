@@ -1,4 +1,4 @@
-import { API_BASE } from "../src/config.js";
+import { API_BASE } from "../config.js";
 
 // creates new user in user table (logs them in)
 export async function loginUser(userName, roomCode) {

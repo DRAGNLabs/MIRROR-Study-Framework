@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../../socket';
-import { getRoom, updateStatus } from "../../../services/roomsService";
+import { getRoom, updateStatus } from "../../services/roomsService";
 import games from "../../gameLoader"
 import { socketListener } from "../common/socketListener";
 import './instructions.css';

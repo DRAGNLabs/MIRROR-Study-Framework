@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { socket } from "../../socket";
-import { updateUserIds, getRoom, updateStatus } from "../../../services/roomsService";
-import { setRole } from "../../../services/usersService";
+import { updateUserIds, getRoom, updateStatus } from "../../services/roomsService";
+import { setRole } from "../../services/usersService";
 import games from "../../gameLoader";
 import { useRoomSocket } from "./waitingSocket";
 import { UserList } from "./UserList";

@@ -1,6 +1,6 @@
 
-import { getUser, getUserRole } from "../../../services/usersService";  
-import { getRoom } from "../../../services/roomsService"; 
+import { getUser, getUserRole } from "../../services/usersService";  
+import { getRoom } from "../../services/roomsService"; 
 import games from "../../gameLoader"; 
     
 export async function loadRoomState(

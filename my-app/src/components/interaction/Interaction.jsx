@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { formatTime } from "./interactionUtils";
-import InstructionsModal from "../../interaction/InstructionsModal"
+import InstructionsModal from "./InstructionsModal"
 import ChatBox from "./ChatMessages";
 import ResourcesPanel from "./ResourcePanel";
 import './interaction.css'

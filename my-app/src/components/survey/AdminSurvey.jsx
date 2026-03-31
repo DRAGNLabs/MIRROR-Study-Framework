@@ -1,7 +1,7 @@
-import { getUsersInRoom } from "../../../services/roomsService";
+import { getUsersInRoom } from "../../services/roomsService";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { getSurveyStatus } from "../../../services/surveyService";
+import { getSurveyStatus } from "../../services/surveyService";
 import { socket } from "../../socket";
 import './survey.css';
 

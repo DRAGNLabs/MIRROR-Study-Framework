@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { sendSurvey } from "../../../services/surveyService";
-import { getRoom } from "../../../services/roomsService";
+import { sendSurvey } from "../../services/surveyService";
+import { getRoom } from "../../services/roomsService";
 import { socket } from '../../socket'
 import games from "../../gameLoader";
 import ConversationModal from "./ConversationModal";

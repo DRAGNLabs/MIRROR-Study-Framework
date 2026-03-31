@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { loginUser, getCreatedUser } from '../../../services/usersService';
-import { getRoom, loginRoom } from '../../../services/roomsService';
+import { loginUser, getCreatedUser } from '../../services/usersService';
+import { getRoom, loginRoom } from '../../services/roomsService';
 import './login.css';
 
 export default function Login() {

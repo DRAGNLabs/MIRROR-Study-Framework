@@ -1,4 +1,4 @@
-import { getUser } from "../../../services/usersService";
+import { getUser } from "../../services/usersService";
 
 export async function buildConversation(room) {
     const llmInstructions = room.llmInstructions;

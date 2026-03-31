@@ -1,9 +1,9 @@
 // main instructions will be on admin page but here we will have a page for the users with the role info
 import { useState, useEffect } from "react";
 import games from "../../gameLoader"
-import { getRoom } from "../../../services/roomsService";
+import { getRoom } from "../../services/roomsService";
 import { useLocation } from "react-router-dom";
-import { getUserRole } from "../../../services/usersService";
+import { getUserRole } from "../../services/usersService";
 import { socketListener } from "../common/socketListener";
 import './instructions.css';
 

@@ -1,4 +1,4 @@
-import { API_BASE } from "../src/config.js";
+import { API_BASE } from "../config.js";
 
 // creates new survey data in survey table
 export async function sendSurvey(surveyId, userId, data) {

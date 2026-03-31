@@ -1,4 +1,4 @@
-import { API_BASE } from "../src/config.js";
+import { API_BASE } from "../config.js";
 
 // creates new room in rooms table
 export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType){ 

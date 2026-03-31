@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../../socket.js';
 import { formatTime } from "./interactionUtils.js";
-import { updateStatus } from '../../../services/roomsService.js'
+import { updateStatus } from '../../services/roomsService.js'
 import ChatBox from "./ChatMessages.jsx";
 import ResourcesPanel from "./ResourcePanel.jsx";
 import './interaction.css'
