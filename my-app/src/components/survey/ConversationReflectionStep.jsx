@@ -2,7 +2,7 @@
 
 const MAX_MARKS = 3;
 const PROMPT =
-  "Review the conversation below. Mark up to three moments that stood out to you—for any reason. You can add a short note to each if you'd like.";
+  "Review the conversation below. Mark at least three moments that stood out to you—for any reason. Please add a short note explaining why it stood out to you.";
 
 function getMarkRank(marks, messageIndex) {
   const idx = marks.findIndex((m) => m.messageIndex === messageIndex);

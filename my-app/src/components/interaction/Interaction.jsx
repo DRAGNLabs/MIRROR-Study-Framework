@@ -115,23 +115,24 @@ export function Interaction(){
         <header className="interaction-header">
             <button
                 type="button"
-                className="interaction-header-btn info-icon-button"
+                className="info-button"
+                // className="interaction-header-btn info-icon-button"
                 title="Show conversation context"
                 onClick={() => setShowInstructions(true)}
                 aria-label="Show conversation context"
             >
-                ⓘ
+                Instructions
             </button>
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
             </h1>
             <div className="interaction-header-meta">
-                {user ? <span className="interaction-room-badge">Room {user.roomCode}</span> : null}
+                {/* {user ? <span className="interaction-room-badge">Room {user.roomCode}</span> : null} */}
                 <button
                     className="resources-toggle-btn-header"
                     onClick={() => setShowResources(true)}
                 >
-                    R
+                    Resources
                 </button>
             </div>
         </header>

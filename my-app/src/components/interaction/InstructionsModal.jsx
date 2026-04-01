@@ -19,7 +19,7 @@ export default function InstructionsModal({ open, onClose, game, role, timeRemai
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
+        <button type="button" className="instructions-close" onClick={onClose} aria-label="Close">
           ✕
         </button>
 
