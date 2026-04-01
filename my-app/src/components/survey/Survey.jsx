@@ -1,6 +1,6 @@
 /** This page is where the user will take the survey */
 
-import { useState, useEffect, useMemo, useRef, Fragment } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { sendSurvey } from "../../services/surveyService";
 import { getRoom } from "../../services/roomsService";
@@ -8,6 +8,7 @@ import { socket } from '../../socket'
 import games from "../../gameLoader";
 import ConversationModal from "./ConversationModal";
 import ConversationReflectionStep from "./ConversationReflectionStep";
+import { SortRankList } from "./SortRankList";
 import { buildConversation, buildDisplaySteps, displayStepHasUnanswered, formatAnswer, isRequiredQuestionUnanswered } from "./surveyUtils";
 import './survey.css'
 
@@ -157,120 +158,6 @@ export function Survey() {
         setCurrentStep(index + 1);
         setFromReview(true);
     }
-
-    const [sortRankDraggingIndex, setSortRankDraggingIndex] = useState(null);
-    const [sortRankDropTargetIndex, setSortRankDropTargetIndex] = useState(null);
-    const sortRankDragSourceRef = useRef(null);
-    const sortRankListRef = useRef(null);
-    const sortRankFlipRef = useRef(null);
-
-    /** Move one item from fromIndex to toIndex; other items shift. Returns new array. */
-    function moveItemInArray(arr, fromIndex, toIndex) {
-        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= arr.length || toIndex > arr.length) {
-            return arr;
-        }
-        const copy = [...arr];
-        const [removed] = copy.splice(fromIndex, 1);
-        const insertAt = fromIndex < toIndex ? toIndex - 1 : toIndex;
-        copy.splice(insertAt, 0, removed);
-        return copy;
-    }
-
-    function handleSortRankDragStart(e, index) {
-        sortRankDragSourceRef.current = index;
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", String(index));
-        setSortRankDraggingIndex(index);
-    }
-
-    function handleSortRankDragOver(e, toIndex) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.dataTransfer.dropEffect = "move";
-        setSortRankDropTargetIndex(prev => (prev === toIndex ? prev : toIndex));
-    }
-
-    function handleSortRankDrop(e, toIndex) {
-        e.preventDefault();
-        e.stopPropagation();
-        const fromIndex = sortRankDragSourceRef.current ?? parseInt(e.dataTransfer.getData("text/plain"), 10);
-        const questionId = primaryQuestion?.id;
-        const options = answers[questionId];
-
-        setSortRankDraggingIndex(null);
-        setSortRankDropTargetIndex(null);
-        sortRankDragSourceRef.current = null;
-
-        if (!Array.isArray(options) || Number.isNaN(fromIndex) || fromIndex < 0 || toIndex < 0 || fromIndex >= options.length || toIndex > options.length) {
-            return;
-        }
-
-        const nextOptions = moveItemInArray(options, fromIndex, toIndex);
-        if (nextOptions === options) return;
-
-        const listEl = sortRankListRef.current;
-        if (listEl) {
-            const items = listEl.querySelectorAll(".sort-rank-item");
-            const rects = Array.from(items).map(el => el.getBoundingClientRect());
-            sortRankFlipRef.current = { order: [...options], rects };
-        }
-
-        setAnswers(prev => ({ ...prev, [questionId]: nextOptions }));
-    }
-
-    function handleSortRankDragEnd() {
-        setSortRankDraggingIndex(null);
-        setSortRankDropTargetIndex(null);
-        sortRankDragSourceRef.current = null;
-    }
-
-    useEffect(() => {
-        const flip = sortRankFlipRef.current;
-        const questionId = primaryQuestion?.id;
-        const newOrder = questionId && primaryQuestion?.type === "sortRank" ? (answers[questionId] ?? []) : null;
-
-        if (!flip || !newOrder?.length || !sortRankListRef.current || flip.order.length !== newOrder.length) {
-            return;
-        }
-        const orderChanged = flip.order.some((opt, i) => opt !== newOrder[i]);
-        if (!orderChanged) {
-            sortRankFlipRef.current = null;
-            return;
-        }
-
-        const listEl = sortRankListRef.current;
-        const items = listEl.querySelectorAll(".sort-rank-item");
-        if (items.length !== newOrder.length) {
-            sortRankFlipRef.current = null;
-            return;
-        }
-
-        const newRects = Array.from(items).map(el => el.getBoundingClientRect());
-
-        items.forEach((el, i) => {
-            const option = newOrder[i];
-            const oldIndex = flip.order.indexOf(option);
-            if (oldIndex === -1) return;
-            const oldRect = flip.rects[oldIndex];
-            const newRect = newRects[i];
-            const deltaY = oldRect.top - newRect.top;
-            el.style.transition = "none";
-            el.style.transform = `translateY(${deltaY}px)`;
-        });
-
-        sortRankFlipRef.current = null;
-
-        const startAnimation = () => {
-            requestAnimationFrame(() => {
-                items.forEach(el => {
-                    el.style.transition = "transform 0.28s ease-out";
-                    el.style.transform = "";
-                });
-            });
-        };
-        const rafId = requestAnimationFrame(startAnimation);
-        return () => cancelAnimationFrame(rafId);
-    }, [answers[primaryQuestion?.id], primaryQuestion?.id, primaryQuestion?.type]);
 
     if (!survey) {
         return (
@@ -508,55 +395,13 @@ export function Survey() {
                                     return (
                                         <div className="sort-rank-wrapper">
                                             <p className="sort-rank-hint">Drag to reorder from what you cared about most (top) to least (bottom). Your top 3 matter most.</p>
-                                            <ul className="sort-rank-list" ref={sortRankListRef}>
-                                                {sortOptions.map((option, index) => {
-                                                    const isGreyed = index >= 3;
-                                                    const isDragging = sortRankDraggingIndex === index;
-                                                    const showDropIndicator = sortRankDropTargetIndex === index;
-                                                    return (
-                                                        <Fragment key={`${option}-${index}`}>
-                                                            {showDropIndicator && (
-                                                                <li
-                                                                    className="sort-rank-drop-indicator"
-                                                                    aria-hidden
-                                                                    onDragOver={(e) => handleSortRankDragOver(e, index)}
-                                                                    onDrop={(e) => handleSortRankDrop(e, index)}
-                                                                />
-                                                            )}
-                                                            <li
-                                                                className={`sort-rank-item ${isGreyed ? "sort-rank-item--greyed" : ""} ${isDragging ? "sort-rank-item--dragging" : ""}`}
-                                                                draggable
-                                                                onDragStart={(e) => handleSortRankDragStart(e, index)}
-                                                                onDragOver={(e) => handleSortRankDragOver(e, index)}
-                                                                onDrop={(e) => handleSortRankDrop(e, index)}
-                                                                onDragEnd={handleSortRankDragEnd}
-                                                            >
-                                                                <span className="sort-rank-item-drag-handle" aria-hidden>::</span>
-                                                                <span className="sort-rank-item-label">
-                                                                    {index + 1}. {option}
-                                                                </span>
-                                                            </li>
-                                                        </Fragment>
-                                                    );
-                                                })}
-                                                {sortRankDropTargetIndex === sortOptions.length && (
-                                                    <li
-                                                        className="sort-rank-drop-indicator"
-                                                        aria-hidden
-                                                        onDragOver={(e) => handleSortRankDragOver(e, sortOptions.length)}
-                                                        onDrop={(e) => handleSortRankDrop(e, sortOptions.length)}
-                                                    />
-                                                )}
-                                                <li
-                                                    className="sort-rank-anchor"
-                                                    draggable={false}
-                                                    aria-hidden
-                                                    onDragOver={(e) => handleSortRankDragOver(e, sortOptions.length)}
-                                                    onDrop={(e) => handleSortRankDrop(e, sortOptions.length)}
-                                                >
-                                                    <span className="sort-rank-anchor-inner">&nbsp;</span>
-                                                </li>
-                                            </ul>
+                                            <SortRankList
+                                                questionId={q.id}
+                                                options={sortOptions}
+                                                onOrderChange={(nextOptions) =>
+                                                    setAnswers((prev) => ({ ...prev, [q.id]: nextOptions }))
+                                                }
+                                            />
                                         </div>
                                     );
                                 })()}

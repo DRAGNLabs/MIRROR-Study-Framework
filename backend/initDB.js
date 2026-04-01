@@ -68,11 +68,11 @@ async function init() {
     )
   `);
 
-  // Ensure fish_amount column exists on existing databases created before it was added
-  // await db.query(`
-  //   ALTER TABLE rooms
-  //   ADD COLUMN IF NOT EXISTS curr_round INTEGER NOT NULL DEFAULT 1
-  // `);
+  // New columns on rooms: CREATE TABLE IF NOT EXISTS skips altering existing tables.
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS curr_round INTEGER NOT NULL DEFAULT 1
+  `);
 
   console.log("✅ Tables checked/created");
 };

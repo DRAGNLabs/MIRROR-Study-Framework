@@ -367,15 +367,6 @@
   gap: 0.5rem;
 }
 
-.sort-rank-drop-indicator {
-  height: 48px;
-  border: 2px dashed #64748b;
-  border-radius: 10px;
-  background: rgba(100, 116, 139, 0.12);
-  list-style: none;
-  margin: 0;
-}
-
 .sort-rank-item {
   display: flex;
   align-items: center;
@@ -387,6 +378,8 @@
   transition: border-color 0.2s ease, background 0.2s ease;
   cursor: grab;
   user-select: none;
+  /* Lets pointer-based drag (dnd-kit) win on touch without a long-press */
+  touch-action: none;
 }
 
 .sort-rank-item:active {
@@ -420,6 +413,8 @@
 }
 
 .sort-rank-anchor {
+  box-sizing: border-box;
+  width: 100%;
   min-height: 48px;
   display: flex;
   align-items: center;
@@ -427,8 +422,7 @@
   border-radius: 10px;
   border: 2px dashed #e2e8f0;
   background: rgba(226, 232, 240, 0.3);
-  list-style: none;
-  margin: 0;
+  margin: 0.5rem 0 0 0;
   cursor: default;
 }
 
