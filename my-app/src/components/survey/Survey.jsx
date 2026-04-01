@@ -19,14 +19,39 @@ export function Survey() {
     const { userId } = user;
     const roomCode = parseInt(user.roomCode);
 
-    const [answers, setAnswers] = useState({});
+    const storageKey = `survey_${roomCode}_${userId}`;
+    const [answers, setAnswers] = useState(() => {
+        const saved = localStorage.getItem(storageKey);
+        return saved ? JSON.parse(saved) : {};
+    });
     const [error, setError] = useState("");
     const [survey, setSurvey] = useState(null);
-    const [currentStep, setCurrentStep] = useState(0);
+    const [currentStep, setCurrentStep] = useState(() => {
+        const savedStep = localStorage.getItem(`${storageKey}_step`);
+        return savedStep ? parseInt(savedStep, 10) : 0;
+    });
     const [fromReview, setFromReview] = useState(false);
+    const [reviewScrollPosition, setReviewScrollPosition] = useState(0);
     const [showConversation, setShowConversation] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
-    const [conversationMarks, setConversationMarks] = useState([]);
+        const [conversationMarks, setConversationMarks] = useState(() => {
+        const saved = localStorage.getItem(`${storageKey}_marks`);
+        return saved ? JSON.parse(saved) : [];
+    });
+    // const [conversationMarks, setConversationMarks] = useState([]);
+
+    useEffect(() => {
+        localStorage.setItem(storageKey, JSON.stringify(answers));
+    }, [answers, storageKey]);
+
+    useEffect(() => {
+        localStorage.setItem(`${storageKey}_step`, currentStep.toString());
+    }, [currentStep, storageKey]);
+ 
+    // Save conversation marks
+    useEffect(() => {
+        localStorage.setItem(`${storageKey}_marks`, JSON.stringify(conversationMarks));
+    }, [conversationMarks, storageKey]);
 
     const surveyId = 1;
     const displaySteps = useMemo(
@@ -98,6 +123,9 @@ export function Survey() {
 
         try {
             await sendSurvey(1, userId, { answers, conversationMarks });
+            localStorage.removeItem(storageKey);
+            localStorage.removeItem(`${storageKey}_step`);
+            localStorage.removeItem(`${storageKey}_marks`);
             socket.emit("survey-complete", { roomCode, userId, surveyId });
             navigate("/exit", { state: { userId } });
         } catch (err) {
@@ -108,10 +136,36 @@ export function Survey() {
 
     function handleNext() {
         if (isReflectionStep) {
+            // basically requires 3 messages unless if it less than 9 change this to have you go back on review
+            // const requiredMarks = Math.min(3, Math.max(1, Math.floor(conversationMessages.length / 3)));
+            // const allMarksHaveNotes = conversationMarks.every(m => m.note && m.note.trim().length > 0);
+            // if (conversationMarks.length < requiredMarks || !allMarksHaveNotes) {
+            //     alert(`Please mark at least ${requiredMarks} moments and add a note to each one explaining why it stood out.`);
+            //     return;
+            // }
             setCurrentStep(1);
             return;
         }
         if (fromReview) {
+            // this should navigate you to next unanswered if you click next, back to review back to review
+            // Check if there are more unanswered questions
+            // const nextUnanswered = findNextUnansweredStep();
+            // if (nextUnanswered !== null) {
+            //     // Go to next unanswered question
+            //     setCurrentStep(nextUnanswered + 1);
+            //     // Keep fromReview true to continue this flow
+            // } else {
+            //     // All answered, go back to review
+            //     setCurrentStep(displaySteps.length + 1);
+            //     setFromReview(false);
+            //     // Restore scroll position after state updates
+            //     setTimeout(() => {
+            //         const reviewList = document.querySelector('.survey-review-list');
+            //         if (reviewList) {
+            //             reviewList.scrollTop = reviewScrollPosition;
+            //         }
+            //     }, 0);
+            // }
             setCurrentStep(displaySteps.length + 1);
             setFromReview(false);
             return;
@@ -142,8 +196,31 @@ export function Survey() {
     }
 
     function handleEdit(index) {
+        // save current scroll position
+        // this doesn't work either
+        // const reviewList = document.querySelector('.survey-review-list');
+        // if (reviewList) {
+        //     setReviewScrollPosition(reviewList.scrollTop);
+        // }
         setCurrentStep(index + 1);
         setFromReview(true);
+    }
+
+    function findNextUnansweredStep() {
+        for (let i = 0; i < displaySteps.length; i++) {
+            const step = displaySteps[i];
+            const questionsInStep = step.questions ?? (step.question ? [step.question] : []);
+            const hasUnanswered = questionsInStep.some(q => {
+                const isRequired = !q.optional;
+                return isRequired && (q.type === "sortRank"
+                    ? !Array.isArray(answers[q.id]) || answers[q.id].length !== (q.options?.length ?? 0)
+                    : (answers[q.id] == null || answers[q.id] === ""));
+            });
+            if (hasUnanswered) {
+                return i;
+            }
+        }
+        return null;
     }
 
     const [sortRankDraggingIndex, setSortRankDraggingIndex] = useState(null);
@@ -293,8 +370,19 @@ export function Survey() {
                 </span>
             </div>
 
+            {!isReflectionStep && (
+                <div className="conversation-btn-wrapper">
+                    <button
+                        className="conversation-history-btn"
+                        onClick={() => setShowConversation(true)}
+                    >
+                        Conversation History
+                    </button>
+                </div>
+            )}
+
             <div className="survey-card">
-                {!isReflectionStep && (
+                {/* {!isReflectionStep && (
                     <div className="room-top-left">
                         <button
                             className="info-icon-button"
@@ -305,7 +393,7 @@ export function Survey() {
                             i
                         </button>
                     </div>
-                )}
+                )} */}
 
                 {!isReflectionStep && (
                     user ? (
@@ -446,7 +534,7 @@ export function Survey() {
                                                 >
                                                     +
                                                 </button>
-                                                <span className="age-input-suffix">years</span>
+                                                {/* <span className="age-input-suffix">years</span> */}
                                             </div>
                                         ) : (
                                             <textarea

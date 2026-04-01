@@ -13,14 +13,18 @@ export default function ConversationModal({ open, onClose, messages }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-card"
+        className="conversation-modal-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <button className="modal-close" onClick={onClose}>✕</button>
-
+      <div className="modal-header">
         <h2>Conversation History</h2>
+        <button className="modal-close" onClick={onClose}>✕</button> 
+      </div>
+        {/* <button className="modal-close" onClick={onClose}>✕</button> */}
 
-        <div className="chat-box" ref={chatBoxRef}>
+        {/* <h2>Conversation History</h2> */}
+
+        <div className="conversation-modal-chat-box" ref={chatBoxRef}>
           {messages.map((msg, i) => (
             <div
               key={msg.id ?? i}
