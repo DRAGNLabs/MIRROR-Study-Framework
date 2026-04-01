@@ -3,7 +3,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1"
 });
 
 function resolveModel(modelOverride) {
@@ -12,26 +13,29 @@ function resolveModel(modelOverride) {
     return trimmedOverride;
   }
 
-  const envModel = (process.env.OPENAI_MODEL || "").trim();
+  const envModel = (process.env[fallbackEnv] || "").trim();
   if (!envModel) {
-    throw new Error("No OpenAI model configured. Set OPENAI_MODEL or provide a model override.");
+    throw new Error(
+      `No model configured. Set ${fallbackEnv} or provide a model override.`
+    );
   }
+
   return envModel;
 }
 
 export async function callLLM(messages, modelOverride) {
   // I'm setting the model to a seperate extraction model as we don't nee dot use the same model as the generation
-  const model = resolveModel(modelOverride);
+  const model = resolveModel(modelOverride, "OPENROUTER_EXTRACTION_MODEL");
 
   const response = await client.responses.create({
-    model: process.env.OPENAI_EXTRACTION_MODEL, // hardcoding it for now because Idk how to add env variable to railway
+    model, // hardcoding it for now because Idk how to add env variable to railway
     input: messages,
   });
   return response.output_text;
 }
 
 export async function streamLLM(prompt, onToken, modelOverride) {
-  const model = resolveModel(modelOverride);
+  const model = resolveModel(modelOverride, "OPENROUTER_MODEL");
 
   const stream = await client.responses.stream({
     model,
