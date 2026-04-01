@@ -28,6 +28,7 @@ export function Interaction(){
     const [timeRemaining, setTimeRemaining] = useState(null);
 
     const [showInstructions, setShowInstructions] = useState(false);
+    const [showResources, setShowResources] = useState(false);
     const [game, setGame] = useState(null);
     // const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
@@ -102,7 +103,15 @@ export function Interaction(){
 
     return (
         <>
-        <div className="interactions-container">
+        {/* <div className="interactions-container"> */}
+        <div className={`interactions-container ${timeRemaining !== null ? 'has-timer' : ''}`}>
+        {timeRemaining !== null && (
+            <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                ⏱ Time remaining: {formatTime(timeRemaining)}
+            </div>
+        )}
+        
+
         <header className="interaction-header">
             <button
                 type="button"
@@ -118,6 +127,12 @@ export function Interaction(){
             </h1>
             <div className="interaction-header-meta">
                 {user ? <span className="interaction-room-badge">Room {user.roomCode}</span> : null}
+                <button
+                    className="resources-toggle-btn-header"
+                    onClick={() => setShowResources(true)}
+                >
+                    R
+                </button>
             </div>
         </header>
 
@@ -129,6 +144,8 @@ export function Interaction(){
                 formatTime={formatTime}
                 currentUserName={user.userName}
                 isAdmin={false}
+                showResources={showResources}
+                onClose={() => setShowResources(false)}
             />
 
             <div className="chat-container">
@@ -166,6 +183,8 @@ export function Interaction(){
             onClose={() => setShowInstructions(false)}
             game={game}
             role={userRole}
+            timeRemaining={timeRemaining}
+            formatTime={formatTime}
         />
         </>
     )

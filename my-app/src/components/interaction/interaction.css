@@ -2,10 +2,30 @@
 
 /* === User Interaction Screen (Light Mode) === */
 .interactions-container {
-  min-height: 100vh;
+  max-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  overflow: hidden;
+}
+
+@media (max-width: 960px) {
+  .interactions-container.has-timer {
+    padding-top: 50px;
+  }
+}
+
+body:has(.interactions-container),
+body:has(.admin-interaction-page) {
+  overflow: hidden;
+  height: 100vh;
+  max-height: 100vh;
+}
+
+.interactions-container.has-timer {
+  height: calc(100vh - 50px);
+  max-height: calc(100vh - 50px);
 }
 
 .interaction-header {
@@ -18,6 +38,12 @@
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
+}
+
+@media (max-width: 960px) {
+  .interaction-header {
+    padding: 0.75rem 1rem;
+  }
 }
 
 .interaction-header-btn {
@@ -39,6 +65,9 @@
 
 .interaction-header-meta {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .interaction-room-badge {
@@ -61,6 +90,8 @@
   gap: 1.5rem;
   padding: 1.5rem 1.5rem 2rem;
   box-sizing: border-box;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @media (max-width: 960px) {
@@ -85,10 +116,77 @@
 
 @media (max-width: 960px) {
   .resources-panel {
+    display: none;
+  }
+  
+  .resources-panel.mobile-visible {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1001;
+    max-width: none;
+    border-radius: 0;
+    overflow-y: auto;
+    padding-top: 56px;
+  }
+}
+
+.resources-toggle-btn {
+  display: none;
+}
+
+.resources-close-btn {
+  display: none;
+}
+
+.resources-toggle-btn-header { display: none; }
+
+@media (max-width: 960px) {
+  /*  change this if you don't want a circle button */
+  .resources-toggle-btn-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    margin-left: 0.5rem;
+  }
+  
+  .resources-toggle-btn-header:active {
+    transform: scale(0.95);
+  }
+
+  .resources-close-btn {
+    display: block;
+    align-self: flex-end;
+    padding: 0.5rem 1rem;
+    background: #e2e8f0;
+    color: #1e293b;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+  }
+
+}
+/* @media (max-width: 960px) {
+  .resources-panel {
     width: 100%;
     max-width: none;
   }
-}
+} */
 
 /* === Chat Container (light mode for users) === */
 .chat-container {
@@ -97,8 +195,8 @@
   flex-direction: column;
   max-width: 52rem;
   width: 100%;
-  margin: 1.5rem auto;
-  padding: 0 1rem;
+  /* margin: 1.5rem auto; */
+  /* padding: 0 1rem; */
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
@@ -106,10 +204,21 @@
   min-height: 0;
 }
 
+@media (max-width: 960px) {
+  .chat-container {
+    margin: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
 .chat-box {
   flex: 1;
   min-height: 12rem;
-  max-height: calc(100vh - 14rem);
+  /* max-height: 60vh; */
+  min-height: 12rem;
+  /* max-height: calc(100vh - 14rem); */
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
   display: flex;
@@ -117,6 +226,10 @@
   gap: 1rem;
   background: #fafafa;
 }
+
+/* .admin-interaction-chat-box {
+  max-height: calc(100vh-14rem);
+} */
 
 .chat-placeholder {
   display: flex;
@@ -256,6 +369,14 @@
   padding-top: 5vh;
   padding-bottom: 5vh;
   z-index: 1000;
+}
+
+.modal-backdrop .modal-timer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1003;
 }
 
 .modal-card {
@@ -782,6 +903,41 @@
   background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
   animation: pulse 1s infinite;
 }
+
+.mobile-timer-bar {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .mobile-timer-bar {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1002;
+    padding: 12px;
+    margin: 0;
+    background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    border-radius: 0;
+  }
+  
+  .mobile-timer-bar.urgent {
+    background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
+    animation: pulse 1s infinite;
+  }
+  
+  /* Hide timer in resources panel on mobile since it's at top */
+  .resources-panel .timer-warning {
+    display: none;
+  }
+}
+ 
 
 /* Pulse animation for urgent timer */
 @keyframes pulse {
