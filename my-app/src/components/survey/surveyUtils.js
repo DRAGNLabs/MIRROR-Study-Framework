@@ -42,18 +42,14 @@ export function buildDisplaySteps(questions) {
     for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
 
-        // Group specific survey questions onto shared pages:
-        // - compensation-explanation (Q6) + negotiation (Q7)
-        // - negotiation-explanation (Q8) + interaction-explanation (Q9)
-        if (q.id === "compensation-explanation" && questions[i + 1]?.id === "negotiation") {
-            // Show the main satisfaction question first, then the justification textbox
-            steps.push({ questions: [questions[i + 1], q] });
+        // Group scale + optional justification on one page (game4.json order).
+        if (q.id === "compensation" && questions[i + 1]?.id === "compensation-explanation") {
+            steps.push({ questions: [q, questions[i + 1]] });
             i++;
             continue;
         }
-        if (q.id === "negotiation-explanation" && questions[i + 1]?.id === "interaction-explanation") {
-            // Show the interaction explanation before its justification textbox
-            steps.push({ questions: [questions[i + 1], q] });
+        if (q.id === "negotiation" && questions[i + 1]?.id === "negotiation-explanation") {
+            steps.push({ questions: [q, questions[i + 1]] });
             i++;
             continue;
         }

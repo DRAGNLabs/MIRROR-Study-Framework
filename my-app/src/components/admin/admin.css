@@ -789,3 +789,231 @@
   flex-direction: column;
   gap: 0.5rem;
 }
+
+/* === Completed room detail: dual scroll + scoped transcript/survey === */
+.completed-room-page.admin-container {
+  justify-content: flex-start;
+}
+
+.completed-room-back {
+  margin-bottom: 1rem;
+}
+
+.completed-room-summary {
+  margin-bottom: 1rem;
+}
+
+.completed-room-split {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+@media (min-width: 900px) {
+  .completed-room-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+}
+
+.completed-room-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-sizing: border-box;
+  text-align: left;
+  max-height: min(55vh, calc(100dvh - 10rem));
+}
+
+@media (min-width: 900px) {
+  .completed-room-panel {
+    max-height: calc(100dvh - 12rem);
+    padding: 1.25rem;
+  }
+}
+
+.completed-room-panel-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 0.75rem 0;
+  flex-shrink: 0;
+}
+
+.completed-room-chat-scroll,
+.completed-room-survey-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 0.25rem;
+}
+
+.completed-room-chat-scroll {
+  display: flex;
+  flex-direction: column;
+}
+
+.completed-room-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 0.25rem;
+}
+
+.completed-room-chat-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 6rem;
+  color: #94a3b8;
+  font-size: 0.9375rem;
+}
+
+.completed-room-chat-placeholder p {
+  margin: 0;
+}
+
+.completed-room-message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 92%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.completed-room-message-sender {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.9;
+}
+
+.completed-room-message-text {
+  white-space: pre-wrap;
+}
+
+.completed-room-message--user {
+  align-self: flex-end;
+  background: rgba(56, 189, 248, 0.2);
+  color: #e0f2fe;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-bottom-right-radius: 4px;
+}
+
+.completed-room-message--user .completed-room-message-sender {
+  color: #7dd3fc;
+}
+
+.completed-room-message--bot {
+  align-self: flex-start;
+  background: rgba(15, 23, 42, 0.65);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-bottom-left-radius: 4px;
+}
+
+.completed-room-message--bot .completed-room-message-sender {
+  color: #94a3b8;
+}
+
+.completed-room-page .survey-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.completed-room-page .survey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.completed-room-page .survey-field {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.completed-room-page .survey-field:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.completed-room-page .survey-question {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.completed-room-page .survey-user-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.completed-room-page .survey-user-answer-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #cbd5e1;
+}
+
+@media (min-width: 480px) {
+  .completed-room-page .survey-user-answer-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.5rem;
+  }
+}
+
+.completed-room-page .survey-user-name {
+  font-weight: 600;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.completed-room-page .survey-answer {
+  color: #e2e8f0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.45;
+}
+
+.completed-room-page .survey-answer-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+
+.completed-room-page .survey-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.completed-room-page .survey-section .survey-section-title {
+  margin-bottom: 0.75rem;
+}

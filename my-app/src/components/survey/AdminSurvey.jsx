@@ -76,9 +76,9 @@ export default function AdminSurvey() {
             <div className="survey-status-box">
             <div className="survey-status-header">
                 <h3>Survey Completion</h3>
-                {/* <span className="survey-progress">
+                <span className="survey-progress">
                 {users.filter(u => u.completedSurvey).length} / {users.length} completed
-                </span> */}
+                </span>
             </div>
 
             <ul className="survey-user-list">
