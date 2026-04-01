@@ -8,7 +8,7 @@ import { socket } from '../../socket'
 import games from "../../gameLoader";
 import ConversationModal from "./ConversationModal";
 import ConversationReflectionStep from "./ConversationReflectionStep";
-import { buildConversation, buildDisplaySteps, formatAnswer } from "./surveyUtils";
+import { buildConversation, buildDisplaySteps, displayStepHasUnanswered, formatAnswer, isRequiredQuestionUnanswered } from "./surveyUtils";
 import './survey.css'
 
 
@@ -112,8 +112,20 @@ export function Survey() {
             return;
         }
         if (fromReview) {
-            setCurrentStep(displaySteps.length + 1);
-            setFromReview(false);
+            const currentDisplayIndex = currentStep - 1;
+            let nextUnanswered = -1;
+            for (let i = currentDisplayIndex + 1; i < displaySteps.length; i++) {
+                if (displayStepHasUnanswered(displaySteps[i], answers)) {
+                    nextUnanswered = i;
+                    break;
+                }
+            }
+            if (nextUnanswered >= 0) {
+                setCurrentStep(nextUnanswered + 1);
+            } else {
+                setCurrentStep(displaySteps.length + 1);
+                setFromReview(false);
+            }
             return;
         }
         if (isReviewStep) {
@@ -331,10 +343,7 @@ export function Survey() {
                             {displaySteps.flatMap((step, stepIndex) => {
                                 const questionsInStep = step.questions ?? (step.question ? [step.question] : []);
                                 return questionsInStep.map((q) => {
-                                    const isRequired = !q.optional;
-                                    const isUnanswered = isRequired && (q.type === "sortRank"
-                                        ? !Array.isArray(answers[q.id]) || answers[q.id].length !== (q.options?.length ?? 0)
-                                        : (answers[q.id] == null || answers[q.id] === ""));
+                                    const isUnanswered = isRequiredQuestionUnanswered(q, answers);
                                     return (
                                         <li
                                             key={q.id}
@@ -573,7 +582,7 @@ export function Survey() {
                         {showSubmit
                             ? "Submit"
                             : fromReview
-                                ? "Back to Review"
+                                ? "Next unanswered question"
                                 : isReflectionStep
                                     ? "Continue"
                                     : isLastQuestion

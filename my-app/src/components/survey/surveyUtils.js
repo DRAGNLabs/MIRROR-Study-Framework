@@ -64,6 +64,21 @@ export function buildDisplaySteps(questions) {
     return steps;
 }
 
+export function isRequiredQuestionUnanswered(q, answers) {
+    if (q.type === "label") return false;
+    if (q.optional) return false;
+    if (q.type === "sortRank") {
+        const val = answers[q.id];
+        return !Array.isArray(val) || val.length !== (q.options?.length ?? 0);
+    }
+    return answers[q.id] == null || answers[q.id] === "";
+}
+
+export function displayStepHasUnanswered(step, answers) {
+    const questionsInStep = step.questions ?? (step.question ? [step.question] : []);
+    return questionsInStep.some(q => isRequiredQuestionUnanswered(q, answers));
+}
+
 export function formatAnswer(q, answers) {
     const val = answers[q.id];
     if (val == null || val === "") return "(No response)";
