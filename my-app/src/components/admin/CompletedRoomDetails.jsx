@@ -7,6 +7,27 @@ import { buildConversation } from "../survey/surveyUtils";
 import games from "../../gameLoader";
 import './admin.css';
 
+function conversationMessageSafeText(msg) {
+  const rawText = typeof msg?.text === "string" ? msg.text : "";
+  const isJsonLike =
+    rawText.trim().startsWith("{") &&
+    rawText.includes("allocationByUserName");
+  return isJsonLike
+    ? "An internal allocation update occurred."
+    : rawText;
+}
+
+function conversationMessageSenderLabel(msg) {
+  if (!msg) return "Unknown";
+  return msg.sender === "user" ? msg.userName || "You" : "LLM";
+}
+
+function normalizeConversationMessageIndex(messageIndex) {
+  const n = Number(messageIndex);
+  if (!Number.isFinite(n) || !Number.isInteger(n)) return null;
+  return n;
+}
+
 export function CompletedRoomPage() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
@@ -134,14 +155,7 @@ export function CompletedRoomPage() {
               ) : (
                 <div className="completed-room-messages">
                   {conversation.map((msg, i) => {
-                    const rawText = typeof msg.text === "string" ? msg.text : "";
-                    const isJsonLike =
-                      rawText.trim().startsWith("{") &&
-                      rawText.includes("allocationByUserName");
-
-                    const safeText = isJsonLike
-                      ? "An internal allocation update occurred."
-                      : rawText;
+                    const safeText = conversationMessageSafeText(msg);
 
                     return (
                       <div
@@ -153,9 +167,7 @@ export function CompletedRoomPage() {
                         }`}
                       >
                         <span className="completed-room-message-sender">
-                          {msg.sender === "user"
-                            ? msg?.userName || "You"
-                            : "LLM"}
+                          {conversationMessageSenderLabel(msg)}
                         </span>
                         <span className="completed-room-message-text">
                           {safeText}
@@ -251,19 +263,52 @@ export function CompletedRoomPage() {
                         </div>
                       ) : (
                         <div className="survey-admin-fields">
-                          {conversationMarks.map((mark, index) => (
-                            <div
-                              key={`mark-${userKey}-${index}`}
-                              className="survey-user-answer-row"
-                            >
-                              <span className="survey-user-name">
-                                Message {mark.messageIndex}:
-                              </span>
-                              <div className="survey-answer">
-                                {mark.note || "No note provided"}
+                          {conversationMarks.map((mark, index) => {
+                            const idx = normalizeConversationMessageIndex(
+                              mark.messageIndex
+                            );
+                            const msg =
+                              idx != null &&
+                              idx >= 0 &&
+                              idx < conversation.length
+                                ? conversation[idx]
+                                : null;
+
+                            return (
+                              <div
+                                key={`mark-${userKey}-${index}`}
+                                className="survey-user-answer-row completed-room-mark-row"
+                              >
+                                {msg ? (
+                                  <>
+                                    <span className="survey-mark-transcript-ref">
+                                      Transcript position: {idx + 1} of{" "}
+                                      {conversation.length}
+                                    </span>
+                                    <div className="completed-room-mark-message">
+                                      <span className="survey-user-name">
+                                        {conversationMessageSenderLabel(msg)}:
+                                      </span>
+                                      <span className="survey-answer">
+                                        {conversationMessageSafeText(msg)}
+                                      </span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <span className="survey-answer">
+                                    Message not found in transcript (saved
+                                    index: {String(mark.messageIndex)}).
+                                  </span>
+                                )}
+                                <div className="completed-room-mark-note">
+                                  <span className="survey-user-name">Note:</span>
+                                  <span className="survey-answer">
+                                    {mark.note || "No note provided"}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
