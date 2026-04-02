@@ -5,6 +5,15 @@ import { getUser } from "../../services/usersService";
 import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms } from "../../services/roomsService";
 import games from "../gameLoader";
 
+function formatRoomCreatedAt(value) {
+  if (value == null || value === "") return "\u2014";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "\u2014";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
+}
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -241,7 +250,15 @@ return (
 
               return (
                 <div className="room-display" key={room.roomCode}>
-                  <span className="room-code-badge">{room.roomCode}</span>
+                  <div className="room-display-header">
+                    <span className="room-code-badge">{room.roomCode}</span>
+                    <span
+                      className="room-created-at"
+                      title={room.createdAt != null ? String(room.createdAt) : ""}
+                    >
+                      {formatRoomCreatedAt(room.createdAt)}
+                    </span>
+                  </div>
 
                   <div className="room-meta">
                     <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
@@ -357,7 +374,15 @@ return (
           {Array.isArray(completedRoomList) && completedRoomList.length > 0 ? (
             completedRoomList.map((room) => (
               <div className="room-display" key={room.roomCode}>
-                <span className="room-code-badge">Room Code: {room.roomCode}</span>
+                <div className="room-display-header">
+                  <span className="room-code-badge">Room Code: {room.roomCode}</span>
+                  <span
+                    className="room-created-at"
+                    title={room.createdAt != null ? String(room.createdAt) : ""}
+                  >
+                    {formatRoomCreatedAt(room.createdAt)}
+                  </span>
+                </div>
 
                 <div className="room-meta">
                   <span className="meta-item">
