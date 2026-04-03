@@ -1,4 +1,3 @@
-import { getRoom } from '../services/roomsService.js';
 import { getTimeLeft } from './gameHandler.js';
 
 const usersInRoom = {};
@@ -33,18 +32,9 @@ export async function handleJoinRoom(io, socket, { roomCode, isAdmin, user }) {
     // send updated user list
     io.to(roomCode).emit("room-users", usersInRoom[roomCode]);
 
-    try {
-        const room = await getRoom(roomCode);
-        // send user/admin to correct status page
-        io.to(roomCode).emit("status", room.status);
-    } catch (err) {
-        console.error("join-room: failed to fetch room for roomCode", roomCode, err?.message || err);
-        return;
-    }
-
     getTimeLeft(io, roomCode); // makes sure timer is consistent across refreshes
 
-    console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id);
+    console.log(isAdmin ? "Admin joined room:" : "User joined room:", roomCode, socket.id, user);
 }
 
 
@@ -53,9 +43,6 @@ export async function handleDisconnect(io, socket) {
         if (!data)  return; //basically if not part of a room
 
         const { roomCode, isAdmin, user } = data
-        // if(!rooms[roomCode]) {
-        //     return;
-        // }
         
         if(!isAdmin && user && usersInRoom[roomCode]) {
             usersInRoom[roomCode] = usersInRoom[roomCode].filter((u) => u.userId !== user.userId);

@@ -91,6 +91,16 @@ export async function updateFishAmount(fishAmount, roomCode) {
 }
 
 
+export async function updateCurrRound(currRound, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/currRound`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currRound })
+    });
+    if (!response.ok) throw new Error(`Error updating currRound in room ${roomCode}`);
+    return response.json();
+}
+
 // these should probably be in different service file (this one in userService and other in surveyService),
 // I just felt like it was annoying to have one function in each file so added them to this one
 export async function getUser(userId) {

@@ -11,6 +11,7 @@ export function initializeSocketServer(httpServer, corsOrigin) {
     });
 
 io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
 //    console.log("Client connected:", socket.id);
 
     // when admin starts room or when user joins roomCode they are joined to this socket instance
@@ -85,17 +86,18 @@ io.on("connection", (socket) => {
     });
 
     // also keeps track of users leaving a room
-    socket.on("disconnect", () => {
+    socket.on("disconnect", (reason) => {
+        console.log("Disconnected ", reason, socket.id);
         handleDisconnect(io, socket);
     });
 
-    socket.on("connect_error", (err) => {
-        console.error("Connection error:", err.message);
-    });
+    // socket.on("connect_error", (err) => {
+    //     console.log("Connection error:", err.message);
+    // });
 
-    socket.on("connect_timeout", () => {
-        console.error("Connection timed out:", socket.id);
-    });
+//     socket.on("connect_timeout", () => {
+//         console.error("Connection timed out:", socket.id);
+//     });
 
     socket.on("delete-room", ({roomCode}) => {
         deleteTimer(roomCode);

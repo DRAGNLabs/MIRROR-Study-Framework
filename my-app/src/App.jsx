@@ -43,28 +43,45 @@ function Home() {
         setError("Please enter your name and room code.");
         return;
       }
-      const canLogin = await loginRoom(roomCode);
+
+      const parsedRoomCode = parseInt(roomCode);
+      if (isNaN(parsedRoomCode)) {
+        setError("Room code must be a number.");
+        return;
+      }
+
+      const canLogin = await loginRoom(parsedRoomCode);
       if (!canLogin) {
         setError("Invalid room code.");
         return;
       }
 
-      const room = await getRoom(roomCode);
+      const room = await getRoom(parsedRoomCode);
       const userIds = Array.isArray(room.userIds) ? room.userIds : JSON.parse(room.userIds);
       if(room.completed) {
         setError("This session has already ended.");
         return;
       }
       if (userIds.length > 0) {
-        const user = await getCreatedUser(name, roomCode);
+        const user = await getCreatedUser(name, parsedRoomCode);
         if (!user) {
           setError("This room has already started. You are not part of this session.");
           return;
         }
-        navigate("/waiting", { state: { user }});
+        
+        const status = room.status;
+        if (status === "waiting") {
+            navigate("/waiting", { state: { user }});
+        } else if (status === "instructions") {
+            navigate("/instructions", { state: { user }});
+        } else if (status === "interaction") {
+            navigate("/interaction", { state: { user }});
+        } else if (status === "survey") {
+            navigate("/survey", { state: { user }});
+        }
         return;
       }
-      const user = await loginUser(name, roomCode);
+      const user = await loginUser(name, parsedRoomCode);
       navigate("/waiting", { state: { user } }); 
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -134,7 +151,6 @@ export default function App() {
 
   const handleHomeClick = () => {
     const roomCode = sessionStorage.getItem("roomCode");
-    console.log(roomCode);
     // const userId = sessionStorage.getItem("userId");
     if (roomCode) {
       socket.emit("leave-room", {roomCode});

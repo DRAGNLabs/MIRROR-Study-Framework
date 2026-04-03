@@ -7,6 +7,15 @@ import games from "../gameLoader";
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./deleteCompletedRoom";
 
+function formatRoomCreatedAt(value) {
+  if (value == null || value === "") return "\u2014";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "\u2014";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
+}
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -27,10 +36,6 @@ export function Admin() {
     const [completed, setCompleted] = useState(false);
 
     const [ rooms, setRooms ] = useState([]);
-    // const [deletingRoom, setDeletingRoom] = useState(null);
-    // const [valid, setValid] = useState(false);
-    // const location = useLocation();
-    // const validLogin = location.state?.isValid;
 
     const navigate = useNavigate();
     const isAdmin = true;
@@ -69,7 +74,6 @@ export function Admin() {
             );
 
             const usernames = users.map(u => u.userName);
-            console.log(usernames);
 
             setRoomUsers(prev => ({
                 ...prev,
@@ -89,7 +93,6 @@ export function Admin() {
             navigate("/adminLogin");
         } else {
             init();
-            // setValid(true);
         }
     }, []);
 
@@ -156,9 +159,6 @@ export function Admin() {
             const response = await markCompleted(roomCode);
             socket.emit("close-room", { roomCode }); 
             setRooms(await getOpenRooms());
-            // setRooms(prev => prev.filter(r => r.roomCode !== roomCode));           
-            
-
         } catch (error) {
             console.error("Error:", error);
             // setError(error.message || "Something went wrong.");
@@ -189,10 +189,20 @@ export function Admin() {
         try {
             await roomStarted(roomCode);
             const room = await getRoom(roomCode);
-            if(room.status !== "survey" && room.status !== "interaction" && room.status!== "instructions") {
-               await updateStatus(roomCode, "waiting"); 
+  
+            const status = room.status;
+            if (status === "waiting") {
+                navigate("/admin/waiting", { state: { roomCode }});
+            } else if (status === "instructions") {
+                navigate("/admin/instructions", { state: { roomCode }});
+            } else if (status === "interaction") {
+                navigate("/admin/interaction", { state: { roomCode }});
+            } else if (status === "survey") {
+                navigate("/admin/survey", { state: { roomCode }});
+            } else {
+                await updateStatus(roomCode, "waiting");
+                navigate("/admin/waiting", { state: { roomCode }});
             }
-            navigate("/admin/waiting", { state: { roomCode }}); // this is probably fine to pass room for now
         } catch(error) {
             console.error("Error:", error);
             // setError(error.message || "Something went wrong.");
@@ -200,7 +210,6 @@ export function Admin() {
     }
 
     async function generateRoomCode() { // Generates a random number between 100000 and 999999
-  
         //ensure this generated roomCode has not already been used
         while (true){
             const roomCode = Math.floor(100000 + Math.random() * 900000);
@@ -244,7 +253,15 @@ return (
 
               return (
                 <div className="room-display" key={room.roomCode}>
-                  <span className="room-code-badge">{room.roomCode}</span>
+                  <div className="room-display-header">
+                    <span className="room-code-badge">{room.roomCode}</span>
+                    <span
+                      className="room-created-at"
+                      title={room.createdAt != null ? String(room.createdAt) : ""}
+                    >
+                      {formatRoomCreatedAt(room.createdAt)}
+                    </span>
+                  </div>
 
                   <div className="room-meta">
                     <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
@@ -366,7 +383,15 @@ return (
           {Array.isArray(completedRoomList) && completedRoomList.length > 0 ? (
             completedRoomList.map((room) => (
               <div className="room-display" key={room.roomCode}>
-                <span className="room-code-badge">Room Code: {room.roomCode}</span>
+                <div className="room-display-header">
+                  <span className="room-code-badge">Room Code: {room.roomCode}</span>
+                  <span
+                    className="room-created-at"
+                    title={room.createdAt != null ? String(room.createdAt) : ""}
+                  >
+                    {formatRoomCreatedAt(room.createdAt)}
+                  </span>
+                </div>
 
                 <div className="room-meta">
                   <span className="meta-item">

@@ -63,14 +63,15 @@ async function init() {
       status TEXT NOT NULL DEFAULT 'waiting',
       completed BOOLEAN NOT NULL DEFAULT FALSE,
       "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb,
-      fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb
+      fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb,
+      curr_round INTEGER NOT NULL DEFAULT 1,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
-  // Ensure fish_amount column exists on existing databases created before it was added
   await db.query(`
     ALTER TABLE rooms
-    ADD COLUMN IF NOT EXISTS fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb
+    ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
   `);
 
   console.log("✅ Tables checked/created");

@@ -86,14 +86,11 @@ export default function RoomManagement() {
         const shuffledRoles = [...gameRoles].sort(() => Math.random() - 0.5);
         for (let i = 0; i < usersInRoom.length; i++) {
             const user = usersInRoom[i];
-            console.log("User in assignRoles", user);
             const roleToAssign = shuffledRoles[i];
-            console.log("Role for user at", i, roleToAssign);
             try {
                 const response = await setRole(user.userId, roleToAssign.id);
-                console.log(response);
             } catch(error) {
-                console.log(error.message);
+                console.err(error.message);
             }
         }
     }
