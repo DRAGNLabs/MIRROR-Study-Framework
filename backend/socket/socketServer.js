@@ -79,9 +79,9 @@ io.on("connection", (socket) => {
         handleCloseRoom(io, roomCode);
     })
 
-    socket.on("survey-complete", async ({ roomCode, userId, surveyId }) => {
+    socket.on("survey-complete", async ({ roomCode, userId }) => {
         if (!roomCode) return;
-        surveyComplete(io, roomCode, surveyId, userId);
+        surveyComplete(io, roomCode, userId);
     });
 
     // this is for if someone leaves the room while they're waiting
@@ -99,21 +99,13 @@ io.on("connection", (socket) => {
     //     console.log("Connection error:", err.message);
     // });
 
-    // socket.on("connect_timeout", () => {
-    //     console.log("Connection timed out:", socket.id);
-    // });
+//     socket.on("connect_timeout", () => {
+//         console.error("Connection timed out:", socket.id);
+//     });
 
-    // socket.on("reconnect_attempt", (attempt) => {
-    //     console.log("Reconnect attempt:", attempt);
-    // });
-
-    // socket.on("reconnect", (attempt) => {
-    //     console.log("Reconnected after", attempt, "attempts");
-    // });
-
-    // socket.on("reconnect_failed", () => {
-    //     console.log("Reconnect failed permanently");
-    // });
+    socket.on("delete-room", ({roomCode}) => {
+        deleteTimer(roomCode);
+    });
 });
 
 return io;

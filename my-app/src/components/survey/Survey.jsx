@@ -97,8 +97,8 @@ export function Survey() {
         }
 
         try {
-            await sendSurvey(1, userId, { answers, conversationMarks });
-            socket.emit("survey-complete", { roomCode, userId, surveyId });
+            await sendSurvey(roomCode, userId, { answers, conversationMarks });
+            socket.emit("survey-complete", { roomCode, userId });
             navigate("/exit", { state: { userId } });
         } catch (err) {
             console.error("Error:", err);

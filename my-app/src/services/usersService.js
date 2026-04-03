@@ -1,5 +1,15 @@
 import { API_BASE } from "../config.js";
 
+export async function allUsers() {
+  const response = await fetch(`${API_BASE}/users/all`);
+
+  if (!response.ok) {
+    throw new Error("Error getting all users");
+  }
+
+  return response.json();
+}
+
 // creates new user in user table (logs them in)
 export async function loginUser(userName, roomCode) {
   const response = await fetch(`${API_BASE}/users`, {
@@ -47,3 +57,17 @@ export async function getCreatedUser(userName, roomCode) {
 
   return response.json();
 }
+
+export async function deleteUser(userId) {
+  const response = await fetch(`${API_BASE}/users/delete/${userId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error deleting user ${userId}`);
+  }
+
+  return response.json();
+}
+

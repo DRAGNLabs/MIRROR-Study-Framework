@@ -22,6 +22,10 @@ function fillPrompt(template, values) {
 // used in start-round socket and getLlmResponse function
 async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
     const room = await getRoom(roomCode);
+    if (!room) {
+    deleteTimer(roomCode);
+    return null;
+    }
     const round = room.curr_round;
     // const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
@@ -146,6 +150,27 @@ async function getLlmResponse(io, roomCode) {
         clearTimeout(roundTimers[roomCode].timeout);
         delete roundTimers[roomCode];
     }
+    // const roomBefore = await getRoom(roomCode);
+    // if (!roomBefore) {
+    //     deleteTimer(roomCode);
+    //     return;
+    // }
+    const buffer = await getLlmText(io, roomCode, false, true);
+    const room = await getRoom(roomCode);
+    if (buffer == null) {
+    deleteTimer(roomCode);
+    return;
+    }
+    const fish_amount = room.fish_amount ?? {};
+    const llmResponses = room.llmResponse ?? {};
+    llmResponses[round] = buffer;
+    await updateLlmResponse(llmResponses, roomCode);
+
+    const totalRounds = room.numRounds;
+    if (round >= totalRounds) {
+        io.to(roomCode).emit("game-complete");
+        const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
+        io.to(roomCode).emit("receive-message", endGameMsg);
     io.to(roomCode).emit("user-messages-complete");
     // const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
@@ -268,14 +293,21 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
 }
 
 
-export async function surveyComplete(io, roomCode, surveyId, userId) {
-    io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
+export async function surveyComplete(io, roomCode, userId) {
+    io.to(roomCode).emit("user-survey-complete", { userId, roomCode });
     const currRoom = await getRoom(roomCode);
+    if (!currRoom) {
+    deleteTimer(roomCode);
+    return;
+    }
 
     let surveyCompleted = true;
     for (const id of currRoom.userIds) {
-        const { completed } = await getSurveyStatus(userId)
-        if (completed == 0) surveyCompleted = false;
+        const { completed } = await getSurveyStatus(id)
+        if (completed == 0) {
+            surveyCompleted = false;
+            break;
+        }
     }
 
     if(surveyCompleted) {

@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
     const sql = `
       INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType") 
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType";
+      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt";
     `;
 
     const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType]);
@@ -275,7 +275,7 @@ router.patch("/:roomCode/completed", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT * FROM rooms ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
@@ -290,7 +290,7 @@ router.get("/nonCompleted", async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT * FROM rooms WHERE completed = FALSE ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms WHERE completed = FALSE ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
@@ -307,7 +307,7 @@ router.get("/isCompleted", async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
@@ -475,6 +475,58 @@ router.patch("/:roomCode/status", async (req, res) => {
 
 })
 
+//changes a rooms state from incomplete to complete
+router.put("/complete/:roomCode", async (req, res) => {
+  const { roomCode } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      UPDATE rooms
+      SET completed = TRUE
+      WHERE "roomCode" = $1
+      RETURNING *;
+      `,
+      [roomCode]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+//incase this is needed later to reopen a room, a rooms state is going from complete to incomplete
+//changes a rooms state from incomplete to complete
+router.put("/incomplete/:roomCode", async (req, res) => {
+  const { roomCode } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      UPDATE rooms
+      SET completed = FALSE
+      WHERE "roomCode" = $1
+      RETURNING *;
+      `,
+      [roomCode]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 router.patch("/:roomCode/currRound", async (req, res) => {
   try {
