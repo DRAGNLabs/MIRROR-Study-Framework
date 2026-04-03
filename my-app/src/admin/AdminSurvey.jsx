@@ -46,7 +46,7 @@ export default function AdminSurvey() {
             socket.once("connect", handleConnect);
         }
 
-        socket.on("user-survey-complete", ({ userId, surveyId }) => {
+        socket.on("user-survey-complete", ({ userId, roomCode }) => {
             setUsers(prev =>
                 prev.map(u => 
                     u.userId === userId ? { ...u, completedSurvey: true }: u
