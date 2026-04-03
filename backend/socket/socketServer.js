@@ -80,6 +80,12 @@ io.on("connection", (socket) => {
         surveyComplete(io, roomCode, userId);
     });
 
+    socket.on("delete-room", ({roomCode}) => {
+        if (!roomCode) return;
+        deleteTimer(roomCode);
+        handleCloseRoom(io, roomCode);
+    });
+
     // this is for if someone leaves the room while they're waiting
     socket.on("leave-room", () => {
         handleDisconnect(io, socket);
@@ -99,9 +105,6 @@ io.on("connection", (socket) => {
 //         console.error("Connection timed out:", socket.id);
 //     });
 
-    socket.on("delete-room", ({roomCode}) => {
-        deleteTimer(roomCode);
-    });
 });
 
 return io;
