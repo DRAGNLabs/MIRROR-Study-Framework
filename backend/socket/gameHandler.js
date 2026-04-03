@@ -138,11 +138,11 @@ async function getLlmResponse(io, roomCode) {
         clearTimeout(roundTimers[roomCode].timeout);
         delete roundTimers[roomCode];
     }
-    const roomBefore = await getRoom(roomCode);
-    if (!roomBefore) {
-        deleteTimer(roomCode);
-        return;
-    }
+    // const roomBefore = await getRoom(roomCode);
+    // if (!roomBefore) {
+    //     deleteTimer(roomCode);
+    //     return;
+    // }
     const buffer = await getLlmText(io, roomCode, false, true);
     const room = await getRoom(roomCode);
     if (buffer == null) {
@@ -182,10 +182,10 @@ export async function getLlmInstructions(io, roomCode, round) {
         currRounds[roomCode] = round
     }
     const room = await getRoom(roomCode);
-    if (!room) {
-    deleteTimer(roomCode);
-    return;
-    }
+    // if (!room) {
+    // deleteTimer(roomCode);
+    // return;
+    // }
     const fish_amount = room.fish_amount ?? {};
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     let instructions = "";
@@ -221,10 +221,10 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
     const round = currRounds[roomCode];
     const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
     const room = await getRoom(roomCode);
-    if (!room) {
-    deleteTimer(roomCode);
-    return;
-    }
+    // if (!room) {
+    // deleteTimer(roomCode);
+    // return;
+    // }
     const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
     const alreadySubmitted = roundMessages.some(

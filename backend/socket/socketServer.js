@@ -96,6 +96,10 @@ io.on("connection", (socket) => {
     socket.on("connect_timeout", () => {
         console.error("Connection timed out:", socket.id);
     });
+
+    socket.on("delete-room", ({roomCode}) => {
+        deleteTimer(roomCode);
+    });
 });
 
 return io;

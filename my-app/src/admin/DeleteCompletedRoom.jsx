@@ -58,4 +58,6 @@ export async function deleteCompletedRoomFlow({
     prev.filter((r) => r.roomCode !== roomCodeToDelete)
   );
   setRoomPendingDelete(null);
+
+  socket.emit("delete-room", ({roomCode}));
 }
