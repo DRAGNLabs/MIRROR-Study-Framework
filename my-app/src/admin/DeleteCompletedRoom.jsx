@@ -1,5 +1,6 @@
 import { allUsers } from "../../services/usersService";
 import { getCreatedRooms } from "../../services/roomsService";
+import { socket } from "../socket";
 
 export async function deleteCompletedRoomFlow({
   roomPendingDelete,
@@ -15,6 +16,8 @@ export async function deleteCompletedRoomFlow({
 
   const roomCodeToDelete = roomPendingDelete.roomCode;
   const userIds = roomPendingDelete.userIds || [];
+
+  socket.emit("delete-room", ({roomCode: roomCodeToDelete}));
 
   const users = await allUsers();
   console.log("All users before:", users);
@@ -59,5 +62,5 @@ export async function deleteCompletedRoomFlow({
   );
   setRoomPendingDelete(null);
 
-  socket.emit("delete-room", ({roomCode}));
+  // socket.emit("delete-room", ({roomCode: roomCodeToDelete}));
 }
