@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
 import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted } from "../../services/roomsService";
-import games from "../gameLoader";
+import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
 import './admin.css';
