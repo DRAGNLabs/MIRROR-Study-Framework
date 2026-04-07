@@ -1,6 +1,6 @@
 import { allUsers } from "../../services/usersService";
 import { getCreatedRooms } from "../../services/roomsService";
-import { socket } from "../socket";
+import { socket } from "../../socket";
 
 export async function deleteCompletedRoomFlow({
   roomPendingDelete,
