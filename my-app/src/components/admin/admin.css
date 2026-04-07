@@ -1055,6 +1055,8 @@
     align-items: baseline;
     gap: 0.35rem 0.5rem;
   }
+}
+
 .room-display-header {
   display: flex;
   justify-content: space-between;
