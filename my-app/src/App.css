@@ -62,129 +62,7 @@ body {
   color: #1e293b;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
-.home-container {
-  display: flex;               /* use flexbox */
-  justify-content: center;     /* center horizontally */
-  align-items: center;         /* center vertically */
-  min-height: 100vh;           /* fill viewport height */
-  width: 100%;                 /* full width */
-  text-align: center;
-}
 
-/* === User Login (Professional) === */
-.login-page {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  box-sizing: border-box;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 2.5rem;
-  text-align: center;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-  animation: fadeIn 0.4s ease forwards;
-}
-
-.login-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 0.25rem 0;
-  letter-spacing: -0.02em;
-}
-
-.login-subtitle {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin: 0 0 1.75rem 0;
-}
-
-.login-form {
-  width: 100%;
-  text-align: left;
-}
-
-.login-form .form-field {
-  margin-bottom: 1.25rem;
-}
-
-.login-form .form-field label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #475569;
-  margin-bottom: 0.5rem;
-  text-align: left;
-}
-
-.login-form .form-field input {
-  width: 100%;
-  height: 44px;
-  padding: 0 0rem;
-  font-size: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #ffffff;
-  max-width: none;
-  margin: 0;
-  box-shadow: none;
-}
-
-.login-form .form-field input:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-}
-
-.login-form .form-error {
-  font-size: 0.875rem;
-  color: #dc2626;
-  margin: 0 0 1rem 0;
-  padding: 0.5rem 0;
-}
-
-.login-form .btn-primary {
-  width: 100%;
-  height: 44px;
-  margin-top: 0.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  background: #0ea5e9;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.login-form .btn-primary:hover:not(:disabled) {
-  background: #0284c7;
-}
-
-.login-form .btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Legacy login-container (for other pages that may use it) */
-.login-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 2rem;
-}
 
 .waiting-container {
   display: flex;
@@ -346,6 +224,7 @@ nav button.nav-logout:hover {
   top: 45rem; /*move this go down to a greater value to go down */
   right: 8rem; /*move this smaller to get it more right*/
 }
+<<<<<<< HEAD
 
 /* === Interaction Screen (modern layout) === */
 .interactions-container {
@@ -3064,3 +2943,5 @@ survey conversation thingy
 .survey-answer-list li {
   margin-bottom: 0.25rem;
 }
+=======
+>>>>>>> 26b01302fb79e4d310ba51cc7f77d0ec2b8a0106

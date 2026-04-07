@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { socket } from '../socket';
+import { socket } from '../../socket';
 import { getRoom, updateStatus } from "../../services/roomsService";
-import games from "../gameLoader"
+import games from "../../gameLoader"
+import { socketListener } from "../common/socketListener";
+import './instructions.css';
 
 export default function AdminInstructions() {
     const navigate = useNavigate();
@@ -29,32 +31,12 @@ export default function AdminInstructions() {
 
     }, [roomCode])
 
-    useEffect(() => {
-      socket.emit("join-room", { roomCode, isAdmin });
+    socketListener(roomCode, isAdmin, null);
 
-      const handleConnect = () => {
-        sessionStorage.setItem("roomCode", roomCode);
-        socket.emit("join-room", { roomCode, isAdmin});
-      }
-
-      if (socket.connected) {
-        handleConnect();
-      } else {
-        socket.once("connect", handleConnect);
-      }
-
-      socket.on("force-return-to-login", () => {
-        navigate("/admin");
-      })
-
-      return () => {
-        socket.off("connect", handleConnect);
-        socket.off("force-return-to-login");
-      }
-    }, [socket]);
 
     async function toInteractions() {
-        socket.emit("start-game", { roomCode });
+        // socket.emit("start-game", { roomCode });
+        socket.emit("navigate-users", { roomCode, status: "interaction" });
         socket.emit('start-round', {
             roomCode,
             round: 1

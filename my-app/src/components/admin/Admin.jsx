@@ -1,10 +1,22 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { socket } from "../socket"; 
-import { getUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms } from "../../services/roomsService";
-import games from "../gameLoader";
+import { socket } from '../../socket';
+import { getUser, deleteUser } from "../../services/usersService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted } from "../../services/roomsService";
+import games from '../../gameLoader';
+import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
+import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
+import './admin.css';
 
+function formatRoomCreatedAt(value) {
+  if (value == null || value === "") return "\u2014";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "\u2014";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
+}
 
 export function Admin() {
     const [roomCreated, setRoomCreated] = useState(false);
@@ -99,7 +111,7 @@ export function Admin() {
         });
       }, [completedRoomList]);
 
-    /** Navigating back from the room details page it'll take you back where you were. */
+    //Navigating back from the room details page it'll take you back where you were. 
     useEffect(() => {
       if (location.state?.showCompletedRooms === true) {
         showCompletedRooms();
@@ -141,15 +153,12 @@ export function Admin() {
 
     }
 
-    async function closeRoom(roomCode) { // esentially closeRoom should be blocked once admin opens it
+    async function closeRoom(roomCode) { //moves a room to completed page
         const roomCurr = await getRoom(roomCode);
-        if (roomCurr.status === "survey") {
-            alert("You can't close the room it is in survey status");
-            return;
-        }
+
         try {
-            const response = await closeARoom(roomCode);
-            socket.emit("close-room", { roomCode });
+            const response = await markCompleted(roomCode);
+            socket.emit("close-room", { roomCode }); 
             setRooms(await getOpenRooms());
         } catch (error) {
             console.error("Error:", error);
@@ -158,6 +167,23 @@ export function Admin() {
         setRoomCreated(false);
         setSelectedGame(null);
         setStart(true);
+    }
+
+    async function confirmDeleteCompletedRoom() {
+      try {
+        await deleteCompletedRoomFlow({
+          roomPendingDelete,
+          deleteUser,
+          deleteSurvey,
+          getAllSurveys,
+          closeARoom,
+          setRooms,
+          setCompletedRoomList,
+          setRoomPendingDelete,
+        });
+      } catch (error) {
+        console.error("Error deleting room:", error);
+      }
     }
 
     async function startRoom(roomCode) {
@@ -195,19 +221,6 @@ export function Admin() {
 
     }
 
-    async function confirmDeleteCompletedRoom() {
-      if (!roomPendingDelete) return;
-
-      try {
-        setCompletedRoomList((prev) =>
-          prev.filter((r) => r.roomCode !== roomPendingDelete.roomCode)
-        );
-        closeARoom(roomPendingDelete.roomCode);
-        setRoomPendingDelete(null);
-      } catch (error) {
-        console.error("Error deleting room:", error);
-      }
-    }
 
 
 return (
@@ -241,7 +254,15 @@ return (
 
               return (
                 <div className="room-display" key={room.roomCode}>
-                  <span className="room-code-badge">{room.roomCode}</span>
+                  <div className="room-display-header">
+                    <span className="room-code-badge">{room.roomCode}</span>
+                    <span
+                      className="room-created-at"
+                      title={room.createdAt != null ? String(room.createdAt) : ""}
+                    >
+                      {formatRoomCreatedAt(room.createdAt)}
+                    </span>
+                  </div>
 
                   <div className="room-meta">
                     <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
@@ -269,6 +290,12 @@ return (
                       onClick={() => closeRoom(room.roomCode)}
                     >
                       Close
+                    </button>
+                    <button
+                      className="btn-secondary-admin"
+                      onClick={() => setRoomPendingDelete(room)}
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -357,7 +384,15 @@ return (
           {Array.isArray(completedRoomList) && completedRoomList.length > 0 ? (
             completedRoomList.map((room) => (
               <div className="room-display" key={room.roomCode}>
-                <span className="room-code-badge">Room Code: {room.roomCode}</span>
+                <div className="room-display-header">
+                  <span className="room-code-badge">Room Code: {room.roomCode}</span>
+                  <span
+                    className="room-created-at"
+                    title={room.createdAt != null ? String(room.createdAt) : ""}
+                  >
+                    {formatRoomCreatedAt(room.createdAt)}
+                  </span>
+                </div>
 
                 <div className="room-meta">
                   <span className="meta-item">

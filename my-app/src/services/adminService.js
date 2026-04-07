@@ -1,4 +1,4 @@
-import { API_BASE } from "../src/config.js";
+import { API_BASE } from "../config.js";
 
 export async function adminLogin(password) { 
   const response = await fetch(`${API_BASE}/admin/login`, {

@@ -3,6 +3,21 @@ import db from "../db.js";
  
 const router = express.Router();
 
+// get all users
+router.get("/all", async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT "userId", "userName", "roomCode", role
+      FROM users
+      ORDER BY "userId";
+    `);
+
+    return res.status(200).json(result.rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 // create or login a user
 router.post("/", async (req, res) => {
@@ -174,5 +189,7 @@ router.delete("/delete/:userId", async (req,res) => {
     }
 
 });
+
+
 
 export default router;

@@ -1,8 +1,9 @@
 import { getUsersInRoom } from "../../services/roomsService";
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { getSurveyStatus } from "../../services/surveyService";
-import { socket } from '../socket';
+import { socket } from "../../socket";
+import './survey.css';
 
 export default function AdminSurvey() {
     const location = useLocation();
@@ -20,7 +21,7 @@ export default function AdminSurvey() {
                         const { completed } = await getSurveyStatus(user.userId);
                         return {
                             ...user,
-                            completedSurvey: completed === 1
+                            completedSurvey: completed
                         };
                     })
                 );
@@ -46,7 +47,7 @@ export default function AdminSurvey() {
             socket.once("connect", handleConnect);
         }
 
-        socket.on("user-survey-complete", ({ userId, surveyId }) => {
+        socket.on("user-survey-complete", ({ userId, roomCode }) => {
             setUsers(prev =>
                 prev.map(u => 
                     u.userId === userId ? { ...u, completedSurvey: true }: u

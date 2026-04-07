@@ -3,8 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
-import { buildConversation } from "../survey/BuildRoom";
-import games from "../gameLoader";
+import { buildConversation } from "../survey/surveyUtils";
+import games from "../../gameLoader";
+import './admin.css';
 
 export function CompletedRoomPage() {
   const { roomCode } = useParams();

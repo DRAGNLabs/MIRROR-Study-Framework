@@ -1,5 +1,5 @@
 /** This is just a closing page so the user will know they can exit */
-
+import './survey.css';
 export function Exit(){
     return (
         <div className="survey-container">

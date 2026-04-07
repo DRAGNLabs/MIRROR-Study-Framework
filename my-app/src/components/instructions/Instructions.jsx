@@ -1,14 +1,14 @@
 // main instructions will be on admin page but here we will have a page for the users with the role info
-import { useState, useEffect, useRef } from "react";
-import { socket } from "../socket";
-import games from "../gameLoader"
+import { useState, useEffect } from "react";
+import games from "../../gameLoader"
 import { getRoom } from "../../services/roomsService";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { getUserRole } from "../../services/usersService";
+import { socketListener } from "../common/socketListener";
+import './instructions.css';
 
 export default function Instructions() {
     const location = useLocation();
-    const navigate = useNavigate();
     const { user } = location.state;
     const roomCode = parseInt(user.roomCode);
     const isAdmin = false;
@@ -34,43 +34,7 @@ export default function Instructions() {
 
     }, [roomCode])
 
-    useEffect(() => {
-        const handleConnect = () => {
-            sessionStorage.setItem("roomCode", roomCode);
-            socket.emit("join-room", { roomCode, isAdmin, user }); 
-        }
-
-        if (socket.connected) {
-            handleConnect();
-        } else {
-            socket.once("connect", handleConnect);
-        }
-
-        const onStart = () => {
-            navigate("/interaction", { state: { user }});
-        }
-
-        socket.on("start-chat", onStart);
-
-        socket.on("force-return-to-login", () => {
-            socket.emit("leave-room");
-            navigate("/");
-        });
-
-        socket.on("status", (status) => {
-            const currentPath = location.pathname;
-            if(!currentPath.includes(status)) {
-                navigate(`/${status}`, { state: { user } });
-            }
-        });
-
-        return () => {
-            socket.off("connect", handleConnect);
-            socket.off("start-chat", onStart);
-            socket.off("force-return-to-login");
-            socket.off("status");
-        };
-    }, [socket]);
+    socketListener(roomCode, isAdmin, user);
 
 
         if (loading) {
@@ -92,7 +56,7 @@ export default function Instructions() {
                 </div>
             );
         }
-    // instructions are hardcoded for now since we don't have role functionality yet, will update that once we implement role functionality
+
         return (
         <div className="user-instruction-container">
             <div className="user-instruction-card">
