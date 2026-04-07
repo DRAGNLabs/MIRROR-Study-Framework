@@ -22,10 +22,10 @@ async function init() {
  */
   await db.query(`
     CREATE TABLE IF NOT EXISTS survey (
-      "surveyId" INTEGER NOT NULL,
+      "roomCode" INTEGER NOT NULL,
       "userId" INTEGER NOT NULL,
       data JSONB NOT NULL DEFAULT '{}'::jsonb,
-      PRIMARY KEY ("surveyId", "userId")
+      PRIMARY KEY ("roomCode", "userId")
     )
   `);
 
@@ -64,14 +64,18 @@ async function init() {
       completed BOOLEAN NOT NULL DEFAULT FALSE,
       "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb,
       fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb,
-      curr_round INTEGER NOT NULL DEFAULT 1
+      curr_round INTEGER NOT NULL DEFAULT 1,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
   // New columns on rooms: CREATE TABLE IF NOT EXISTS skips altering existing tables.
+  // await db.query(`
+  //   ALTER TABLE rooms
+  //   ADD COLUMN IF NOT EXISTS curr_round INTEGER NOT NULL DEFAULT 1
   await db.query(`
     ALTER TABLE rooms
-    ADD COLUMN IF NOT EXISTS curr_round INTEGER NOT NULL DEFAULT 1
+    ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
   `);
 
   console.log("✅ Tables checked/created");

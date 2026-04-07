@@ -21,8 +21,11 @@ export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, model
 // get room with specified roomCode
 export async function getRoom(roomCode) {
   const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
-  if (!response.ok) throw new Error("Can't get room.");
 
+  if (!response.ok) {
+    throw new Error("Can't get room.");
+  }
+  
   return response.json();
 }
 
@@ -116,6 +119,35 @@ export async function closeARoom(roomCode){
   if (!response.ok) throw new Error("Error fetching the surveys from the database.");
   return response.json();
 }
+
+//makes a room complete to move it from "rooms" tab to "completed"
+export async function markCompleted(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/complete/${roomCode}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" }
+  });
+
+  if (!response.ok) {
+    throw new Error("Error marking room as completed");
+  }
+
+  return response.json();
+}
+
+//makes a room incomplete to move it from "completed" tab to "rooms"
+export async function markNotCompleted(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/incomplete/${roomCode}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" }
+  });
+
+  if (!response.ok) {
+    throw new Error("Error marking room as completed");
+  }
+
+  return response.json();
+}
+
 
 // gets all rooms in rooms table
 export async function getCreatedRooms(){
