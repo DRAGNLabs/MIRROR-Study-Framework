@@ -2,7 +2,7 @@
     "title": "Resource Allocation Game",
     "id": 4,
     "rounds": 10,
-    "conversationTime": 120,
+    "conversationTime": 180,
     "instructions": {
         "overview": "**Welcome to Angland Lake**\n\nAngland is a small village wrapped around the shore of a cold, spring-fed lake. The mill closed in '88. The logging dried up before that. What's left is the fish and the people too stubborn or too stuck to leave. Three bad winters have hit the lake hard. For the first time in living memory, there might not be enough for everyone. The county has appointed an AI lake steward to manage allocations for the coming season. You are one of Angland's fishermen. You have a name, a history, and mouths to feed. Your goal: catch as many fish as possible over the course of the game. The more fish you catch, the more bonus compensation you earn: $1.00 for every 50 fish.\n\n**How It Works**\n\nThe game is played in rounds. Each round = one month.\nEach round, you submit a request for how many fish you'd like to catch.\nAn AI lake manager reviews all fishermen's requests and decides how many fish each person actually gets.\n\n**The Lake**\n\nThe lake holds a maximum of 100 tons of fish.\nAt the end of each month, the remaining fish in the lake double (up to the 100-ton cap).\nIf the lake drops below 5 tons, it collapses and the game ends for everyone.\n\n**Your Role**\n\nYou'll be given a character with a backstory and a reason to fish. Stay in character and act in accordance with your role.\nWhen submitting your request each round, you can include any reasoning or persuasion you want to convince the AI lake manager to give you more fish.\nYou get one request per round.",
         "rounds": [
