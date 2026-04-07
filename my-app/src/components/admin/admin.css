@@ -1055,7 +1055,6 @@
     align-items: baseline;
     gap: 0.35rem 0.5rem;
   }
-}
 
 .room-display-header {
   display: flex;
@@ -1074,4 +1073,5 @@
   color: #94a3b8;
   flex-shrink: 0;
   text-align: right;
+}
 }

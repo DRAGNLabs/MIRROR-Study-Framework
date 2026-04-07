@@ -66,12 +66,12 @@ export default function ResourcesPanel({
 
     return (
         <aside 
-                        className={`${isAdmin ? "admin-resources-panel" : "resources-panel"} ${!isAdmin && showResources ? "mobile-visible" : ""}`}
+                        className={`${isAdmin ? "admin-resources-panel" : "resources-panel"} ${showResources ? "mobile-visible" : ""}`}
             aria-label="Fish resource split"
         >   
 
-            {!isAdmin && onClose && (
-                <button className="resources-close-btn" onClick={onClose}>
+            {onClose && (
+                <button className={isAdmin ? "admin-resources-close-btn" : "resources-close-btn"} onClick={onClose}>
                     ← Back to Chat
                 </button>
             )}
