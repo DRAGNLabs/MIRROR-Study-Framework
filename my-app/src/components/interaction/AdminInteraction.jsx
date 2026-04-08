@@ -21,6 +21,7 @@ export default function AdminInteraction(){
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
     const [timeRemaining, setTimeRemaining] = useState(null);
+    const [showResources, setShowResources] = useState(false);
 
     // const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
@@ -64,12 +65,38 @@ export default function AdminInteraction(){
         navigate("/admin/survey", { state: { roomCode } });
     }
 
+    // adding these to fix formatting on mobile
+    function handleLogout() {
+        sessionStorage.removeItem("admin");
+        navigate("/admin/login");
+    }
+ 
+    function handleHomeClick() {
+        socket.emit("leave-room", { roomCode });
+        sessionStorage.removeItem("roomCode");
+        navigate("/admin");
+    }
+
     return (
-        <div className="admin-interaction-page">
+        <div className={`admin-interaction-page ${timeRemaining !== null ? 'has-timer' : ''}`}>
+            {timeRemaining !== null && (
+                <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                    ⏱ Time remaining: {formatTime(timeRemaining)}
+                </div>
+            )}
             <header className="admin-interaction-header">
+                <button
+                    className='admin-resources-toggle-btn-header'
+                    onClick={() => setShowResources(true)}
+                >
+                    Resources
+                </button>
                 <h1 className="admin-interaction-header-title">Admin</h1>
                 <span className="admin-interaction-room-badge">Room {roomCode}</span>
-                <span className="admin-interaction-header-spacer" aria-hidden="true" />
+                <div className="admin-header-mobile-nav">
+                    <button onClick={handleHomeClick} className="admin-mobile-home-btn">Home</button>
+                    <button onClick={handleLogout} className="admin-mobile-logout-btn">Logout</button>
+                </div>
             </header>
 
             <div className="admin-interaction-main-layout">
@@ -88,6 +115,8 @@ export default function AdminInteraction(){
                     timeRemaining={timeRemaining}
                     formatTime={formatTime}
                     isAdmin={true}
+                    showResources={showResources}
+                    onClose={() => setShowResources(false)}
                 />
             </div>
 

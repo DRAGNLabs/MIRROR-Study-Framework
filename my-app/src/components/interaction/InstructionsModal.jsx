@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 
-export default function InstructionsModal({ open, onClose, game, role }) {
+export default function InstructionsModal({ open, onClose, game, role, timeRemaining=null, formatTime=null }) {
   if (!open) return null;
 
   const instructions = game?.instructions;
@@ -9,11 +9,17 @@ export default function InstructionsModal({ open, onClose, game, role }) {
 
   const modalContent = (
     <div className="modal-backdrop" onClick={onClose}>
+      {timeRemaining !== null && formatTime && (
+        <div className={`mobile-timer-bar modal-timer ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+          ⏱ Time remaining: {formatTime(timeRemaining)}
+        </div>
+      )}
+
       <div
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
+        <button type="button" className="instructions-close" onClick={onClose} aria-label="Close">
           ✕
         </button>
 

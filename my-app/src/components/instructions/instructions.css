@@ -3,6 +3,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding: 0 0.75rem;
   align-items: center;
   justify-content: center;
   background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
@@ -17,6 +18,12 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
+@media (max-width: 640px) {
+    .user-instruction-card {
+        padding: 1.5rem;
+    }
+}
+
 .subtext {
   margin: 1rem 0 2rem;
   color: #555;
@@ -29,15 +36,22 @@
 }
 
 /* === Admin Instructions Card (Dark Theme) === */
+
 .instructions-card {
   max-width: 800px;
   margin: 0 auto;
-  padding: 2.5rem;
+  padding: 2rem;
   background: #1e293b;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #f1f5f9;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 640px) {
+    .instructions-card {
+        padding: 1rem;
+    }
 }
 
 .instructions-overview {

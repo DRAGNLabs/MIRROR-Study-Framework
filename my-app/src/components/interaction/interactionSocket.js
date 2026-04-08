@@ -98,7 +98,7 @@ export function useInteractionSocket(
                 setCanSend(false);
                 setHasSentThisRound(true);
                 loadCurrUserMessages.current = false;
-                refreshRoomState();
+                // refreshRoomState();
                 // Final refresh so last-round allocations are visible.
                 refreshRoomState();
             });
@@ -106,6 +106,7 @@ export function useInteractionSocket(
             socket.on("instructions-complete", (round) => {
                 setCanSend(true);
                 setHasSentThisRound(false);
+                // refreshRoomState();
             })
         }
 
