@@ -20,16 +20,37 @@ export function Survey() {
     const { userId } = user;
     const roomCode = parseInt(user.roomCode);
 
-    const [answers, setAnswers] = useState({});
+    const storageKey = `survey_${roomCode}_${userId}`;
+    const [answers, setAnswers] = useState(() => {
+        const saved = localStorage.getItem(storageKey);
+        return saved ? JSON.parse(saved) : {};
+    });
     const [error, setError] = useState("");
     const [survey, setSurvey] = useState(null);
-    const [currentStep, setCurrentStep] = useState(0);
+    const [currentStep, setCurrentStep] = useState(() => {
+        const savedStep = localStorage.getItem(`${storageKey}_step`);
+        return savedStep ? parseInt(savedStep, 10) : 0;
+    });
     const [fromReview, setFromReview] = useState(false);
     const [showConversation, setShowConversation] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
-    const [conversationMarks, setConversationMarks] = useState([]);
+    const [conversationMarks, setConversationMarks] = useState(() => {
+        const saved = localStorage.getItem(`${storageKey}_marks`);
+        return saved ? JSON.parse(saved) : [];
+    });
 
-    const surveyId = 1;
+    useEffect(() => {
+        localStorage.setItem(storageKey, JSON.stringify(answers));
+    }, [answers, storageKey]);
+
+    useEffect(() => {
+        localStorage.setItem(`${storageKey}_step`, currentStep.toString());
+    }, [currentStep, storageKey]);
+ 
+    useEffect(() => {
+        localStorage.setItem(`${storageKey}_marks`, JSON.stringify(conversationMarks));
+    }, [conversationMarks, storageKey]);
+
     const displaySteps = useMemo(
         () => (survey ? buildDisplaySteps(survey.questions) : []),
         [survey]
@@ -99,6 +120,9 @@ export function Survey() {
 
         try {
             await sendSurvey(roomCode, userId, { answers, conversationMarks });
+            localStorage.removeItem(storageKey);
+            localStorage.removeItem(`${storageKey}_step`);
+            localStorage.removeItem(`${storageKey}_marks`);
             socket.emit("survey-complete", { roomCode, userId });
             navigate("/exit", { state: { userId } });
         } catch (err) {
@@ -109,6 +133,13 @@ export function Survey() {
 
     function handleNext() {
         if (isReflectionStep) {
+            // basically requires 3 messages unless if it less than 9 change this to have you go back on review
+            const requiredMarks = Math.min(3, Math.max(1, Math.floor(conversationMessages.length / 3)));
+            const allMarksHaveNotes = conversationMarks.every(m => m.note && m.note.trim().length > 0);
+            if (conversationMarks.length < requiredMarks || !allMarksHaveNotes) {
+                alert(`Please mark at least ${requiredMarks} moments and add a note to each one.`);
+                return;
+            }
             setCurrentStep(1);
             return;
         }
@@ -192,8 +223,19 @@ export function Survey() {
                 </span>
             </div>
 
+            {!isReflectionStep && (
+                <div className="conversation-btn-wrapper">
+                    <button
+                        className="conversation-history-btn"
+                        onClick={() => setShowConversation(true)}
+                    >
+                        Conversation History
+                    </button>
+                </div>
+            )}
+
             <div className="survey-card">
-                {!isReflectionStep && (
+                {/* {!isReflectionStep && (
                     <div className="room-top-left">
                         <button
                             className="info-icon-button"
@@ -204,7 +246,7 @@ export function Survey() {
                             i
                         </button>
                     </div>
-                )}
+                )} */}
 
                 {!isReflectionStep && (
                     user ? (

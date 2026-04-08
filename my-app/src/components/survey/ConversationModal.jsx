@@ -15,14 +15,14 @@ export default function ConversationModal({ open, onClose, messages }) {
   const modalContent = (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-card"
+        className="conversation-modal-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
-          ✕
-        </button>
 
-        <h2>Conversation History</h2>
+        <div className="modal-header">
+          <h2>Conversation History</h2>
+          <button className="modal-close" onClick={onClose}>✕</button> 
+        </div>
 
         <div className="chat-box" ref={chatBoxRef}>
           {messages.map((msg, i) => (

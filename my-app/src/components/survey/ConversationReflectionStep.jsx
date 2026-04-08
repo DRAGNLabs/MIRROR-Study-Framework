@@ -67,7 +67,7 @@ export default function ConversationReflectionStep({ messages, marks, onMarksCha
                   <input
                     type="text"
                     className="reflection-note-input"
-                    placeholder="Add a note (optional)"
+                    placeholder="Add a note"
                     value={note}
                     onChange={(e) => setNote(i, e.target.value)}
                     onClick={(e) => e.stopPropagation()}
