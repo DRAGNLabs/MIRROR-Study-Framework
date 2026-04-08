@@ -206,8 +206,27 @@ export function Survey() {
     const showSubmit = isReviewStep;
 
     return (
-        <div className="survey-container">
-            <div className="survey-progress-wrapper">
+        // <div className="survey-container">
+        <div className={`survey-container ${isReflectionStep ? 'no-scroll' : ''}`}>
+            {!isReflectionStep && (
+            <div className={`survey-progress-wrapper`}>
+                <div className="survey-progress-bar">
+                    <div
+                        className="survey-progress-fill"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div> 
+                <span className="survey-progress-text">
+                    {isReflectionStep
+                        ? `Reflection (1 of ${totalSteps})`
+                        : isReviewStep
+                            ? `Review (${currentStep + 1} of ${totalSteps})`
+                            : `Question ${currentStep + 1} of ${totalSteps}`}
+                </span>
+            </div>
+
+            )}
+            {/* <div className={`survey-progress-wrapper ${isReflectionStep ? 'hide-on-mobile' : ''}`}>
                 <div className="survey-progress-bar">
                     <div
                         className="survey-progress-fill"
@@ -221,7 +240,7 @@ export function Survey() {
                             ? `Review (${currentStep + 1} of ${totalSteps})`
                             : `Question ${currentStep + 1} of ${totalSteps}`}
                 </span>
-            </div>
+            </div> */}
 
             {!isReflectionStep && (
                 <div className="conversation-btn-wrapper">
@@ -386,6 +405,7 @@ export function Survey() {
                                                 </button>
                                                 <span className="age-input-suffix">years</span>
                                             </div>
+                                            // <span className="age-input-suffix">years</span>
                                         ) : (
                                             <textarea
                                                 rows={6}
@@ -469,12 +489,25 @@ export function Survey() {
                         {showSubmit
                             ? "Submit"
                             : fromReview
-                                ? "Next unanswered question"
+                                ? (displaySteps.every((step, idx) => {
+                                if (idx === currentStep - 1) return true; // Skip current step in check
+                                    return !displayStepHasUnanswered(step, answers);
+                                }) ? "Back to Review" : "Next unanswered question")
                                 : isReflectionStep
                                     ? "Continue"
                                     : isLastQuestion
                                         ? "Review Answers"
                                         : "Next"}
+
+                        {/* {showSubmit
+                            ? "Submit"
+                            : fromReview
+                                ? "Next unanswered question"
+                                : isReflectionStep
+                                    ? "Continue"
+                                    : isLastQuestion
+                                        ? "Review Answers"
+                                        : "Next"} */}
                     </button>
                 </div>
 

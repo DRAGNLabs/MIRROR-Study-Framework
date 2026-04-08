@@ -24,7 +24,7 @@ export default function ConversationModal({ open, onClose, messages }) {
           <button className="modal-close" onClick={onClose}>✕</button> 
         </div>
 
-        <div className="chat-box" ref={chatBoxRef}>
+        <div className="conversation-modal-chat-box" ref={chatBoxRef}>
           {messages.map((msg, i) => (
             <div
               key={msg.id ?? i}
