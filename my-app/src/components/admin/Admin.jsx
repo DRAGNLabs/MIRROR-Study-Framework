@@ -396,8 +396,16 @@ return (
                 </div>
 
                 <div className="room-meta">
+                  {(() => {
+                    const game = games.find((g) => parseInt(g.id) == room.gameType);
+                    return game ? (
+                      <span className="meta-item"><strong>{game.title}</strong></span>
+                    ) : (
+                      <span className="meta-item"><strong>Unknown Game</strong></span>
+                    );
+                  })()}
                   {/* <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span> */}
-                  <span></span>
+                  {/* <span></span> */}
                   <span className="meta-item">
                     Users: {Array.isArray(roomUsers?.[room.roomCode])
                       ? roomUsers[room.roomCode].join(", ")
