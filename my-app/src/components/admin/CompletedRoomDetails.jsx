@@ -1,11 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
 import { buildConversation } from "../survey/surveyUtils";
 import games from "../../gameLoader";
-import './admin.css';
+import "../interaction/interaction.css";
+import "./admin.css";
+
+function annotationsByMessageIndex(users, userSurveys) {
+  const map = {};
+  for (const user of users) {
+    const userKey = user.userId ?? user.id;
+    const survey = userSurveys[userKey];
+    const marks = survey?.data?.conversationMarks ?? [];
+    const commenter = user.userName || user.username || `User ${userKey}`;
+    for (const mark of marks) {
+      const idx = mark?.messageIndex;
+      if (typeof idx !== "number" || idx < 0) continue;
+      if (!map[idx]) map[idx] = [];
+      map[idx].push({
+        commenter,
+        note: typeof mark.note === "string" ? mark.note : "",
+      });
+    }
+  }
+  return map;
+}
 
 export function CompletedRoomPage() {
   const { roomCode } = useParams();
@@ -107,6 +128,11 @@ export function CompletedRoomPage() {
     (q) => q.type !== "label"
   );
 
+  const messageAnnotations = useMemo(
+    () => annotationsByMessageIndex(users, userSurveys),
+    [users, userSurveys]
+  );
+
   return (
     <div className="admin-container admin-dashboard">
       <div className="rooms-grid">
@@ -156,6 +182,8 @@ export function CompletedRoomPage() {
                 ? "An internal allocation update occurred."
                 : rawText;
 
+              const annotations = messageAnnotations[i] ?? [];
+
               return (
                 <div
                   key={msg.id ?? i}
@@ -167,6 +195,28 @@ export function CompletedRoomPage() {
                     {msg.sender === "user" ? msg?.userName || "You" : "LLM"}
                   </span>
                   <span className="message-text">{safeText}</span>
+                  {annotations.length > 0 && (
+                    <div
+                      className="message-survey-annotations"
+                      aria-label="Survey annotations for this message"
+                    >
+                      {annotations.map((a, j) => (
+                        <div
+                          key={`${i}-annotation-${j}`}
+                          className="message-survey-annotation"
+                        >
+                          <span className="message-survey-annotation-author">
+                            {a.commenter}
+                          </span>
+                          <span className="message-survey-annotation-note">
+                            {a.note?.trim()
+                              ? a.note
+                              : "No note provided"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })
