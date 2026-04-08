@@ -694,6 +694,12 @@ body:has(.admin-interaction-page) {
     display: none;
   }
 }
+
+@media (min-width: 961px) {
+  body:has(.admin-interaction-page) nav {
+    top: 0.5rem;
+  }
+}
  
 .admin-interaction-page.has-timer {
   height: calc(100vh - 50px);
