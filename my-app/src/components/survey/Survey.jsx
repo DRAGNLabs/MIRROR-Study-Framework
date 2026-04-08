@@ -226,21 +226,6 @@ export function Survey() {
             </div>
 
             )}
-            {/* <div className={`survey-progress-wrapper ${isReflectionStep ? 'hide-on-mobile' : ''}`}>
-                <div className="survey-progress-bar">
-                    <div
-                        className="survey-progress-fill"
-                        style={{ width: `${progress}%` }}
-                    />
-                </div>
-                <span className="survey-progress-text">
-                    {isReflectionStep
-                        ? `Reflection (1 of ${totalSteps})`
-                        : isReviewStep
-                            ? `Review (${currentStep + 1} of ${totalSteps})`
-                            : `Question ${currentStep + 1} of ${totalSteps}`}
-                </span>
-            </div> */}
 
             {!isReflectionStep && (
                 <div className="conversation-btn-wrapper">
@@ -254,18 +239,6 @@ export function Survey() {
             )}
 
             <div className="survey-card">
-                {/* {!isReflectionStep && (
-                    <div className="room-top-left">
-                        <button
-                            className="info-icon-button"
-                            title="View conversation history"
-                            aria-label="View conversation history"
-                            onClick={() => setShowConversation(true)}
-                        >
-                            i
-                        </button>
-                    </div>
-                )} */}
 
                 {!isReflectionStep && (
                     user ? (
@@ -499,15 +472,6 @@ export function Survey() {
                                         ? "Review Answers"
                                         : "Next"}
 
-                        {/* {showSubmit
-                            ? "Submit"
-                            : fromReview
-                                ? "Next unanswered question"
-                                : isReflectionStep
-                                    ? "Continue"
-                                    : isLastQuestion
-                                        ? "Review Answers"
-                                        : "Next"} */}
                     </button>
                 </div>
 
