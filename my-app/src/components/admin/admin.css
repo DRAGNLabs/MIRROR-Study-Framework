@@ -183,10 +183,16 @@
   box-sizing: border-box;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .rooms-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rooms-container {
     gap: 1.25rem;
   }
 }
@@ -687,6 +693,9 @@
   align-items: center;
   z-index: 1000;
   padding: 1rem;
+  /* padding-left: 1rem;
+  padding-right: 1rem; */
+  /* overflow-y: auto; */
 }
 
 .confirm-modal-card {
@@ -1055,6 +1064,7 @@
     align-items: baseline;
     gap: 0.35rem 0.5rem;
   }
+}
 
 .room-display-header {
   display: flex;
@@ -1073,5 +1083,4 @@
   color: #94a3b8;
   flex-shrink: 0;
   text-align: right;
-}
 }
