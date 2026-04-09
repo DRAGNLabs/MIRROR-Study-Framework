@@ -1,37 +1,61 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+const openaiClient = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-function resolveModel(modelOverride) {
-  const trimmedOverride = typeof modelOverride === "string" ? modelOverride.trim() : "";
-  if (trimmedOverride && trimmedOverride !== "default") {
-    return trimmedOverride;
+const openrouterClient = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+});
+
+function resolveRequestedModel(modelOverride) {
+  const trimmed = typeof modelOverride === "string" ? modelOverride.trim() : "";
+
+  if (trimmed && trimmed !== "default") return trimmed;
+
+  const fallback = (process.env.OPENAI_MODEL || "").trim();
+  if (fallback) return fallback;
+
+  throw new Error("No model configured.");
+}
+
+function normalizeModel(modelOverride) {
+  const raw = resolveRequestedModel(modelOverride);
+
+  // keep old admin value working
+  if (raw === "gemini") {
+    return "google/gemini-2.5-flash";
   }
 
-  const envModel = (process.env.OPENAI_MODEL || "").trim();
-  if (!envModel) {
-    throw new Error("No OpenAI model configured. Set OPENAI_MODEL or provide a model override.");
+  return raw;
+}
+
+function getClientAndModel(modelOverride) {
+  const model = normalizeModel(modelOverride);
+
+  if (model.startsWith("google/")) {
+    return { client: openrouterClient, model };
   }
-  return envModel;
+
+  return { client: openaiClient, model };
 }
 
 export async function callLLM(messages, modelOverride) {
-  // I'm setting the model to a seperate extraction model as we don't nee dot use the same model as the generation
-  const model = resolveModel(modelOverride);
+  const { client, model } = getClientAndModel(modelOverride);
 
   const response = await client.responses.create({
-    model: process.env.OPENAI_EXTRACTION_MODEL, // hardcoding it for now because Idk how to add env variable to railway
+    model,
     input: messages,
   });
+
   return response.output_text;
 }
 
 export async function streamLLM(prompt, onToken, modelOverride) {
-  const model = resolveModel(modelOverride);
+  const { client, model } = getClientAndModel(modelOverride);
 
   const stream = await client.responses.stream({
     model,
@@ -41,9 +65,7 @@ export async function streamLLM(prompt, onToken, modelOverride) {
   for await (const event of stream) {
     if (event.type === "response.output_text.delta") {
       const token = event.delta;
-      if (token && onToken) {
-        onToken(token);
-      }
+      if (token && onToken) onToken(token);
     }
   }
 }

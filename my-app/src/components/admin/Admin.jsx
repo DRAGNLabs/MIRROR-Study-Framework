@@ -345,10 +345,10 @@ return (
           <div className="model-select">
             <div className="model-select-header">
               <label htmlFor="modelType" className="model-select-label">
-                ChatGPT model
+                Model
               </label>
               <p className="model-select-helper">
-                Choose which ChatGPT model this session will use.
+                Choose which model this session will use.
               </p>
             </div>
             <div className="model-select-control">
@@ -362,6 +362,8 @@ return (
                 <option value="gpt-4.1">gpt-4.1</option>
                 <option value="gpt-4.1-mini">gpt-4.1-mini</option>
                 <option value="gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
+                <option value="google/gemini-2.5-flash">gemini-2.5-flash</option>
+                {/* <option value="google/gemini-2.5-pro">gemini-2.5-pro</option> this one wasn't working*/}
               </select>
             </div>
           </div>
