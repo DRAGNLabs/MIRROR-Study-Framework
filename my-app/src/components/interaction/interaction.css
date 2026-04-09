@@ -153,6 +153,10 @@
 }
 
 .message-text {
+  min-width: 0;
+}
+
+.message-text:not(.message-markdown) {
   white-space: pre-wrap;
 }
 
@@ -652,8 +656,11 @@
 .admin-interaction-chat-box .message-text {
   font-size: 0.9375rem;
   line-height: 1.5;
-  white-space: pre-wrap;
   color: inherit;
+}
+
+.admin-interaction-chat-box .message-text:not(.message-markdown) {
+  white-space: pre-wrap;
 }
 
 /* Admin Resources Panel - Dark Mode */

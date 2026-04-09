@@ -5,7 +5,9 @@ import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
 import { buildConversation } from "../survey/surveyUtils";
 import games from "../../gameLoader";
-import './admin.css';
+import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
+import "../interaction/interaction.css";
+import "./admin.css";
 
 export function CompletedRoomPage() {
   const { roomCode } = useParams();
@@ -166,7 +168,7 @@ export function CompletedRoomPage() {
                   <span className="message-sender">
                     {msg.sender === "user" ? msg?.userName || "You" : "LLM"}
                   </span>
-                  <span className="message-text">{safeText}</span>
+                  <MessageMarkdown content={safeText} />
                 </div>
               );
             })

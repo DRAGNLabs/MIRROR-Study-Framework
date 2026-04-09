@@ -1,14 +1,18 @@
 import { useEffect, useRef } from "react";
-import './survey.css'
+import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
+import "../interaction/interaction.css";
+import "./survey.css";
 export default function ConversationModal({ open, onClose, messages }) {
-  if (!open) return null;
   const chatBoxRef = useRef(null);
 
   useEffect(() => {
+    if (!open) return;
     if (chatBoxRef.current) {
       chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, open]);
+
+  if (!open) return null;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -21,19 +25,20 @@ export default function ConversationModal({ open, onClose, messages }) {
         <h2>Conversation History</h2>
 
         <div className="chat-box" ref={chatBoxRef}>
-          {messages.map((msg, i) => (
-            <div
-              key={msg.id ?? i}
-              className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
-            >
-              <span className="message-sender">
-                {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
-              </span>
-              <span className="message-text">
-                {msg.text}
-              </span>
-            </div>
-          ))}
+          {messages.map((msg, i) => {
+            const safeText = typeof msg.text === "string" ? msg.text : "";
+            return (
+              <div
+                key={msg.id ?? i}
+                className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
+              >
+                <span className="message-sender">
+                  {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
+                </span>
+                <MessageMarkdown content={safeText} />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-//  import {sanitizeMessageText}          
+import MessageMarkdown from "./MessageMarkdown.jsx";
 
 export default function ChatBox({
     messages, 
@@ -26,7 +26,7 @@ export default function ChatBox({
                             <span className="message-sender">
                                 {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
                             </span>
-                            <span className="message-text">{safeText}</span>
+                            <MessageMarkdown content={safeText} />
                         </div>
                     );
                 })}
