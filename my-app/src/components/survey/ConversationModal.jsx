@@ -1,13 +1,17 @@
 import { useEffect, useRef } from "react";
+import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
+import "../interaction/interaction.css";
+import "./survey.css";
 import { createPortal } from "react-dom";
-import './survey.css'
 
 export default function ConversationModal({ open, onClose, messages }) {
   const chatBoxRef = useRef(null);
 
   useEffect(() => {
-    if (!open || !chatBoxRef.current) return;
-    chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    if (!open) return;
+    if (chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    }
   }, [messages, open]);
 
   if (!open) return null;
@@ -33,8 +37,8 @@ export default function ConversationModal({ open, onClose, messages }) {
               <span className="message-sender">
                 {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
               </span>
-              <span className="message-text">
-                {msg.text}
+              <span>
+                <MessageMarkdown content={safeText} />
               </span>
             </div>
           ))}

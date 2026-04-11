@@ -15,10 +15,12 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "lucide-react": "^0.563.0",
+    "react-markdown": "^10.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.8.0",
+    "remark-gfm": "^4.0.1",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
