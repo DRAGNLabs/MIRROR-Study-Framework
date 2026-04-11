@@ -92,6 +92,11 @@ export function CompletedRoomPage() {
     loadRoom();
   }, [roomCode]);
 
+  const messageAnnotations = useMemo(
+    () => annotationsByMessageIndex(users, userSurveys),
+    [users, userSurveys]
+  );
+
   if (loading) {
     return (
       <div className="admin-container admin-dashboard">
@@ -126,11 +131,6 @@ export function CompletedRoomPage() {
 
   const surveyQuestions = (selectedSurvey?.questions || []).filter(
     (q) => q.type !== "label"
-  );
-
-  const messageAnnotations = useMemo(
-    () => annotationsByMessageIndex(users, userSurveys),
-    [users, userSurveys]
   );
 
   return (
