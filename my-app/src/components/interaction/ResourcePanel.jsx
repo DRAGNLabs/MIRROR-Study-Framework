@@ -5,7 +5,9 @@ export default function ResourcesPanel({
     timeRemaining, 
     formatTime, 
     currentUserName = null,
-    isAdmin = false 
+    isAdmin = false,
+    showResources=false,
+    onClose=null
 }) {
     const renderTotalAllocations = () => {
         const totals = {};
@@ -64,9 +66,15 @@ export default function ResourcesPanel({
 
     return (
         <aside 
-            className={isAdmin ? "admin-resources-panel" : "resources-panel"} 
+                        className={`${isAdmin ? "admin-resources-panel" : "resources-panel"} ${showResources ? "mobile-visible" : ""}`}
             aria-label="Fish resource split"
-        >
+        >   
+
+            {onClose && (
+                <button className={isAdmin ? "admin-resources-close-btn" : "resources-close-btn"} onClick={onClose}>
+                    ← Back to Chat
+                </button>
+            )}
             {timeRemaining !== null && (
                 <div className={`timer-warning ${timeRemaining <= 30 ? 'urgent' : ''}`}>
                     ⏱ Time remaining: {formatTime(timeRemaining)}
@@ -75,9 +83,9 @@ export default function ResourcesPanel({
             
             <div className="resources-header">
                 <div>
-                    <h2 className="resources-title">Resource Split (Fish)</h2>
+                    <h2 className="resources-title">Resource Allocations (Fish)</h2>
                     <p className="resources-subtitle">
-                        {isAdmin ? "Per-user allocations by round" : "How fish are divided this game"}
+                        {/* {isAdmin ? "Per-user allocations by round" : "How fish are divided this game"} */}
                     </p>
                 </div>
             </div>

@@ -1,4 +1,9 @@
 /* === Global chill light theme === */
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .header {
   position: fixed;
   top: 0;
@@ -59,27 +64,12 @@ body {
   width: 100%;
   display: block;
   background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  background-attachment: fixed;
   color: #1e293b;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
 }
 
-
-.waiting-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;   /* vertical centering */
-  align-items: center;       /* horizontal centering */
-  min-height: 50vh;         /* full viewport height */
-  width: 100%;
-  text-align: center;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.85); /* subtle light card */
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(103, 184, 214, 0.3);
-  max-width: 400px;          /* prevent too wide */
-  margin: 0 auto;            /* center horizontally */
-  animation: fadeIn 0.8s ease forwards; 
-}
 
 #root {
   width: 100%;
@@ -161,13 +151,32 @@ input:focus {
 
 /* === Link styling === */
 /* === Link styling === */
-nav {
+/* nav {
   position: fixed;
   top: 1rem;
   right: 1rem;
   z-index: 1000;
-  display: flex;      /* make links and button horizontal */
-  gap: 0.5rem;        /* space between items */
+  display: flex;      
+  gap: 0.5rem;       
+} */
+ nav {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  max-width: calc(100vw - 2rem);
+}
+
+@media (max-width: 640px) {
+  nav {
+    top: 0.5rem;
+    right: 0.5rem;
+    gap: 0.375rem;
+  }
 }
 
 nav a {
@@ -181,6 +190,13 @@ nav a {
   text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+@media (max-width: 640px) {
+  nav a {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
 }
 
 nav a:hover {
@@ -199,6 +215,13 @@ nav button.nav-logout {
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
+}
+
+@media (max-width: 640px) {
+  nav button.nav-logout {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
 }
 
 nav button.nav-logout:hover {

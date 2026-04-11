@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
@@ -385,7 +386,7 @@ return (
             completedRoomList.map((room) => (
               <div className="room-display" key={room.roomCode}>
                 <div className="room-display-header">
-                  <span className="room-code-badge">Room Code: {room.roomCode}</span>
+                  <span className="room-code-badge">{room.roomCode}</span>
                   <span
                     className="room-created-at"
                     title={room.createdAt != null ? String(room.createdAt) : ""}
@@ -395,10 +396,20 @@ return (
                 </div>
 
                 <div className="room-meta">
+                  {(() => {
+                    const game = games.find((g) => parseInt(g.id) == room.gameType);
+                    return game ? (
+                      <span className="meta-item"><strong>{game.title}</strong></span>
+                    ) : (
+                      <span className="meta-item"><strong>Unknown Game</strong></span>
+                    );
+                  })()}
+                  {/* <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span> */}
+                  {/* <span></span> */}
                   <span className="meta-item">
                     Users: {Array.isArray(roomUsers?.[room.roomCode])
                       ? roomUsers[room.roomCode].join(", ")
-                      : "Loading..."}
+                      : "No users"}
                   </span>
                   
                   <span className="meta-item">Model used: {room.modelType}</span>
@@ -418,7 +429,7 @@ return (
       </div>
     )
     }
-      {roomPendingDelete && (
+      {roomPendingDelete && createPortal(
     <div className="modal-backdrop">
       <div className="confirm-modal-card">
         <h3 className="confirm-modal-title">Delete completed room?</h3>
@@ -445,7 +456,8 @@ return (
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )}
   </div>
 );

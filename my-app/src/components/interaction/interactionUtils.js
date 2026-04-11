@@ -114,7 +114,7 @@ async function resetMessages(llmInstructions, userMessages, llmResponse, numRoun
             if (llmResponse[round] || loadCurrUserMessages) {
                 newMsgs.push({
                     sender: "user", 
-                    id: msgUserId, 
+                    id: `${msgUserId}-${round}`, 
                     userName: userTemp.userName, 
                     text: text
                 });
@@ -127,14 +127,14 @@ async function resetMessages(llmInstructions, userMessages, llmResponse, numRoun
             llmResponded = true;
             newMsgs.push({
                 sender: "llm",
-                id: `llm-${round}`,
+                id: `llm-response-${round}`,
                 text: llmResponse[round]
             });
         }
         if (parseInt(round) === parseInt(numRounds) && llmResponse[round]) {
             newMsgs.push({
                 sender: "user",
-                id: "admin-end",
+                id: "game-ended",
                 userName: "Admin",
                 text: "All rounds are complete, game is ended.",
             });
