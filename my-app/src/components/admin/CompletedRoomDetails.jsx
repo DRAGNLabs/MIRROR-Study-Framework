@@ -1,11 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
 import { buildConversation } from "../survey/surveyUtils";
 import games from "../../gameLoader";
-import './admin.css';
+import "../interaction/interaction.css";
+import "./admin.css";
+
+function annotationsByMessageIndex(users, userSurveys) {
+  const map = {};
+  for (const user of users) {
+    const userKey = user.userId ?? user.id;
+    const survey = userSurveys[userKey];
+    const marks = survey?.data?.conversationMarks ?? [];
+    const commenter = user.userName || user.username || `User ${userKey}`;
+    for (const mark of marks) {
+      const idx = mark?.messageIndex;
+      if (typeof idx !== "number" || idx < 0) continue;
+      if (!map[idx]) map[idx] = [];
+      map[idx].push({
+        commenter,
+        note: typeof mark.note === "string" ? mark.note : "",
+      });
+    }
+  }
+  return map;
+}
 
 function conversationMessageSafeText(msg) {
   const rawText = typeof msg?.text === "string" ? msg.text : "";
@@ -77,6 +98,11 @@ export function CompletedRoomPage() {
     loadRoom();
   }, [roomCode]);
 
+  const messageAnnotations = useMemo(
+    () => annotationsByMessageIndex(users, userSurveys),
+    [users, userSurveys]
+  );
+
   if (loading) {
     return (
       <div className="admin-container admin-dashboard">
@@ -144,13 +170,58 @@ export function CompletedRoomPage() {
           </div>
         </div>
 
-        <div className="completed-room-split">
-          <section className="completed-room-panel completed-room-panel--transcript">
-            <h3 className="completed-room-panel-title">Conversation</h3>
-            <div className="completed-room-chat-scroll">
-              {conversation.length === 0 ? (
-                <div className="completed-room-chat-placeholder">
-                  <p>No conversation found for this room.</p>
+        <div className="chat-container">
+        <div className="chat-box">
+          {conversation.length === 0 ? (
+            <div className="chat-placeholder">
+              <p>No conversation found for this room.</p>
+            </div>
+          ) : (
+            conversation.map((msg, i) => {
+              const rawText = typeof msg.text === "string" ? msg.text : "";
+              const isJsonLike =
+                rawText.trim().startsWith("{") &&
+                rawText.includes("allocationByUserName");
+
+              const safeText = isJsonLike
+                ? "An internal allocation update occurred."
+                : rawText;
+
+              const annotations = messageAnnotations[i] ?? [];
+
+              return (
+                <div
+                  key={msg.id ?? i}
+                  className={`message ${
+                    msg.sender === "user" ? "message--user" : "message--bot"
+                  }`}
+                >
+                  <span className="message-sender">
+                    {msg.sender === "user" ? msg?.userName || "You" : "LLM"}
+                  </span>
+                  <span className="message-text">{safeText}</span>
+                  {annotations.length > 0 && (
+                    <div
+                      className="message-survey-annotations"
+                      aria-label="Survey annotations for this message"
+                    >
+                      {annotations.map((a, j) => (
+                        <div
+                          key={`${i}-annotation-${j}`}
+                          className="message-survey-annotation"
+                        >
+                          <span className="message-survey-annotation-author">
+                            {a.commenter}
+                          </span>
+                          <span className="message-survey-annotation-note">
+                            {a.note?.trim()
+                              ? a.note
+                              : "No note provided"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="completed-room-messages">
