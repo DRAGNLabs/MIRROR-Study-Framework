@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
@@ -8,6 +8,47 @@ import games from "../../gameLoader";
 import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
 import "../interaction/interaction.css";
 import "./admin.css";
+
+function annotationsByMessageIndex(users, userSurveys) {
+  const map = {};
+  for (const user of users) {
+    const userKey = user.userId ?? user.id;
+    const survey = userSurveys[userKey];
+    const marks = survey?.data?.conversationMarks ?? [];
+    const commenter = user.userName || user.username || `User ${userKey}`;
+    for (const mark of marks) {
+      const idx = mark?.messageIndex;
+      if (typeof idx !== "number" || idx < 0) continue;
+      if (!map[idx]) map[idx] = [];
+      map[idx].push({
+        commenter,
+        note: typeof mark.note === "string" ? mark.note : "",
+      });
+    }
+  }
+  return map;
+}
+
+function conversationMessageSafeText(msg) {
+  const rawText = typeof msg?.text === "string" ? msg.text : "";
+  const isJsonLike =
+    rawText.trim().startsWith("{") &&
+    rawText.includes("allocationByUserName");
+  return isJsonLike
+    ? "An internal allocation update occurred."
+    : rawText;
+}
+
+function conversationMessageSenderLabel(msg) {
+  if (!msg) return "Unknown";
+  return msg.sender === "user" ? msg.userName || "You" : "LLM";
+}
+
+function normalizeConversationMessageIndex(messageIndex) {
+  const n = Number(messageIndex);
+  if (!Number.isFinite(n) || !Number.isInteger(n)) return null;
+  return n;
+}
 
 export function CompletedRoomPage() {
   const { roomCode } = useParams();
@@ -19,20 +60,6 @@ export function CompletedRoomPage() {
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(true);
 
-
-  // function buildQuestionMap(questions) {
-  //   const map = {};
-
-  //   for (const q of questions || []) {
-  //     if (q?.id) {
-  //       map[q.id] = q;
-  //     }
-  //   }
-
-  //   return map;
-  // }
-
-
   useEffect(() => {
     async function loadRoom() {
       try {
@@ -40,7 +67,6 @@ export function CompletedRoomPage() {
         setRoom(roomData);
 
         const userIds = roomData?.userIds ?? [];
-
 
         if (userIds.length > 0) {
           const users = await Promise.all(userIds.map((id) => getUser(id)));
@@ -50,7 +76,7 @@ export function CompletedRoomPage() {
           );
 
           const surveys = await Promise.all(
-             userIds.map(async (id) => {
+            userIds.map(async (id) => {
               try {
                 const survey = await getUsersSurvey(id);
                 return [id, survey];
@@ -58,7 +84,7 @@ export function CompletedRoomPage() {
                 return [id, null];
               }
             })
-          )
+          );
           setUserSurveys(Object.fromEntries(surveys));
         }
         const msgs = await buildConversation(roomData);
@@ -72,6 +98,11 @@ export function CompletedRoomPage() {
 
     loadRoom();
   }, [roomCode]);
+
+  const messageAnnotations = useMemo(
+    () => annotationsByMessageIndex(users, userSurveys),
+    [users, userSurveys]
+  );
 
   if (loading) {
     return (
@@ -158,6 +189,8 @@ export function CompletedRoomPage() {
                 ? "An internal allocation update occurred."
                 : rawText;
 
+              const annotations = messageAnnotations[i] ?? [];
+
               return (
                 <div
                   key={msg.id ?? i}
@@ -168,7 +201,29 @@ export function CompletedRoomPage() {
                   <span className="message-sender">
                     {msg.sender === "user" ? msg?.userName || "You" : "LLM"}
                   </span>
-                  <MessageMarkdown content={safeText} />
+                  <span><MessageMarkdown content={safeText} /></span>
+                  {annotations.length > 0 && (
+                    <div
+                      className="message-survey-annotations"
+                      aria-label="Survey annotations for this message"
+                    >
+                      {annotations.map((a, j) => (
+                        <div
+                          key={`${i}-annotation-${j}`}
+                          className="message-survey-annotation"
+                        >
+                          <span className="message-survey-annotation-author">
+                            {a.commenter}
+                          </span>
+                          <span className="message-survey-annotation-note">
+                            {a.note?.trim()
+                              ? a.note
+                              : "No note provided"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })

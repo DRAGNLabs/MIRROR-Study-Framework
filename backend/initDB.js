@@ -69,6 +69,10 @@ async function init() {
     )
   `);
 
+  // New columns on rooms: CREATE TABLE IF NOT EXISTS skips altering existing tables.
+  // await db.query(`
+  //   ALTER TABLE rooms
+  //   ADD COLUMN IF NOT EXISTS curr_round INTEGER NOT NULL DEFAULT 1
   await db.query(`
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
