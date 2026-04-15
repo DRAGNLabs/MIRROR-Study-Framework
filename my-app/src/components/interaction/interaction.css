@@ -1228,9 +1228,46 @@ body:has(.admin-interaction-page) {
   }
 } */
 
-
-
 @media (max-width: 960px) {
+  .mobile-timer-bar {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000; /* Very high to stay above everything */
+    padding: 10px 12px;
+    margin: 0;
+    background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px; /* Slightly smaller */
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    border-radius: 0;
+    /* Force GPU acceleration */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+  
+  .mobile-timer-bar.urgent {
+    background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
+    animation: pulse 1s infinite;
+  }
+  
+  /* Adjust container padding */
+  .interactions-container.has-timer {
+    padding-top: 42px; /* Match timer height */
+  }
+
+  /* Hide timer in resources panel */
+  .resources-panel .timer-warning {
+    display: none;
+  }
+}
+
+/* @media (max-width: 960px) {
   .mobile-timer-bar {
     display: block;
     position: fixed;
@@ -1267,7 +1304,7 @@ body:has(.admin-interaction-page) {
     display: none;
   }
 }
- 
+  */
 
 /* Pulse animation for urgent timer */
 @keyframes pulse {
@@ -1290,5 +1327,38 @@ body:has(.admin-interaction-page) {
   .admin-resources-panel {
     max-width: 100%;
     flex: 0 1 auto;
+  }
+}
+
+/* Mobile timer in header - shows when keyboard might hide top timer */
+.header-timer-mobile {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .header-timer-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    background: rgba(57, 75, 240, 0.15);
+    color: #394bf0;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  
+  .header-timer-mobile.urgent {
+    background: rgba(249, 19, 19, 0.15);
+    color: #f91313;
+  }
+  
+  /* Hide welcome text on very small screens to make room */
+  @media (max-width: 480px) {
+    .interaction-header-title {
+      display: none;
+    }
   }
 }

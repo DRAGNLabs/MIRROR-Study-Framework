@@ -125,6 +125,12 @@ export function Interaction(){
                 Instructions
             </button>
 
+                {timeRemaining !== null && (
+                    <div className={`header-timer-mobile ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                        ⏱ {formatTime(timeRemaining)}
+                    </div>
+                )}
+
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
             </h1>
