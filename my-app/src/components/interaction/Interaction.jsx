@@ -105,12 +105,23 @@ export function Interaction(){
         <>
         {/* <div className="interactions-container"> */}
         <div className={`interactions-container ${timeRemaining !== null ? 'has-timer' : ''}`}>
-        {timeRemaining !== null && (
+        {/* {timeRemaining !== null && (
             <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
                 ⏱ Time remaining: {formatTime(timeRemaining)}
             </div>
         )}
-        
+         */}
+         {timeRemaining !== null && (
+            <>
+                <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                    ⏱ Time remaining: {formatTime(timeRemaining)}
+                </div>
+                {/* Mobile floating timer */}
+                <div className={`floating-timer ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                    ⏱ {formatTime(timeRemaining)}
+                </div>
+            </>
+        )}
 
         <header className="interaction-header">
             <button

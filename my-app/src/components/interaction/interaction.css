@@ -1189,8 +1189,7 @@ body:has(.admin-interaction-page) {
   display: none;
 }
 
-@media (max-width: 960px) {
-  /* Ensure input doesn't trigger zoom */
+/* @media (max-width: 960px) {
   .chat-input {
     font-size: 16px;
   }
@@ -1227,7 +1226,36 @@ body:has(.admin-interaction-page) {
   .resources-panel .timer-warning {
     display: none;
   }
+} */
+
+
+@media (max-width: 960px) {
+  .mobile-timer-bar {
+    display: none; /* Hide the full-width bar */
+  }
+  
+  /* Create a compact floating timer */
+  .floating-timer {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 99999;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: none; /* Don't block clicks */
+  }
+  
+  .floating-timer.urgent {
+    background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
+    animation: pulse 1s infinite;
+  }
 }
+
 /* @media (max-width: 960px) {
   .mobile-timer-bar {
     display: block;
