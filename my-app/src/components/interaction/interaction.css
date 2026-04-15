@@ -1190,8 +1190,8 @@ body:has(.admin-interaction-page) {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1002;
-    padding: 12px;
+    z-index: 9999; /* 1002 */
+    padding: 10px 12px; /* 12px */
     margin: 0;
     background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
     color: white;
@@ -1200,6 +1200,14 @@ body:has(.admin-interaction-page) {
     font-size: 16px;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     border-radius: 0;
+    transform: translateZ(0);
+    transition: top 0.3s ease;
+  }
+
+  .chat-input:focus ~ .mobile-timer-bar,
+  body.keyboard-visible .mobile-timer-bar {
+    top: auto;
+    bottom: 0;
   }
   
   .mobile-timer-bar.urgent {
