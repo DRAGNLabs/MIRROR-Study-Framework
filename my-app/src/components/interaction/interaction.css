@@ -1196,8 +1196,51 @@ body:has(.admin-interaction-page) {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 9999; /* 1002 */
-    padding: 10px 12px; /* 12px */
+    z-index: 9999; /* Increased to ensure it's above everything */
+    padding: 12px;
+    margin: 0;
+    background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    border-radius: 0;
+    
+    /* Ensure timer stays visible during keyboard appearance */
+    transform: translateZ(0); /* Forces hardware acceleration */
+    -webkit-transform: translateZ(0);
+  }
+  
+  .mobile-timer-bar.urgent {
+    background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
+    animation: pulse 1s infinite;
+  }
+  
+  /* Add padding to prevent content from hiding under timer */
+  .interactions-container.has-timer {
+    padding-top: 48px; /* Adjust based on your timer height */
+  }
+  
+  /* Ensure chat input has proper font size */
+  .chat-input {
+    font-size: 16px; /* Prevents iOS auto-zoom */
+  }
+  
+  /* Hide timer in resources panel on mobile since it's at top */
+  .resources-panel .timer-warning {
+    display: none;
+  }
+}
+/* @media (max-width: 960px) {
+  .mobile-timer-bar {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999; 
+    padding: 10px 12px; 
     margin: 0;
     background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
     color: white;
@@ -1221,11 +1264,11 @@ body:has(.admin-interaction-page) {
     animation: pulse 1s infinite;
   }
   
-  /* Hide timer in resources panel on mobile since it's at top */
+
   .resources-panel .timer-warning {
     display: none;
   }
-}
+} */
  
 
 /* Pulse animation for urgent timer */
