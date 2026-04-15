@@ -105,11 +105,11 @@ export function Interaction(){
         <>
         {/* <div className="interactions-container"> */}
         <div className={`interactions-container ${timeRemaining !== null ? 'has-timer' : ''}`}>
-        {/* {timeRemaining !== null && (
+        {timeRemaining !== null && (
             <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
                 ⏱ Time remaining: {formatTime(timeRemaining)}
             </div>
-        )} */}
+        )}
         
       
 
@@ -151,7 +151,7 @@ export function Interaction(){
                 onClose={() => setShowResources(false)}
             />
 
-            <div className="chat-container" data-time={formatTime(timeRemaining)}>
+            <div className="chat-container" >
                 <ChatBox
                     messages={messages}
                     chatBoxRef={chatBoxRef}

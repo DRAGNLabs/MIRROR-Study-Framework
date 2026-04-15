@@ -1229,31 +1229,34 @@ body:has(.admin-interaction-page) {
 } */
 
 @media (max-width: 960px) {
-  /* Hide the fixed timer bar on mobile */
   .mobile-timer-bar {
-    display: none;
-  }
-  
-  /* Show timer at the top of chat container instead */
-  .chat-container {
-    position: relative;
-  }
-  
-  .chat-container::before {
-    content: '⏱ Time remaining: ' attr(data-time);
-    display: block;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    padding: 10px;
+    position: fixed;
+    top: env(safe-area-inset-top, 0); /* Respects notch */
+    left: 0;
+    right: 0;
+    z-index: 99999;
+    padding: max(10px, env(safe-area-inset-top)) 12px 10px;
     background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
     color: white;
     text-align: center;
     font-weight: 600;
     font-size: 14px;
-    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
+ 
+  .mobile-timer-bar.urgent {
+    background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
+    animation: pulse 1s infinite;
+  }
+  
+
+  .resources-panel .timer-warning {
+    display: none;
+  }
+  /* Also ensure your viewport meta tag includes viewport-fit */
+  /* <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"> */
 }
+
 
 /* @media (max-width: 960px) {
   .mobile-timer-bar {
