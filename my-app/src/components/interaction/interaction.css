@@ -1228,30 +1228,28 @@ body:has(.admin-interaction-page) {
   }
 } */
 
-
 @media (max-width: 960px) {
-  .mobile-timer-bar {
-    display: none; /* Hide the full-width bar */
+  .interaction-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
   }
   
-  /* Create a compact floating timer */
-  .floating-timer {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 99999;
-    padding: 8px 12px;
-    background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
-    color: white;
+  .header-timer {
+    flex: 1;
+    text-align: center;
     font-weight: 600;
     font-size: 14px;
-    border-radius: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    pointer-events: none; /* Don't block clicks */
+    color: #394bf0;
+    padding: 4px 8px;
+    background: rgba(57, 75, 240, 0.1);
+    border-radius: 12px;
   }
   
-  .floating-timer.urgent {
-    background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
+  .header-timer.urgent {
+    color: #f91313;
+    background: rgba(249, 19, 19, 0.1);
     animation: pulse 1s infinite;
   }
 }

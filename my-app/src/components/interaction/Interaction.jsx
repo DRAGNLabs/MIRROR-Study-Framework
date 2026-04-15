@@ -111,17 +111,7 @@ export function Interaction(){
             </div>
         )}
          */}
-         {timeRemaining !== null && (
-            <>
-                <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
-                    ⏱ Time remaining: {formatTime(timeRemaining)}
-                </div>
-                {/* Mobile floating timer */}
-                <div className={`floating-timer ${timeRemaining <= 30 ? 'urgent' : ''}`}>
-                    ⏱ {formatTime(timeRemaining)}
-                </div>
-            </>
-        )}
+      
 
         <header className="interaction-header">
             <button
@@ -134,6 +124,13 @@ export function Interaction(){
             >
                 Instructions
             </button>
+
+            {timeRemaining !== null && (
+                <div className={`header-timer ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                    ⏱ Time remaining: {formatTime(timeRemaining)}
+                </div>
+            )}
+
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
             </h1>
