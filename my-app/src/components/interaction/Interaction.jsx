@@ -109,8 +109,8 @@ export function Interaction(){
             <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
                 ⏱ Time remaining: {formatTime(timeRemaining)}
             </div>
-        )}
-         */}
+        )} */}
+        
       
 
         <header className="interaction-header">
@@ -124,12 +124,6 @@ export function Interaction(){
             >
                 Instructions
             </button>
-
-            {timeRemaining !== null && (
-                <div className={`header-timer ${timeRemaining <= 30 ? 'urgent' : ''}`}>
-                    ⏱ Time remaining: {formatTime(timeRemaining)}
-                </div>
-            )}
 
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
@@ -157,7 +151,7 @@ export function Interaction(){
                 onClose={() => setShowResources(false)}
             />
 
-            <div className="chat-container">
+            <div className="chat-container" data-time={formatTime(timeRemaining)}>
                 <ChatBox
                     messages={messages}
                     chatBoxRef={chatBoxRef}

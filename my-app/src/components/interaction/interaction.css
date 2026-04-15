@@ -1229,28 +1229,29 @@ body:has(.admin-interaction-page) {
 } */
 
 @media (max-width: 960px) {
-  .interaction-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
+  /* Hide the fixed timer bar on mobile */
+  .mobile-timer-bar {
+    display: none;
   }
   
-  .header-timer {
-    flex: 1;
+  /* Show timer at the top of chat container instead */
+  .chat-container {
+    position: relative;
+  }
+  
+  .chat-container::before {
+    content: '⏱ Time remaining: ' attr(data-time);
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 10px;
+    background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
+    color: white;
     text-align: center;
     font-weight: 600;
     font-size: 14px;
-    color: #394bf0;
-    padding: 4px 8px;
-    background: rgba(57, 75, 240, 0.1);
-    border-radius: 12px;
-  }
-  
-  .header-timer.urgent {
-    color: #f91313;
-    background: rgba(249, 19, 19, 0.1);
-    animation: pulse 1s infinite;
+    margin-bottom: 8px;
   }
 }
 
