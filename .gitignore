@@ -48,3 +48,6 @@ backend/.env
 
 # === Databse ===
 /backend/mydatabase.db
+
+# === CLAUDE specifications ===
+CLAUDE.md
