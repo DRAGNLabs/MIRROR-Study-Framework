@@ -78,6 +78,7 @@ export function Interaction(){
     }, [messages]);
 
 
+
     const handleSubmit = async(e) => {
         e.preventDefault();
         if (!canSend || hasSentThisRound) {
@@ -105,12 +106,8 @@ export function Interaction(){
         <>
         {/* <div className="interactions-container"> */}
         <div className={`interactions-container ${timeRemaining !== null ? 'has-timer' : ''}`}>
-        {timeRemaining !== null && (
-            <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
-                ⏱ Time remaining: {formatTime(timeRemaining)}
-            </div>
-        )}
         
+      
 
         <header className="interaction-header">
             <button
@@ -123,6 +120,7 @@ export function Interaction(){
             >
                 Instructions
             </button>
+
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
             </h1>
@@ -149,11 +147,17 @@ export function Interaction(){
                 onClose={() => setShowResources(false)}
             />
 
-            <div className="chat-container">
+            <div className="chat-container" >
                 <ChatBox
                     messages={messages}
                     chatBoxRef={chatBoxRef}
                 />
+
+            {timeRemaining !== null && (
+                <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                    ⏱ Time remaining: {formatTime(timeRemaining)}
+                </div>
+            )}
 
                 <form className="chat-form" onSubmit={handleSubmit}>
                     <textarea

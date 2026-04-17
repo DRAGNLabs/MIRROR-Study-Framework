@@ -68,7 +68,12 @@ export default function ResourcesPanel({
         <aside 
                         className={`${isAdmin ? "admin-resources-panel" : "resources-panel"} ${showResources ? "mobile-visible" : ""}`}
             aria-label="Fish resource split"
-        >   
+        >  
+        {timeRemaining !== null && formatTime && (
+            <div className={`mobile-timer-bar modal-timer ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                ⏱ Time remaining: {formatTime(timeRemaining)}
+            </div>
+        )} 
 
             {onClose && (
                 <button className={isAdmin ? "admin-resources-close-btn" : "resources-close-btn"} onClick={onClose}>
