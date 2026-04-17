@@ -19,11 +19,14 @@ export default function InstructionsModal({ open, onClose, game, role, timeRemai
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
       >
+      <div className="instruction-modal-header">
+        <h2>Game Instructions</h2>
         <button type="button" className="instructions-close" onClick={onClose} aria-label="Close">
           ✕
         </button>
 
-        <h2>Conversation context</h2>
+        </div>
+        <div className="modal-content-wrapper">
 
         {!game ? (
           <p>Loading context…</p>
@@ -47,6 +50,7 @@ export default function InstructionsModal({ open, onClose, game, role, timeRemai
           </>
         )}
       </div>
+    </div>
     </div>
   );
 

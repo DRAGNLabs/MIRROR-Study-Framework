@@ -38,7 +38,6 @@ export function Interaction(){
     const timerIntervalRef = useRef(null);
     const loadCurrUserMessages = useRef(false);
     const chatBoxRef = useRef(null);
-    const timerBarRef = useRef(null);
     // const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -79,21 +78,6 @@ export function Interaction(){
     }, [messages]);
 
 
-    useEffect(() => {
-        if (!window.visualViewport || timeRemaining === null) return;
-        const update = () => {
-            if (timerBarRef.current) {
-                timerBarRef.current.style.top = `${window.visualViewport.offsetTop}px`;
-            }
-        };
-        window.visualViewport.addEventListener('resize', update);
-        window.visualViewport.addEventListener('scroll', update);
-        return () => {
-            window.visualViewport.removeEventListener('resize', update);
-            window.visualViewport.removeEventListener('scroll', update);
-        };
-    }, [timeRemaining]);
-
 
     const handleSubmit = async(e) => {
         e.preventDefault();
@@ -122,11 +106,6 @@ export function Interaction(){
         <>
         {/* <div className="interactions-container"> */}
         <div className={`interactions-container ${timeRemaining !== null ? 'has-timer' : ''}`}>
-        {timeRemaining !== null && (
-            <div ref={timerBarRef} className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
-                ⏱ Time remaining: {formatTime(timeRemaining)}
-            </div>
-        )}
         
       
 
@@ -173,6 +152,12 @@ export function Interaction(){
                     messages={messages}
                     chatBoxRef={chatBoxRef}
                 />
+
+            {timeRemaining !== null && (
+                <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                    ⏱ Time remaining: {formatTime(timeRemaining)}
+                </div>
+            )}
 
                 <form className="chat-form" onSubmit={handleSubmit}>
                     <textarea
