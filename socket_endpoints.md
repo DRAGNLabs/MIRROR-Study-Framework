@@ -1,4 +1,5 @@
 # Socket endpoints used between frontend and backend
+These are socket endpoint as in when you use socket.emit to emit a socket event to the backend.
 
 Note that all socket events emitted and listened to on backend are in the `/backend/socket/socketServer.js` folder
 
@@ -48,6 +49,7 @@ Note that all socket events emitted and listened to on backend are in the `/back
 
 
 ## Socket events emitted from backend to frontend
+Socket events emitted from backend to frontend using the io.emit command.
 
 ### /socket/gameHandler.js
 | title | description | body |
@@ -65,7 +67,7 @@ Note that all socket events emitted and listened to on backend are in the `/back
 | "timer-expired" (line 213) | Sent if fish_amount is below 5 | None |
 | "round-complete" | Sent once round is complete | { round } |
 | "receive-message" | Sent at beginning of each round for instructions message | { message } |
-| "instructions-complete" | Sent after LLM Instructions are sent | ( round ) |
+| "instructions-complete" | Sent after LLM Instructions are sent | { round } |
 | "user-survey-complete" | Sent when a user completes a survey | { userId, roomCode } |
 | "timer-start" | Sent whenever a new round starts after instructions have been sent | { duration, endTime } |
 | "timer-expired" | Sent once timer has ended | None | 
@@ -90,6 +92,7 @@ Note that all socket events emitted and listened to on backend are in the `/back
 
 
 ## Socket events listend to from frontend
+These are distinguished in frontend with socket.on or socket.once. These listen to the events emitted from backend.
 
 ### /src/common
 | title | description | body | file |
@@ -124,6 +127,9 @@ Note that all socket events emitted and listened to on backend are in the `/back
 | "room-users" | Whenever a user joins this is used to update the useState usersList | { userList } | waitingSocket.js |
 
 ## Socket events listened to on backend (should be emitted from frontend)
+These are socket events that are listened to using socket.on. These are only contained in the socketServer.js file on the backend. 
+
+### /backend/socket/socketServer.js
 | title | description | body | file |
 | ----- | ----------- | ---- | ---- |
 | "join-room" | This joins user to room. The backend gets any relevant information such as time left, round number, etc. to user in case they reconnected in the middle of a game | { roomCode, isAdmin, user } | socketServer.js |
