@@ -14,7 +14,7 @@ Note that all socket events emitted and listened to on backend are in the `/back
 | title | description | body | file |
 | ----- | ----------- | ---- | ---- |
 | "join-room" | Sent when user/admin connects/reconnects to socket | { roomCode, isAdmin, user } | socketListener.js |
-| "leave-room" | Sent when it receives the force-return-to-login, essentially boots all users out of the room | socketListener.js |
+| "leave-room" | Sent when it receives the force-return-to-login, essentially boots all users out of the room | None | socketListener.js |
 
 ### /src/instructions
 | title | description | body | file | 
@@ -58,25 +58,25 @@ Note that all socket events emitted and listened to on backend are in the `/back
 | "user-messages-complete" | Sent once all users have sent one message to LLM (or if timer runs out, whichever is first) | None |
 | "ai-end" (line 185) | Sent if there is an error in getLlmText | None |
 | "game-complete" (line 202) | Sent once round is equal to total rounds | None |
-| "recieve-message" (line 204) | Sent once game is complete | ( endGameMsg ) |
+| "receive-message" (line 204) | Sent once game is complete | { message } |
 | "timer-expired" (line 205) | Sent once game is complete | None |
-| "recieve-message" (line 211) | Sent if fish_amount is below 5 | ( endGameMsg ) |
+| "receive-message" (line 211) | Sent if fish_amount is below 5 | { message } |
 | "game-complete" (line 212) | Sent if fish_amount is below 5 | None |
 | "timer-expired" (line 213) | Sent if fish_amount is below 5 | None |
-| "round-complete" | Sent once round it complete | ( round+1 ) |
-| "receive-message" | Sent at beginning of each round for instructions message | ( instruction_message ) |
+| "round-complete" | Sent once round is complete | { round } |
+| "receive-message" | Sent at beginning of each round for instructions message | { message } |
 | "instructions-complete" | Sent after LLM Instructions are sent | ( round ) |
 | "user-survey-complete" | Sent when a user completes a survey | { userId, roomCode } |
 | "timer-start" | Sent whenever a new round starts after instructions have been sent | { duration, endTime } |
 | "timer-expired" | Sent once timer has ended | None | 
-| "all-user-messages" | Sent when all user messages have been sent or when new round start if user messages exist | {round, messages } |
+| "all-user-messages" | Sent when all user messages have been sent or when new round start if user messages exist | { round, messages } |
 | "timer-start" (line 376) | This one sends time left if checked in middle of the round | { duration, endTime } |
 
 ### /socket/socketHandler.js 
 | title | description | body |
 | ----- | ----------- | ---- |
-| "room-users" (line 33) | Sent whenever a user joins/reconnects to the room | ( userList ) |
-| "room-users" (line 49) | Sent whenever a user leaves/disconnects from the room | ( userList ) |
+| "room-users" (line 33) | Sent whenever a user joins/reconnects to the room | { userList } |
+| "room-users" (line 49) | Sent whenever a user leaves/disconnects from the room | { userList } |
 | "force-return-to-login" | Sent to users whenever Admin closes a room | None |
 
 ### /socket/socketServer.js
@@ -106,7 +106,7 @@ Note that all socket events emitted and listened to on backend are in the `/back
 | "ai-start" | This starts to keep track of stream coming in from AI | None | interactionSocket.js |
 | "ai-token" | Grabs new token from AI and updates streaming texts and display on interactions page | { token } | interactionSocket.js |
 | "ai-end" | Ends AI stream and resets variables as needed | None | interactionSocket.js |
-| "round-complete" | Sent when round is complete, this will reload the time and reset variables | { round } | interactionSocket.js |
+| "round-complete" | Sent when round is complete, this will reload the time and reset variables such as the round number and ability for users to message | { round } | interactionSocket.js |
 | "game-complete" | Sent when game is complete and resets variables as needed | None | interactionSocket.js |
 | "instructions-complete" | Sent when instructions are complete, resets varibles to allow users to send messages | { round } | interactionSocket.js |
 | "timer-start" | Starts timer for user messages each round | { duration, endTime } | interactionSocket.js |
@@ -129,7 +129,7 @@ Note that all socket events emitted and listened to on backend are in the `/back
 | "join-room" | This joins user to room. The backend gets any relevant information such as time left, round number, etc. to user in case they reconnected in the middle of a game | { roomCode, isAdmin, user } | socketServer.js |
 | "navigate-users" | Admin sends this to navigate users to next page, backend emits a change-status event to all users to navigate them | { roomCode, status } | socketServer.js |
 | "start-round" | This will call the function to get the LLM instructions for the round | { roomCode, round } | socketServer.js |
-| "startTimer" | starts timer for round | None | socketServer.js |
+| "startTimer" | Starts timer for round | None | socketServer.js |
 | "submit-round-message" | Calls a function to submit user messages to backend and send them back to all users in application | { roomCode, userId, userName, text } | socketServer.js |
 | "close-room" | Deletes timer and disconnects all users from the room | { roomCode } | socketServer.js |
 | "survey-complete" | Updates user survey status on backend and notifies frontend | { roomCode, userId } | socketServer.js |
