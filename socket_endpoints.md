@@ -51,7 +51,7 @@ Note that all socket events emitted and listened to on backend are in the `/back
 
 ### /socket/gameHandler.js
 | title | description | body |
-| ----- | ----------- | ---- | ---- |
+| ----- | ----------- | ---- |
 | "ai-start" | Sent before LLM streaming starts for LLM response | None |
 | "ai-token" | Sent as LLM stream is being called | { token } |
 | "ai-end" | Sent when AI streaming is done | None |
@@ -74,14 +74,14 @@ Note that all socket events emitted and listened to on backend are in the `/back
 
 ### /socket/socketHandler.js 
 | title | description | body |
-| ----- | ----------- | ---- | ---- |
+| ----- | ----------- | ---- |
 | "room-users" (line 33) | Sent whenever a user joins/reconnects to the room | ( userList ) |
 | "room-users" (line 49) | Sent whenever a user leaves/disconnects from the room | ( userList ) |
 | "force-return-to-login" | Sent to users whenever Admin closes a room | None |
 
 ### /socket/socketServer.js
 | title | description | body |
-| ----- | ----------- | ---- | ---- |
+| ----- | ----------- | ---- |
 | "change-status" | Sent when Admin navigates users to next page | { status } |
 | "timerStarted" | Sent when timer starts for round | { endTime } |
 | "timerEnded" | Sent once timer for round ends | None |
