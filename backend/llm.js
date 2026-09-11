@@ -11,6 +11,9 @@ const openrouterClient = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
 });
 
+let model = 'default'
+
+
 function resolveRequestedModel(modelOverride) {
   const trimmed = typeof modelOverride === "string" ? modelOverride.trim() : "";
 
@@ -22,29 +25,9 @@ function resolveRequestedModel(modelOverride) {
   throw new Error("No model configured.");
 }
 
-function normalizeModel(modelOverride) {
-  const raw = resolveRequestedModel(modelOverride);
 
-  // keep old admin value working
-  if (raw === "gemini") {
-    return "google/gemini-2.5-flash";
-  }
-
-  return raw;
-}
-
-function getClientAndModel(modelOverride) {
-  const model = normalizeModel(modelOverride);
-
-  if (model.startsWith("google/")) {
-    return { client: openrouterClient, model };
-  }
-
-  return { client: openaiClient, model };
-}
 
 export async function callLLM(messages, modelOverride) {
-  const { client, model } = getClientAndModel(modelOverride);
 
   const response = await client.responses.create({
     model,
@@ -55,7 +38,6 @@ export async function callLLM(messages, modelOverride) {
 }
 
 export async function streamLLM(prompt, onToken, modelOverride) {
-  const { client, model } = getClientAndModel(modelOverride);
 
   const stream = await client.responses.stream({
     model,
@@ -68,4 +50,21 @@ export async function streamLLM(prompt, onToken, modelOverride) {
       if (token && onToken) onToken(token);
     }
   }
+}
+
+export async function getModelIds() {
+    const openrouterModels = await openrouterClient.models.list();
+
+    const filteredModelIds = openrouterModels.data
+        .filter(model =>
+            model.id.toLowerCase().startsWith("openai/") ||
+            model.id.toLowerCase().startsWith("google/")
+        )
+        .map(model => model.id);
+
+    return filteredModelIds;
+}
+export async function updateModel(setModel){
+    model = setModel
+    console.log(model)
 }
