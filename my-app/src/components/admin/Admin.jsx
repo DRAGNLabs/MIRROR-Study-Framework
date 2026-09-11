@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel } from "../../services/roomsService";
 import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
@@ -25,8 +25,12 @@ export function Admin() {
     const [start, setStart] = useState(true);
     const [count, setCount] = useState(3);
 
+    //This is populated from the backend when started to read from the available models 
+    const [modelIds, setModelIds] = useState([]);
+    const [selectedModel, setSelectedModel] = useState("");
+
     const [selectedGame, setSelectedGame] = useState(null);
-    const [selectedModel, setSelectedModel] = useState("gpt-4o");
+    // const [selectedModel, setSelectedModel] = useState("gpt-4o");
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
     // Stores the list of completed rooms from the db
@@ -118,6 +122,16 @@ export function Admin() {
       }
     }, [location.state?.showCompletedRooms]);
 
+    useEffect(() => {
+      getModels()
+        .then(models => {
+          setModelIds(models);
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }, []);
+
     
     async function createRoom() { //changes the page to customize the room
         setCompleted(false);
@@ -145,6 +159,7 @@ export function Admin() {
             setRooms(rooms);
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?
+            sendModel(selectedModel);
         } catch (error){
             console.error("Error:", error);
             // setError(error.message || "Something went wrong."); // at what point is there not going to be error.message, also why setError?
@@ -358,12 +373,11 @@ return (
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
               >
-                <option value="gpt-4o">gpt-4o (default)</option>
-                <option value="gpt-4.1">gpt-4.1</option>
-                <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-                <option value="gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
-                <option value="google/gemini-2.5-flash">gemini-2.5-flash</option>
-                {/* <option value="google/gemini-2.5-pro">gemini-2.5-pro</option> this one wasn't working*/}
+                {modelIds.map((modelId) => (
+                  <option key={modelId} value={modelId}>
+                    {modelId}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
