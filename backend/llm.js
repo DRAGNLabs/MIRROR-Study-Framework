@@ -14,20 +14,8 @@ const openrouterClient = new OpenAI({
 let model = 'default'
 
 
-function resolveRequestedModel(modelOverride) {
-  const trimmed = typeof modelOverride === "string" ? modelOverride.trim() : "";
 
-  if (trimmed && trimmed !== "default") return trimmed;
-
-  const fallback = (process.env.OPENAI_MODEL || "").trim();
-  if (fallback) return fallback;
-
-  throw new Error("No model configured.");
-}
-
-
-
-export async function callLLM(messages, modelOverride) {
+export async function callLLM(messages) {
 
   const response = await client.responses.create({
     model,
@@ -37,7 +25,7 @@ export async function callLLM(messages, modelOverride) {
   return response.output_text;
 }
 
-export async function streamLLM(prompt, onToken, modelOverride) {
+export async function streamLLM(prompt, onToken) {
 
   const stream = await client.responses.stream({
     model,
