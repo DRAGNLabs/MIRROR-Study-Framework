@@ -2,9 +2,9 @@ import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
 
-const openaiClient = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// const openaiClient = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
 
 const openrouterClient = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -17,7 +17,7 @@ let model = 'default'
 
 export async function callLLM(messages) {
 
-  const response = await client.responses.create({
+  const response = await openrouterClient.responses.create({
     model,
     input: messages,
   });
@@ -27,7 +27,7 @@ export async function callLLM(messages) {
 
 export async function streamLLM(prompt, onToken) {
 
-  const stream = await client.responses.stream({
+  const stream = await openrouterClient.responses.stream({
     model,
     input: prompt,
   });
