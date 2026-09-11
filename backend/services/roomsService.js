@@ -1,3 +1,5 @@
+
+
 // [Railway] API_BASE reads from env vars so this works in any environment.
 // In production on Railway, the backend calls its own API via localhost loopback
 // using the PORT that Railway assigns. In local dev, defaults to port 3001.
@@ -9,6 +11,7 @@ const API_BASE = process.env.API_BASE || `http://localhost:${port}/api`;
  originally I was going to do it from admin but if they rerender than the userMessages will be reset
  And llmInstructions and llmResponses are generated in index.js so it makes sense to update the backend there
 */
+
 
 export async function getRoom(roomCode) {
   const response = await fetch(`${API_BASE}/rooms/${roomCode}`);
@@ -118,5 +121,33 @@ export async function getSurveyStatus(userId) {
   });
 
   if(!response.ok) throw new Error("Error getting survey status");
+  return response.json();
+}
+
+// sending the available models to the front end
+export async function getModels() {
+  const response = await fetch(`${API_BASE}/rooms/models`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if (!response.ok) throw new Error("Error getting models");
+
+  console.log("here");
+
+  return response.json();
+}
+
+export async function sendModel(model, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/updateModel`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({model: model})
+  });
+
+  if (!response.ok) {
+    throw new Error("Error updating model");
+  }
+
   return response.json();
 }
