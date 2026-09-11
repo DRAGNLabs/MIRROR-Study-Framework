@@ -192,3 +192,31 @@ export async function updateStatus(roomCode, status) {
   if(!response.ok) throw new Error("Error updating status");
   return response.json();
 }
+
+//gets the list of available models to populate scrollbar
+export async function getModels() {
+  const response = await fetch(`${API_BASE}/rooms/models`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if (!response.ok) throw new Error("Error getting models");
+  console.log("here")
+  // console.log(response)
+  return response.json();
+}
+
+export async function sendModel(model, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/updateModel`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({model: model})
+  });
+
+  if (!response.ok) {
+    throw new Error("Error updating model");
+  }
+
+  return response.json();
+}
+
