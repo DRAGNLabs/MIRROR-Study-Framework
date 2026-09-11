@@ -1,12 +1,15 @@
 /* === User Login (Professional) === */
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
   box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .login-card {
@@ -20,7 +23,16 @@
   border-radius: 12px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
   animation: fadeIn 0.4s ease forwards;
+  box-sizing: border-box;
 }
+
+@media (max-width: 640px) {
+  .login-card {
+    padding: 2rem 1.5rem;
+    max-width: 100%;
+  }
+}
+ 
 
 .login-title {
   font-size: 1.5rem;
@@ -108,6 +120,7 @@
 /* === Admin Login (Dark Mode) === */
 .admin-container {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   align-items: center;
@@ -115,12 +128,16 @@
   padding: 2rem;
   box-sizing: border-box;
   background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  background-attachment: fixed;
+  overflow-y: auto;
+  position: relative;
 }
 
 .admin-login-card {
   width: 100%;
   max-width: 400px;
-  margin: 0 auto;
+  justify-content: center;
+  margin: auto;
   padding: 2.5rem;
   text-align: center;
   background: rgba(30, 41, 59, 0.8);
@@ -128,6 +145,14 @@
   border-radius: 12px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
   animation: fadeIn 0.4s ease forwards;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .admin-login-card {
+    padding: 2rem 1.5rem;
+    max-width: 100%;
+  }
 }
 
 .admin-login-header h1 {

@@ -1,26 +1,30 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import './survey.css'
+
 export default function ConversationModal({ open, onClose, messages }) {
-  if (!open) return null;
   const chatBoxRef = useRef(null);
 
   useEffect(() => {
-    if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-    }
-  }, [messages]);
+    if (!open || !chatBoxRef.current) return;
+    chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+  }, [messages, open]);
 
-  return (
+  if (!open) return null;
+
+  const modalContent = (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-card"
+        className="conversation-modal-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <button className="modal-close" onClick={onClose}>✕</button>
 
-        <h2>Conversation History</h2>
+        <div className="modal-header">
+          <h2>Conversation History</h2>
+          <button className="modal-close" onClick={onClose}>✕</button> 
+        </div>
 
-        <div className="chat-box" ref={chatBoxRef}>
+        <div className="conversation-modal-chat-box" ref={chatBoxRef}>
           {messages.map((msg, i) => (
             <div
               key={msg.id ?? i}
@@ -38,4 +42,6 @@ export default function ConversationModal({ open, onClose, messages }) {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

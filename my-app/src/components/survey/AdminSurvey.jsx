@@ -64,14 +64,6 @@ export default function AdminSurvey() {
     return (
         <div className="admin-container">
         <h1>Survey Status</h1>
-        <div className="survey-progress-bar">
-        <div
-            className="survey-progress-fill"
-            style={{
-            width: `${(users.filter(u => u.completedSurvey).length / users.length) * 100}%`
-            }}
-        />
-        </div>
 
             <div className="survey-status-box">
             <div className="survey-status-header">

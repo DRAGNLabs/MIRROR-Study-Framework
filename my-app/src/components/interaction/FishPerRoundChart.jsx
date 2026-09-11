@@ -21,10 +21,18 @@ export default function FishPerRoundChart({ resourceHistory, playerKey, dark }) 
   });
   const playerList = [...players];
 
+  // Calculate cumulative totals
+  const cumulativeTotals = {};
+  playerList.forEach(p => {
+    cumulativeTotals[p] = 0;
+  });
+
   const chartData = resourceHistory.map(({ round, allocations }) => {
     const point = { round };
     playerList.forEach((p) => {
-      point[p] = allocations?.[p]?.fish ?? 0;
+      const roundFish = allocations?.[p]?.fish ?? 0;
+      cumulativeTotals[p] += roundFish;
+      point[p] = cumulativeTotals[p];
     });
     return point;
   });
@@ -58,7 +66,7 @@ export default function FishPerRoundChart({ resourceHistory, playerKey, dark }) 
               background: dark ? "#1e293b" : "#fff",
               color: dark ? "#f1f5f9" : "#334155",
             }}
-            formatter={(value, name) => [`${value} fish`, `User ${name}`]}
+            formatter={(value, name) => [`${value} total fish`, `User ${name}`]}
             labelFormatter={(label) => `Round ${label}`}
           />
           <Legend

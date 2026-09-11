@@ -1,6 +1,6 @@
 /** This page is where the user will take the survey */
 
-import { useState, useEffect, useMemo, useRef, Fragment } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { sendSurvey } from "../../services/surveyService";
 import { getRoom } from "../../services/roomsService";
@@ -8,7 +8,8 @@ import { socket } from '../../socket'
 import games from "../../gameLoader";
 import ConversationModal from "./ConversationModal";
 import ConversationReflectionStep from "./ConversationReflectionStep";
-import { buildConversation, buildDisplaySteps, formatAnswer } from "./surveyUtils";
+import { SortRankList } from "./SortRankList";
+import { buildConversation, buildDisplaySteps, displayStepHasUnanswered, formatAnswer, isRequiredQuestionUnanswered } from "./surveyUtils";
 import './survey.css'
 
 
@@ -19,16 +20,37 @@ export function Survey() {
     const { userId } = user;
     const roomCode = parseInt(user.roomCode);
 
-    const [answers, setAnswers] = useState({});
+    const storageKey = `survey_${roomCode}_${userId}`;
+    const [answers, setAnswers] = useState(() => {
+        const saved = localStorage.getItem(storageKey);
+        return saved ? JSON.parse(saved) : {};
+    });
     const [error, setError] = useState("");
     const [survey, setSurvey] = useState(null);
-    const [currentStep, setCurrentStep] = useState(0);
+    const [currentStep, setCurrentStep] = useState(() => {
+        const savedStep = localStorage.getItem(`${storageKey}_step`);
+        return savedStep ? parseInt(savedStep, 10) : 0;
+    });
     const [fromReview, setFromReview] = useState(false);
     const [showConversation, setShowConversation] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
-    const [conversationMarks, setConversationMarks] = useState([]);
+    const [conversationMarks, setConversationMarks] = useState(() => {
+        const saved = localStorage.getItem(`${storageKey}_marks`);
+        return saved ? JSON.parse(saved) : [];
+    });
 
-    const surveyId = 1;
+    useEffect(() => {
+        localStorage.setItem(storageKey, JSON.stringify(answers));
+    }, [answers, storageKey]);
+
+    useEffect(() => {
+        localStorage.setItem(`${storageKey}_step`, currentStep.toString());
+    }, [currentStep, storageKey]);
+ 
+    useEffect(() => {
+        localStorage.setItem(`${storageKey}_marks`, JSON.stringify(conversationMarks));
+    }, [conversationMarks, storageKey]);
+
     const displaySteps = useMemo(
         () => (survey ? buildDisplaySteps(survey.questions) : []),
         [survey]
@@ -98,6 +120,9 @@ export function Survey() {
 
         try {
             await sendSurvey(roomCode, userId, { answers, conversationMarks });
+            localStorage.removeItem(storageKey);
+            localStorage.removeItem(`${storageKey}_step`);
+            localStorage.removeItem(`${storageKey}_marks`);
             socket.emit("survey-complete", { roomCode, userId });
             navigate("/exit", { state: { userId } });
         } catch (err) {
@@ -108,12 +133,31 @@ export function Survey() {
 
     function handleNext() {
         if (isReflectionStep) {
+            // basically requires 3 messages unless if it less than 9 change this to have you go back on review
+            const requiredMarks = Math.min(3, Math.max(1, Math.floor(conversationMessages.length / 3)));
+            const allMarksHaveNotes = conversationMarks.every(m => m.note && m.note.trim().length > 0);
+            if (conversationMarks.length < requiredMarks || !allMarksHaveNotes) {
+                alert(`Please mark at least ${requiredMarks} moments and add a note to each one.`);
+                return;
+            }
             setCurrentStep(1);
             return;
         }
         if (fromReview) {
-            setCurrentStep(displaySteps.length + 1);
-            setFromReview(false);
+            const currentDisplayIndex = currentStep - 1;
+            let nextUnanswered = -1;
+            for (let i = currentDisplayIndex + 1; i < displaySteps.length; i++) {
+                if (displayStepHasUnanswered(displaySteps[i], answers)) {
+                    nextUnanswered = i;
+                    break;
+                }
+            }
+            if (nextUnanswered >= 0) {
+                setCurrentStep(nextUnanswered + 1);
+            } else {
+                setCurrentStep(displaySteps.length + 1);
+                setFromReview(false);
+            }
             return;
         }
         if (isReviewStep) {
@@ -146,120 +190,6 @@ export function Survey() {
         setFromReview(true);
     }
 
-    const [sortRankDraggingIndex, setSortRankDraggingIndex] = useState(null);
-    const [sortRankDropTargetIndex, setSortRankDropTargetIndex] = useState(null);
-    const sortRankDragSourceRef = useRef(null);
-    const sortRankListRef = useRef(null);
-    const sortRankFlipRef = useRef(null);
-
-    /** Move one item from fromIndex to toIndex; other items shift. Returns new array. */
-    function moveItemInArray(arr, fromIndex, toIndex) {
-        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= arr.length || toIndex > arr.length) {
-            return arr;
-        }
-        const copy = [...arr];
-        const [removed] = copy.splice(fromIndex, 1);
-        const insertAt = fromIndex < toIndex ? toIndex - 1 : toIndex;
-        copy.splice(insertAt, 0, removed);
-        return copy;
-    }
-
-    function handleSortRankDragStart(e, index) {
-        sortRankDragSourceRef.current = index;
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", String(index));
-        setSortRankDraggingIndex(index);
-    }
-
-    function handleSortRankDragOver(e, toIndex) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.dataTransfer.dropEffect = "move";
-        setSortRankDropTargetIndex(prev => (prev === toIndex ? prev : toIndex));
-    }
-
-    function handleSortRankDrop(e, toIndex) {
-        e.preventDefault();
-        e.stopPropagation();
-        const fromIndex = sortRankDragSourceRef.current ?? parseInt(e.dataTransfer.getData("text/plain"), 10);
-        const questionId = primaryQuestion?.id;
-        const options = answers[questionId];
-
-        setSortRankDraggingIndex(null);
-        setSortRankDropTargetIndex(null);
-        sortRankDragSourceRef.current = null;
-
-        if (!Array.isArray(options) || Number.isNaN(fromIndex) || fromIndex < 0 || toIndex < 0 || fromIndex >= options.length || toIndex > options.length) {
-            return;
-        }
-
-        const nextOptions = moveItemInArray(options, fromIndex, toIndex);
-        if (nextOptions === options) return;
-
-        const listEl = sortRankListRef.current;
-        if (listEl) {
-            const items = listEl.querySelectorAll(".sort-rank-item");
-            const rects = Array.from(items).map(el => el.getBoundingClientRect());
-            sortRankFlipRef.current = { order: [...options], rects };
-        }
-
-        setAnswers(prev => ({ ...prev, [questionId]: nextOptions }));
-    }
-
-    function handleSortRankDragEnd() {
-        setSortRankDraggingIndex(null);
-        setSortRankDropTargetIndex(null);
-        sortRankDragSourceRef.current = null;
-    }
-
-    useEffect(() => {
-        const flip = sortRankFlipRef.current;
-        const questionId = primaryQuestion?.id;
-        const newOrder = questionId && primaryQuestion?.type === "sortRank" ? (answers[questionId] ?? []) : null;
-
-        if (!flip || !newOrder?.length || !sortRankListRef.current || flip.order.length !== newOrder.length) {
-            return;
-        }
-        const orderChanged = flip.order.some((opt, i) => opt !== newOrder[i]);
-        if (!orderChanged) {
-            sortRankFlipRef.current = null;
-            return;
-        }
-
-        const listEl = sortRankListRef.current;
-        const items = listEl.querySelectorAll(".sort-rank-item");
-        if (items.length !== newOrder.length) {
-            sortRankFlipRef.current = null;
-            return;
-        }
-
-        const newRects = Array.from(items).map(el => el.getBoundingClientRect());
-
-        items.forEach((el, i) => {
-            const option = newOrder[i];
-            const oldIndex = flip.order.indexOf(option);
-            if (oldIndex === -1) return;
-            const oldRect = flip.rects[oldIndex];
-            const newRect = newRects[i];
-            const deltaY = oldRect.top - newRect.top;
-            el.style.transition = "none";
-            el.style.transform = `translateY(${deltaY}px)`;
-        });
-
-        sortRankFlipRef.current = null;
-
-        const startAnimation = () => {
-            requestAnimationFrame(() => {
-                items.forEach(el => {
-                    el.style.transition = "transform 0.28s ease-out";
-                    el.style.transform = "";
-                });
-            });
-        };
-        const rafId = requestAnimationFrame(startAnimation);
-        return () => cancelAnimationFrame(rafId);
-    }, [answers[primaryQuestion?.id], primaryQuestion?.id, primaryQuestion?.type]);
-
     if (!survey) {
         return (
             <div className="survey-container">
@@ -276,14 +206,16 @@ export function Survey() {
     const showSubmit = isReviewStep;
 
     return (
-        <div className="survey-container">
-            <div className="survey-progress-wrapper">
+        // <div className="survey-container">
+        <div className={`survey-container ${isReflectionStep ? 'no-scroll' : ''}`}>
+            {!isReflectionStep && (
+            <div className={`survey-progress-wrapper`}>
                 <div className="survey-progress-bar">
                     <div
                         className="survey-progress-fill"
                         style={{ width: `${progress}%` }}
                     />
-                </div>
+                </div> 
                 <span className="survey-progress-text">
                     {isReflectionStep
                         ? `Reflection (1 of ${totalSteps})`
@@ -293,19 +225,20 @@ export function Survey() {
                 </span>
             </div>
 
+            )}
+
+            {!isReflectionStep && (
+                <div className="conversation-btn-wrapper">
+                    <button
+                        className="conversation-history-btn"
+                        onClick={() => setShowConversation(true)}
+                    >
+                        Conversation History
+                    </button>
+                </div>
+            )}
+
             <div className="survey-card">
-                {!isReflectionStep && (
-                    <div className="room-top-left">
-                        <button
-                            className="info-icon-button"
-                            title="View conversation history"
-                            aria-label="View conversation history"
-                            onClick={() => setShowConversation(true)}
-                        >
-                            i
-                        </button>
-                    </div>
-                )}
 
                 {!isReflectionStep && (
                     user ? (
@@ -331,10 +264,7 @@ export function Survey() {
                             {displaySteps.flatMap((step, stepIndex) => {
                                 const questionsInStep = step.questions ?? (step.question ? [step.question] : []);
                                 return questionsInStep.map((q) => {
-                                    const isRequired = !q.optional;
-                                    const isUnanswered = isRequired && (q.type === "sortRank"
-                                        ? !Array.isArray(answers[q.id]) || answers[q.id].length !== (q.options?.length ?? 0)
-                                        : (answers[q.id] == null || answers[q.id] === ""));
+                                    const isUnanswered = isRequiredQuestionUnanswered(q, answers);
                                     return (
                                         <li
                                             key={q.id}
@@ -448,6 +378,7 @@ export function Survey() {
                                                 </button>
                                                 <span className="age-input-suffix">years</span>
                                             </div>
+                                            // <span className="age-input-suffix">years</span>
                                         ) : (
                                             <textarea
                                                 rows={6}
@@ -499,55 +430,13 @@ export function Survey() {
                                     return (
                                         <div className="sort-rank-wrapper">
                                             <p className="sort-rank-hint">Drag to reorder from what you cared about most (top) to least (bottom). Your top 3 matter most.</p>
-                                            <ul className="sort-rank-list" ref={sortRankListRef}>
-                                                {sortOptions.map((option, index) => {
-                                                    const isGreyed = index >= 3;
-                                                    const isDragging = sortRankDraggingIndex === index;
-                                                    const showDropIndicator = sortRankDropTargetIndex === index;
-                                                    return (
-                                                        <Fragment key={`${option}-${index}`}>
-                                                            {showDropIndicator && (
-                                                                <li
-                                                                    className="sort-rank-drop-indicator"
-                                                                    aria-hidden
-                                                                    onDragOver={(e) => handleSortRankDragOver(e, index)}
-                                                                    onDrop={(e) => handleSortRankDrop(e, index)}
-                                                                />
-                                                            )}
-                                                            <li
-                                                                className={`sort-rank-item ${isGreyed ? "sort-rank-item--greyed" : ""} ${isDragging ? "sort-rank-item--dragging" : ""}`}
-                                                                draggable
-                                                                onDragStart={(e) => handleSortRankDragStart(e, index)}
-                                                                onDragOver={(e) => handleSortRankDragOver(e, index)}
-                                                                onDrop={(e) => handleSortRankDrop(e, index)}
-                                                                onDragEnd={handleSortRankDragEnd}
-                                                            >
-                                                                <span className="sort-rank-item-drag-handle" aria-hidden>::</span>
-                                                                <span className="sort-rank-item-label">
-                                                                    {index + 1}. {option}
-                                                                </span>
-                                                            </li>
-                                                        </Fragment>
-                                                    );
-                                                })}
-                                                {sortRankDropTargetIndex === sortOptions.length && (
-                                                    <li
-                                                        className="sort-rank-drop-indicator"
-                                                        aria-hidden
-                                                        onDragOver={(e) => handleSortRankDragOver(e, sortOptions.length)}
-                                                        onDrop={(e) => handleSortRankDrop(e, sortOptions.length)}
-                                                    />
-                                                )}
-                                                <li
-                                                    className="sort-rank-anchor"
-                                                    draggable={false}
-                                                    aria-hidden
-                                                    onDragOver={(e) => handleSortRankDragOver(e, sortOptions.length)}
-                                                    onDrop={(e) => handleSortRankDrop(e, sortOptions.length)}
-                                                >
-                                                    <span className="sort-rank-anchor-inner">&nbsp;</span>
-                                                </li>
-                                            </ul>
+                                            <SortRankList
+                                                questionId={q.id}
+                                                options={sortOptions}
+                                                onOrderChange={(nextOptions) =>
+                                                    setAnswers((prev) => ({ ...prev, [q.id]: nextOptions }))
+                                                }
+                                            />
                                         </div>
                                     );
                                 })()}
@@ -573,12 +462,16 @@ export function Survey() {
                         {showSubmit
                             ? "Submit"
                             : fromReview
-                                ? "Back to Review"
+                                ? (displaySteps.every((step, idx) => {
+                                if (idx === currentStep - 1) return true; // Skip current step in check
+                                    return !displayStepHasUnanswered(step, answers);
+                                }) ? "Back to Review" : "Next unanswered question")
                                 : isReflectionStep
                                     ? "Continue"
                                     : isLastQuestion
                                         ? "Review Answers"
                                         : "Next"}
+
                     </button>
                 </div>
 

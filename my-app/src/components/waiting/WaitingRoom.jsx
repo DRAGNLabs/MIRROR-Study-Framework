@@ -12,9 +12,11 @@ export default function WaitingRoom() {
 
   return (
     <div className="waiting-container">
-      <h1>Waiting Room</h1>
-      <p>Room Code: {roomCode}</p>
-      <UserList users={users} variant="user" />
+      <div>
+        <h1>Waiting Room</h1>
+        <p>Room Code: {roomCode}</p>
+        <UserList users={users} variant="user" />
+        </div>
     </div>
   );
 }

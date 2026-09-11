@@ -1,18 +1,35 @@
 .waiting-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;   /* vertical centering */
-  align-items: center;       /* horizontal centering */
-  min-height: 50vh;         /* full viewport height */
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
-  text-align: center;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.85); /* subtle light card */
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+ 
+.waiting-container > div {
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 16px;
   box-shadow: 0 8px 20px rgba(103, 184, 214, 0.3);
-  max-width: 400px;          /* prevent too wide */
-  margin: 0 auto;            /* center horizontally */
-  animation: fadeIn 0.8s ease forwards; 
+  max-width: 500px;
+  width: 100%;
+  padding: 2rem;
+  text-align: center;
+  animation: fadeIn 0.8s ease forwards;
+  box-sizing: border-box;
+}
+ 
+@media (max-width: 640px) {
+  .waiting-container {
+    padding: 1rem;
+  }
+  
+  .waiting-container > * {
+    padding: 1.5rem 1rem;
+  }
 }
 
 .admin-container {
@@ -21,9 +38,21 @@
   justify-content: center;  
   align-items: center;      
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   text-align: center;
+  padding: 1rem;
+  padding-top: 5rem;
+  box-sizing: border-box;
 }
+
+@media (min-width: 640px) {
+  .admin-container {
+    padding: 2rem;
+    padding-top: 6rem;
+  }
+}
+ 
 
 /* Room Management card (admin) */
 .room-management-card {
@@ -34,6 +63,13 @@
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 640px) {
+  .room-management-card {
+    padding: 3rem;
+    padding-top: 6rem;
+  }
 }
 
 .room-management-card .back-to-rooms {

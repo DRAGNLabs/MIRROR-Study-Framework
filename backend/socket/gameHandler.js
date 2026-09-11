@@ -200,7 +200,7 @@ async function getLlmResponse(io, roomCode) {
         const totalRounds = room.numRounds;
         if (round >= totalRounds) {
             io.to(roomCode).emit("game-complete");
-            const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
+            const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "game-ended" };
             io.to(roomCode).emit("receive-message", endGameMsg);
             return;
         } else if (fish_amount[round+1] < 5) {
@@ -244,15 +244,19 @@ export async function getLlmInstructions(io, roomCode, round) {
             curr_round: round,
             fish_available: fallbackFish
         });
-        const instruction_message = { sender: "llm", text: instructions, id: `instructions-${round}` };
+        const instruction_message = { sender: "llm", text: instructions, id: `llm-instructions-${round}` };
         // users don't receive instructions from socket if this await delay isn't here
         // hmm maybe this is why? do we need a longer wait delay...
+        await appendLlmInstructions(roomCode, round, instructions);
         await delay(500); 
         io.to(roomCode).emit("receive-message", instruction_message); // would if we just did instructions-complete?
+        // await appendLlmInstructions(roomCode, round, instructions);
     } else {
         instructions = await getLlmText(io, roomCode, true, false);
+        await appendLlmInstructions(roomCode, round, instructions);
     }
-    await appendLlmInstructions(roomCode, round, instructions);
+
+    // await appendLlmInstructions(roomCode, round, instructions);
 
     io.to(roomCode).emit("instructions-complete", round);
 
@@ -355,7 +359,8 @@ async function constructUserMessages(io, roomCode, existingUserMessages, round) 
             sender: "user",
             userId: uid,
             userName: user?.userName || `User ${uid}`,
-            text: txt
+            text: txt,
+            id: `${uid}-${round}`
         };
     })
 );
