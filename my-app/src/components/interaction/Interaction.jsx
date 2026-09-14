@@ -20,8 +20,15 @@ export function Interaction(){
     const { user } = location.state
     const { userId } = user;
     const roomCode = parseInt(user.roomCode);
+    const draftStorageKey = `chat_draft_${roomCode}_${userId}`;
     
-    const [prompt, setPrompt] = useState("");
+    const [prompt, setPrompt] = useState(() => {
+        try {
+            return localStorage.getItem(draftStorageKey) ?? "";
+        } catch {
+            return "";
+        }
+    });
     const [sentMessages, setSentMessages] = useState(0);
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
@@ -44,6 +51,7 @@ export function Interaction(){
     const timerIntervalRef = useRef(null);
     const loadCurrUserMessages = useRef(false);
     const chatBoxRef = useRef(null);
+    const textareaRef = useRef(null);
     // const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -88,6 +96,25 @@ export function Interaction(){
 
     // const totalUsers = getUsersInRoom(roomCode).
     // console.log("Total Users:", totalUsers);
+
+    useEffect(() => {
+        try {
+            if (prompt) {
+                localStorage.setItem(draftStorageKey, prompt);
+            } else {
+                localStorage.removeItem(draftStorageKey);
+            }
+        } catch {
+            // Ignore storage quota / private-mode failures
+        }
+    }, [prompt, draftStorageKey]);
+
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+    }, [prompt]);
 
     const handleSubmit = async(e) => {
         e.preventDefault();
@@ -191,14 +218,13 @@ export function Interaction(){
 
                 <form className="chat-form" onSubmit={handleSubmit}>
                     <textarea
+                        ref={textareaRef}
                         className="chat-input"
                         rows={1}
                         placeholder="Type your message..."
                         value={prompt}
                         onChange={(e) => {
                             setPrompt(e.target.value);
-                            e.target.style.height = "auto";
-                            e.target.style.height = e.target.scrollHeight + "px";
                         }}
                         aria-label="Message input"
                     />
