@@ -165,7 +165,9 @@ export function CompletedRoomPage() {
           <span className="room-badge">Game: {room.gameType || "Unknown"}</span>
           <span className="room-badge">Model: {room.modelType || "Unknown"}</span>
           <span className="room-badge">Rounds: {room.numRounds}</span>
-          <span className="room-badge">People: {room.usersNeeded}</span>
+          <span className="room-badge">
+            People: {Array.isArray(room.userIds) ? room.userIds.length : usernames.length} (min {room.usersNeeded})
+          </span>
           <span className="room-badge room-badge-users">
             Users: {usernames.length > 0 ? usernames.join(", ") : "No users"}
           </span>
