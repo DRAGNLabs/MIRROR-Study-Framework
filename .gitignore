@@ -51,3 +51,4 @@ backend/.env
 
 # === CLAUDE specifications ===
 CLAUDE.md
+.out-of-code-insights

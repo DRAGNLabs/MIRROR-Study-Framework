@@ -69,6 +69,7 @@ router.get("/", async (req, res) => {
 });
 
 // checking if a user has finished a survey, returns 0 or 1
+// this method doesn't work if you input userId and roomCode before inputting all survey data into the database
 router.get("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;

@@ -38,7 +38,8 @@ router.post('/', async (req, res) => {
 });
 
 
-// updates userIds and started to true, this will be used when admin directs users to interactions page
+// updates userIds and started to true, this will be used when admin directs users to instructions page
+// should consider getting rid of updating started to true as we do it earlier anyways
 router.patch("/:roomCode/userIds", async (req, res) => {
   try{
     const { userIds } = req.body;
@@ -67,11 +68,7 @@ router.patch("/:roomCode/userIds", async (req, res) => {
 // updates started when admin clicks start room
 router.patch("/:roomCode/started", async (req, res) => {
   try {
-    // const { userIds } = req.body;
     const { roomCode } = req.params;
-    // if (userIds === undefined) {
-    //     return res.status(400).json({ error: "userIds is required"})
-    // }
     const result = await db.query(
       'UPDATE rooms SET started = TRUE WHERE "roomCode" = $1 RETURNING "roomCode", started;', 
       [roomCode]);
@@ -319,6 +316,7 @@ router.get("/isCompleted", async (req, res) => {
 });
 
 // Lets us know if roomCode is valid or not
+// this should be a GET method I think....
 router.post("/valid", async (req, res) => { //return false if found in database because its already taken and not valid
   try {
     const roomCode = req.body.roomCode;
@@ -342,7 +340,7 @@ router.post("/valid", async (req, res) => { //return false if found in database 
   }
 });
 
-
+// what is this route method
 router.get("/:roomCode/login", async (req, res) => {
   try {
     const roomCode = parseInt(req.params.roomCode);
@@ -446,7 +444,7 @@ router.get("/:roomCode/users", async (req, res) => {
   }
 });
 
-
+// updates status for room whenever admin navigates to a new page
 router.patch("/:roomCode/status", async (req, res) => {
   try {
     const { roomCode } = req.params;
@@ -528,6 +526,7 @@ router.put("/incomplete/:roomCode", async (req, res) => {
   }
 });
 
+// updates currRound whenever a round ends
 router.patch("/:roomCode/currRound", async (req, res) => {
   try {
     const { roomCode } = req.params;
