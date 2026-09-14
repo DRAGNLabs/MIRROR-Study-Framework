@@ -17,8 +17,15 @@ export function Interaction(){
     const { user } = location.state
     const { userId } = user;
     const roomCode = parseInt(user.roomCode);
+    const draftStorageKey = `chat_draft_${roomCode}_${userId}`;
     
-    const [prompt, setPrompt] = useState("");
+    const [prompt, setPrompt] = useState(() => {
+        try {
+            return localStorage.getItem(draftStorageKey) ?? "";
+        } catch {
+            return "";
+        }
+    });
 
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
@@ -38,6 +45,7 @@ export function Interaction(){
     const timerIntervalRef = useRef(null);
     const loadCurrUserMessages = useRef(false);
     const chatBoxRef = useRef(null);
+    const textareaRef = useRef(null);
     // const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -77,6 +85,26 @@ export function Interaction(){
         }
     }, [messages]);
 
+    useEffect(() => {
+        try {
+            if (prompt) {
+                localStorage.setItem(draftStorageKey, prompt);
+            } else {
+                localStorage.removeItem(draftStorageKey);
+            }
+        } catch {
+            // Ignore storage quota / private-mode failures
+        }
+    }, [prompt, draftStorageKey]);
+
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+    }, [prompt]);
+
+
 
     const handleSubmit = async(e) => {
         e.preventDefault();
@@ -105,12 +133,8 @@ export function Interaction(){
         <>
         {/* <div className="interactions-container"> */}
         <div className={`interactions-container ${timeRemaining !== null ? 'has-timer' : ''}`}>
-        {timeRemaining !== null && (
-            <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
-                ⏱ Time remaining: {formatTime(timeRemaining)}
-            </div>
-        )}
         
+      
 
         <header className="interaction-header">
             <button
@@ -123,6 +147,7 @@ export function Interaction(){
             >
                 Instructions
             </button>
+
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
             </h1>
@@ -149,22 +174,27 @@ export function Interaction(){
                 onClose={() => setShowResources(false)}
             />
 
-            <div className="chat-container">
+            <div className="chat-container" >
                 <ChatBox
                     messages={messages}
                     chatBoxRef={chatBoxRef}
                 />
 
+            {timeRemaining !== null && (
+                <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                    ⏱ Time remaining: {formatTime(timeRemaining)}
+                </div>
+            )}
+
                 <form className="chat-form" onSubmit={handleSubmit}>
                     <textarea
+                        ref={textareaRef}
                         className="chat-input"
                         rows={1}
                         placeholder="Type your message..."
                         value={prompt}
                         onChange={(e) => {
                             setPrompt(e.target.value);
-                            e.target.style.height = "auto";
-                            e.target.style.height = e.target.scrollHeight + "px";
                         }}
                         aria-label="Message input"
                     />
