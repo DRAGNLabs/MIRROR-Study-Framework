@@ -28,6 +28,9 @@ const httpServer = createServer(app);
 // In production single-service mode, frontend is served from the same origin,
 // so CORS is not strictly needed. This is mainly for local dev where the
 // Vite dev server (port 5173) and backend (port 3001) run on different ports.
+// const corsOrigin = process.env.CORS_ORIGIN
+//     ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+//     : ['http://localhost:5173'] //'http://10.37.255.255:5173'];
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 initializeSocketServer(httpServer, corsOrigin);
 
@@ -55,6 +58,6 @@ app.get("/{*splat}", (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-httpServer.listen(PORT, () =>
+httpServer.listen(PORT, "0.0.0.0", () =>
     console.log(`Server running on port ${PORT}`)
 );
