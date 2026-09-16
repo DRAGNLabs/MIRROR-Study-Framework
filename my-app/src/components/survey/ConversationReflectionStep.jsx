@@ -63,6 +63,7 @@ export default function ConversationReflectionStep({ messages, marks, onMarksCha
                   </span>
                 )}
                 <MarkdownMessage text={label} />
+                {/* <span className="reflection-message-text">{label}</span> */}
               </button>
               {isMarked && (
                 <div className="reflection-note-wrap">
