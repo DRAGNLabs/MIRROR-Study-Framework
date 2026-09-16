@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel } from "../../services/roomsService";
 import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
@@ -26,8 +26,12 @@ export function Admin() {
     const [start, setStart] = useState(true);
     const [count, setCount] = useState(3);
 
+    //This is populated from the backend when started to read from the available models 
+    const [modelIds, setModelIds] = useState([]);
+    const [selectedModel, setSelectedModel] = useState("openai/gpt-4.1-mini");
+
     const [selectedGame, setSelectedGame] = useState(null);
-    const [selectedModel, setSelectedModel] = useState("gpt-4o");
+    // const [selectedModel, setSelectedModel] = useState("gpt-4o");
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
     // Stores the list of completed rooms from the db
@@ -119,6 +123,16 @@ export function Admin() {
       }
     }, [location.state?.showCompletedRooms]);
 
+    // useEffect(() => {
+    //   getModels()
+    //     .then(models => {
+    //       setModelIds(models);
+    //     })
+    //     .catch(error => {
+    //       console.error(error);
+    //     });
+    // }, []);
+
     
     async function createRoom() { //changes the page to customize the room
         setCompleted(false);
@@ -146,6 +160,7 @@ export function Admin() {
             setRooms(rooms);
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?
+            // sendModel(selectedModel);
         } catch (error){
             console.error("Error:", error);
             // setError(error.message || "Something went wrong."); // at what point is there not going to be error.message, also why setError?
@@ -346,10 +361,10 @@ return (
           <div className="model-select">
             <div className="model-select-header">
               <label htmlFor="modelType" className="model-select-label">
-                ChatGPT model
+                Model
               </label>
               <p className="model-select-helper">
-                Choose which ChatGPT model this session will use.
+                Choose which model this session will use.
               </p>
             </div>
             <div className="model-select-control">
@@ -359,10 +374,23 @@ return (
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
               >
-                <option value="openai/gpt-4o">gpt-4o (default)</option>
-                <option value="openai/gpt-4.1">gpt-4.1</option>
-                <option value="openai/gpt-4.1-mini">gpt-4.1-mini</option>
-                <option value="openai/gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
+                {/* <option value="openai/gpt-4o">gpt-4o (default)</option> */}
+                <option value="openai/gpt-4.1-mini">GPT 4.1 Mini (for testing)</option>
+                {/* <option value="openai/gpt-4.1">gpt-4.1</option> */}
+                <option value="openai/gpt-5.6-sol-pro">GPT 5.6 Sol Pro</option>
+                <option value="openai/gpt-6-astra-pro">GPT 6 Astra Pro</option>
+                <option value="anthropic/claude-fable-5.1">Claude Fable 5.1</option>
+                <option value="anthropic/claude-opus-5">Claude Opus 5</option>
+                <option value="google/gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                {/* <option value="qwen/qwen3.5-397b-a17b">Qwen 3.5 397b</option> */}
+                <option value="qwen/qwen3.8-max-0902">Qwen 3.8 Max</option>
+                {/* <option value="openai/gpt-4.1-mini">gpt-4.1-mini (for testing)</option> */}
+                
+                {/* {modelIds.map((modelId) => (
+                  <option key={modelId} value={modelId}>
+                    {modelId}
+                  </option>
+                ))} */}
               </select>
             </div>
           </div>

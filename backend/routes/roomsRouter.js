@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();
 import db from "../db.js"; 
+import {getModelIds, updateModel} from "../llm.js"
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -37,9 +38,16 @@ router.post('/', async (req, res) => {
   }
 });
 
-
-// updates userIds and started to true, this will be used when admin directs users to instructions page
-// should consider getting rid of updating started to true as we do it earlier anyways
+router.get("/models", async (req, res) => {
+  try {
+    const models = await getModelIds();
+    res.json(models);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error getting models" });
+  }
+});
+// updates userIds and started to true, this will be used when admin directs users to interactions page
 router.patch("/:roomCode/userIds", async (req, res) => {
   try{
     const { userIds } = req.body;
@@ -554,5 +562,19 @@ router.patch("/:roomCode/currRound", async (req, res) => {
   }
 
 })
+
+//updatin the room with the model chosen 
+router.put("/:roomCode/updateModel", async (req, res) => {
+  try {
+    const { model } = req.body;
+
+    await updateModel(model);
+
+    res.json({ message: "Model updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error updating model" });
+  }
+});
 
 export default router;
