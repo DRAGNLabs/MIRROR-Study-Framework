@@ -2,8 +2,9 @@ import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
 
-const openaiClient = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const client = new OpenAI({
+  apiKey: process.env.OPEN_ROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
 });
 
 const openrouterClient = new OpenAI({

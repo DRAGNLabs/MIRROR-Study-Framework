@@ -32,7 +32,7 @@ export default function RoomManagement() {
   async function start() {
     const roomData = await getRoom(roomCode);
     const game = games.find(g => g.id === roomData.gameType);
-    const gameRoles = game.roles;
+    const gameRoles = game?.roles ?? [];
     await assignRoles(users, gameRoles);
     socket.emit("navigate-users", { roomCode, status: "instructions" });
     
@@ -43,14 +43,17 @@ export default function RoomManagement() {
   }
 
   async function assignRoles(usersInRoom, gameRoles) {
+    if (!Array.isArray(gameRoles) || gameRoles.length === 0) return;
     const shuffledRoles = [...gameRoles].sort(() => Math.random() - 0.5);
     for (let i = 0; i < usersInRoom.length; i++) {
       const user = usersInRoom[i];
-      const roleToAssign = shuffledRoles[i];
+      const roleToAssign = shuffledRoles[i % shuffledRoles.length];
+      const roleId = roleToAssign?.id ?? roleToAssign?.role;
+      if (!user?.userId || roleId == null) continue;
       try {
-        await setRole(user.userId, roleToAssign.id);
+        await setRole(user.userId, roleId);
       } catch (error) {
-        console.err(error.message);
+        console.error(error.message);
       }
     }
   }

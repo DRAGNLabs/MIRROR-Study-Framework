@@ -1084,3 +1084,48 @@
   flex-shrink: 0;
   text-align: right;
 }
+
+/* Survey reflection notes shown inline on completed room transcript */
+.message-survey-annotations {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-align: left;
+  width: 100%;
+}
+
+.message--bot .message-survey-annotations {
+  border-top-color: rgba(51, 65, 85, 0.22);
+}
+
+.message-survey-annotation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.message-survey-annotation-author {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  opacity: 0.95;
+}
+
+.message--bot .message-survey-annotation-author {
+  color: #475569;
+}
+
+.message-survey-annotation-note {
+  opacity: 0.92;
+  white-space: pre-wrap;
+}
+
+.message--bot .message-survey-annotation-note {
+  color: #334155;
+}

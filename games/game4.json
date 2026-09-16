@@ -67,7 +67,7 @@
         },
         {
             "id": "chatbot-interaction",
-            "label": "How often do you interact with chatbots (like ChatGPT, Gemini, etc.)?",
+            "label": "How often do you interact with chatbots (like ChatGPT, Gemini, Claude, etc.)?",
             "type": "select",
             "options": ["Never", "Rarely", "Sometimes", "Often", "Very Often"]
         },
@@ -90,7 +90,7 @@
         },
         {
             "id": "negotiation",
-            "label": "How satisfied are you with the process of negotiating with the lake manager",
+            "label": "How satisfied are you with the process of negotiating with the Lake Manager",
             "type": "scale",
             "min": 1,
             "max": 7,
@@ -125,11 +125,9 @@
                 "Confident",
                 "Honest",
                 "Negotiable",
-                "Empathetic",
                 "Consistent in reasoning",
                 "Transparent",
                 "Polite",
-                "Firm",
                 "Compromising"
             ]
         },
@@ -173,7 +171,7 @@
         },
         {
             "id": "agreement-4",
-            "label": "The Lake Manager offered interesting and unexpected solutions to the resource problem.",
+            "label": "The Lake Manager offered interesting or unexpected solutions to the resource problem.",
             "type": "scale",
             "min": 1,
             "max": 7,

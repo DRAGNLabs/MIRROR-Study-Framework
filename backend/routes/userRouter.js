@@ -125,7 +125,8 @@ router.get("/:userId", async (req, res) => {
 });
 
 
-
+// gets user with specific userName and roomCode
+// what is the point of this endpoint?
 router.get("/:userName/:roomCode", async (req, res) => {
     try {
         const userName = req.params.userName;

@@ -268,7 +268,7 @@ return (
                   <div className="room-meta">
                     <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
                     <span className="meta-item">{room.modelType}</span>
-                    <span className="meta-item">Needs {room.usersNeeded} user(s)</span>
+                    <span className="meta-item">Min {room.usersNeeded} user(s)</span>
                     <span className="meta-item">Started: {room.started ? "✅" : "❌"}</span>
                     {status && ( <span className={`meta-item`}>Status: {status}</span> )}
 
@@ -313,7 +313,7 @@ return (
 
           <h3 className="room-info-section">Participants</h3>
           <div className="label-inline">
-            <label>Users allowed</label>
+            <label>Minimum users</label>
             <input
               className="text-input small"
               type="number"
@@ -359,12 +359,10 @@ return (
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
               >
-                <option value="gpt-4o">gpt-4o (default)</option>
-                <option value="gpt-4.1">gpt-4.1</option>
-                <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-                <option value="gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
-                <option value="google/gemini-2.5-flash">gemini-2.5-flash</option>
-                {/* <option value="google/gemini-2.5-pro">gemini-2.5-pro</option> this one wasn't working*/}
+                <option value="openai/gpt-4o">gpt-4o (default)</option>
+                <option value="openai/gpt-4.1">gpt-4.1</option>
+                <option value="openai/gpt-4.1-mini">gpt-4.1-mini</option>
+                <option value="openai/gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
               </select>
             </div>
           </div>
