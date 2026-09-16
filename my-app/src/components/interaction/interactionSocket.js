@@ -46,6 +46,17 @@ export function useInteractionSocket(
         refreshRoomState();
     }, [refreshRoomState]);
 
+    // Re-sync from the DB on every (re)connect. Rejoining the socket room
+    // (see socketListener) only restores events going forward — anything
+    // the server broadcast while this client was disconnected (e.g.
+    // instructions-complete) is otherwise lost until a manual refresh.
+    useEffect(() => {
+        socket.on("connect", refreshRoomState);
+        return () => {
+            socket.off("connect", refreshRoomState);
+        };
+    }, [refreshRoomState]);
+
     useEffect(() => {
         socket.on("receive-message", (message) => {
             setMessages((prev) => [...prev, message]); 
