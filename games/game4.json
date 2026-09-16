@@ -9,7 +9,7 @@
         "task": "Please make your request, in terms of tons of fish, for this month. Act in accordance with your role. You get one request per round, and can use reasoning or persuasion to make your case.",
          "rounds": [
             {
-                "description": "Please make your request, in terms of tons of fish, for this month."
+                "description": "Each round (month) make your request for tons of fish."
             }
         ],
         "template": "Welcome to round {{curr_round}}! The lake currently has {{fish_available}} tons of fish available. Please submit your request for the amount of fish you'd like to catch this month."
