@@ -374,15 +374,15 @@ return (
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
               >
-                <option value="openai/gpt-4o">gpt-4o (default)</option>
+                {/* <option value="openai/gpt-4o">gpt-4o (default)</option>
                 <option value="openai/gpt-4.1">gpt-4.1</option>
                 <option value="openai/gpt-4.1-mini">gpt-4.1-mini</option>
-                <option value="openai/gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
-                {/* {modelIds.map((modelId) => (
+                <option value="openai/gpt-5.2-chat-latest">gpt-5.2-chat-latest</option> */}
+                {modelIds.map((modelId) => (
                   <option key={modelId} value={modelId}>
                     {modelId}
                   </option>
-                ))} */}
+                ))}
               </select>
             </div>
           </div>
