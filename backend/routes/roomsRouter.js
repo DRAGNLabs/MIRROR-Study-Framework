@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
     const sql = `
       INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType") 
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType";
+      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt";
     `;
 
     const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType]);
@@ -38,7 +38,8 @@ router.post('/', async (req, res) => {
 });
 
 
-// updates userIds and started to true, this will be used when admin directs users to interactions page
+// updates userIds and started to true, this will be used when admin directs users to instructions page
+// should consider getting rid of updating started to true as we do it earlier anyways
 router.patch("/:roomCode/userIds", async (req, res) => {
   try{
     const { userIds } = req.body;
@@ -67,11 +68,7 @@ router.patch("/:roomCode/userIds", async (req, res) => {
 // updates started when admin clicks start room
 router.patch("/:roomCode/started", async (req, res) => {
   try {
-    // const { userIds } = req.body;
     const { roomCode } = req.params;
-    // if (userIds === undefined) {
-    //     return res.status(400).json({ error: "userIds is required"})
-    // }
     const result = await db.query(
       'UPDATE rooms SET started = TRUE WHERE "roomCode" = $1 RETURNING "roomCode", started;', 
       [roomCode]);
@@ -275,7 +272,7 @@ router.patch("/:roomCode/completed", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT * FROM rooms ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
@@ -290,7 +287,7 @@ router.get("/nonCompleted", async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT * FROM rooms WHERE completed = FALSE ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms WHERE completed = FALSE ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
@@ -307,7 +304,7 @@ router.get("/isCompleted", async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "roomCode" ASC;'
+      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "createdAt" DESC;'
     );
     return res.status(200).json(result.rows);
 
@@ -319,6 +316,7 @@ router.get("/isCompleted", async (req, res) => {
 });
 
 // Lets us know if roomCode is valid or not
+// this should be a GET method I think....
 router.post("/valid", async (req, res) => { //return false if found in database because its already taken and not valid
   try {
     const roomCode = req.body.roomCode;
@@ -342,13 +340,17 @@ router.post("/valid", async (req, res) => { //return false if found in database 
   }
 });
 
-
+// what is this route method
 router.get("/:roomCode/login", async (req, res) => {
   try {
-    const roomCode = req.params.roomCode;
+    const roomCode = parseInt(req.params.roomCode);
+    if (isNaN(roomCode)) {
+      return res.status(400).json({error: "Invalid room code format"});
+    }
+
     const result = await db.query(
       'SELECT * FROM rooms WHERE "roomCode" = $1', 
-      [parseInt(roomCode)]
+      [roomCode]
     );
 
     const room = result.rows[0];
@@ -385,6 +387,7 @@ router.delete("/delete/:roomCode", async (req,res) => {
 
 });
 
+// gets room
 router.get("/:roomCode", async (req, res) => {
   try {
 
@@ -422,9 +425,14 @@ router.get("/:roomCode/users", async (req, res) => {
     }
 
     const result = await db.query(
-      'SELECT * FROM users WHERE "roomCode" = $1 ORDER BY "userId" ASC;', 
+      `SELECT u.* FROM users u WHERE u."userId" = ANY(
+        SELECT jsonb_array_elements_text("userIds")::INTEGER
+        FROM rooms 
+        WHERE "roomCode" = $1
+      )
+      ORDER BY u."userId" ASC;`,
       [roomCode]
-    );
+    )
   
     if (result.rowCount === 0) return res.status(404).json({ message: "users not found with corresponding roomCode" });
 
@@ -436,7 +444,7 @@ router.get("/:roomCode/users", async (req, res) => {
   }
 });
 
-
+// updates status for room whenever admin navigates to a new page
 router.patch("/:roomCode/status", async (req, res) => {
   try {
     const { roomCode } = req.params;
@@ -465,7 +473,60 @@ router.patch("/:roomCode/status", async (req, res) => {
 
 })
 
+//changes a rooms state from incomplete to complete
+router.put("/complete/:roomCode", async (req, res) => {
+  const { roomCode } = req.params;
 
+  try {
+    const result = await db.query(
+      `
+      UPDATE rooms
+      SET completed = TRUE
+      WHERE "roomCode" = $1
+      RETURNING *;
+      `,
+      [roomCode]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+//incase this is needed later to reopen a room, a rooms state is going from complete to incomplete
+//changes a rooms state from incomplete to complete
+router.put("/incomplete/:roomCode", async (req, res) => {
+  const { roomCode } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      UPDATE rooms
+      SET completed = FALSE
+      WHERE "roomCode" = $1
+      RETURNING *;
+      `,
+      [roomCode]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// updates currRound whenever a round ends
 router.patch("/:roomCode/currRound", async (req, res) => {
   try {
     const { roomCode } = req.params;

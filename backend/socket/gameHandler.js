@@ -19,11 +19,32 @@ function fillPrompt(template, values) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => values[key]);
 }
 
+// Add this near the top of gameHandler.js
+async function getRoomSafely(roomCode) {
+    try {
+        const room = await getRoom(roomCode);
+        return room;
+    } catch (error) {
+        // Room was deleted or doesn't exist
+        console.log(`Room ${roomCode} no longer exists, cleaning up...`);
+        deleteTimer(roomCode);
+        return null;
+    }
+}
+
 // used in start-round socket and getLlmResponse function
 async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
-    const room = await getRoom(roomCode);
+    const room = await getRoomSafely(roomCode);
+    if(!room) {
+        deleteTimer(roomCode);
+        return null;
+    }
+    // const room = await getRoom(roomCode);
+    // if (!room) {
+    //     deleteTimer(roomCode);
+    //     return null;
+    // }
     const round = room.curr_round;
-    // const round = currRounds[roomCode];
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
     // might want to change the line below to be conditional if there is an instruction prompt (as some games we won't prompt LLM for instructions)
@@ -70,7 +91,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         await delay(500); // trying to circumvent concurrency issues
     }
 
-    console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
+    // console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
     io.to(room.roomCode).emit("ai-start");
 
     let buffer = "";
@@ -96,6 +117,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
         let parsed;
         try {
+            // we techinically don't need to pass modelType to callLLM, I've made it so callLLM uses a cheaper model in .env
             const raw = await callLLM(extractionMessages, room.modelType);
             const cleaned = stripFences(raw);
             parsed = JSON.parse(cleaned);
@@ -148,7 +170,12 @@ async function getLlmResponse(io, roomCode) {
     }
     io.to(roomCode).emit("user-messages-complete");
     // const buffer = await getLlmText(io, roomCode, false, true);
-    const room = await getRoom(roomCode);
+    const room = await getRoomSafely(roomCode);
+    if (room == null || room.status === "survey") {
+        deleteTimer(roomCode);
+        // console.log("In survey mode, skipping LLM response")
+        return null;
+    }
     const round = room.curr_round;
     let buffer;
     try {
@@ -160,7 +187,11 @@ async function getLlmResponse(io, roomCode) {
     }
 
     try {
-        const room = await getRoom(roomCode);
+        const room = await getRoomSafely(roomCode);
+        if (room == null) {
+            deleteTimer(roomCode);
+            return null;
+        }
         const fish_amount = room.fish_amount ?? {};
         const llmResponses = room.llmResponse ?? {};
         llmResponses[round] = buffer;
@@ -169,8 +200,9 @@ async function getLlmResponse(io, roomCode) {
         const totalRounds = room.numRounds;
         if (round >= totalRounds) {
             io.to(roomCode).emit("game-complete");
-            const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended." };
+            const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "game-ended" };
             io.to(roomCode).emit("receive-message", endGameMsg);
+            io.to(roomCode).emit("timer-expired");
             return;
         } else if (fish_amount[round+1] < 5) {
             // abort game if fish is below 5 tons
@@ -178,13 +210,13 @@ async function getLlmResponse(io, roomCode) {
             await delay(500);
             io.to(roomCode).emit("receive-message", endGameMsg);
             io.to(roomCode).emit("game-complete");
+            io.to(roomCode).emit("timer-expired");
             return;
         } else {
             console.log(`Round ${round} completed, waiting for next round...`);
         }
 
         await updateCurrRound(round+1, roomCode);
-        // currRounds[roomCode] += 1;
         io.to(roomCode).emit("round-complete", round+1);
         await getLlmInstructions(io, roomCode, round+1);
     } catch (err) {
@@ -193,10 +225,11 @@ async function getLlmResponse(io, roomCode) {
 }
 
 export async function getLlmInstructions(io, roomCode, round) {
-    // if (!currRounds[roomCode]) {
-    //     currRounds[roomCode] = round
-    // }
-    const room = await getRoom(roomCode);
+    const room = await getRoomSafely(roomCode);
+    if (!room || room.status === "survey") {
+        deleteTimer(roomCode);
+        return null;
+    }
     const fish_amount = room.fish_amount ?? {};
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     let instructions = "";
@@ -213,15 +246,19 @@ export async function getLlmInstructions(io, roomCode, round) {
             curr_round: round,
             fish_available: fallbackFish
         });
-        const instruction_message = { sender: "llm", text: instructions, id: `instructions-${round}` };
+        const instruction_message = { sender: "llm", text: instructions, id: `llm-instructions-${round}` };
         // users don't receive instructions from socket if this await delay isn't here
         // hmm maybe this is why? do we need a longer wait delay...
+        // await appendLlmInstructions(roomCode, round, instructions);
         await delay(500); 
         io.to(roomCode).emit("receive-message", instruction_message); // would if we just did instructions-complete?
+        await appendLlmInstructions(roomCode, round, instructions);
     } else {
         instructions = await getLlmText(io, roomCode, true, false);
+        await appendLlmInstructions(roomCode, round, instructions);
     }
-    await appendLlmInstructions(roomCode, round, instructions);
+
+    // await appendLlmInstructions(roomCode, round, instructions);
 
     io.to(roomCode).emit("instructions-complete", round);
 
@@ -231,7 +268,11 @@ export async function getLlmInstructions(io, roomCode, round) {
 
 export async function submitUserMessages(io, roomCode, userId, userName, text) {
     // const userMsg = { sender: "user", userId: userId, userName: userName, text: text };
-    const room = await getRoom(roomCode);
+    const room = await getRoomSafely(roomCode);
+    if(!room) {
+        deleteTimer(roomCode);
+        return null;
+    }
     const round = room.curr_round;
     const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
@@ -260,14 +301,21 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
 }
 
 
-export async function surveyComplete(io, roomCode, surveyId, userId) {
-    io.to(roomCode).emit("user-survey-complete", { userId, surveyId });
-    const currRoom = await getRoom(roomCode);
+export async function surveyComplete(io, roomCode, userId) {
+    io.to(roomCode).emit("user-survey-complete", { userId, roomCode });
+    const currRoom = await getRoomSafely(roomCode);
+    if (!currRoom) {
+        deleteTimer(roomCode);
+        return null;
+    }
 
     let surveyCompleted = true;
     for (const id of currRoom.userIds) {
-        const { completed } = await getSurveyStatus(userId)
-        if (completed == 0) surveyCompleted = false;
+        const { completed } = await getSurveyStatus(id)
+        if (completed == 0) {
+            surveyCompleted = false;
+            break;
+        }
     }
 
     if(surveyCompleted) {
@@ -289,7 +337,11 @@ function startRoundTimer(io, roomCode, round, conversationTime) {
 
     const timeout = setTimeout(async () =>{
         io.to(roomCode).emit("timer-expired");
-        const room = await getRoom(roomCode);
+        const room = await getRoomSafely(roomCode);
+        if (!room) {
+            deleteTimer(roomCode);
+            return;
+        }
         const existingUserMessages = room.userMessages; 
         if (existingUserMessages[round]) {
             await constructUserMessages(io, roomCode, existingUserMessages, round);
@@ -309,7 +361,8 @@ async function constructUserMessages(io, roomCode, existingUserMessages, round) 
             sender: "user",
             userId: uid,
             userName: user?.userName || `User ${uid}`,
-            text: txt
+            text: txt,
+            id: `${uid}-${round}`
         };
     })
 );
