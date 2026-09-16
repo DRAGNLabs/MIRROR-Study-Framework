@@ -55,7 +55,7 @@ export function Survey() {
     // so the CSS lock alone still lets the page rubber-band on the reflection step.
     // Pinning body to position:fixed removes it from the scroll flow entirely.
     useEffect(() => {
-        if (!isReflectionStep) return;
+        if (currentStep !== 0) return;
 
         const { body } = document;
         const scrollY = window.scrollY;
@@ -78,7 +78,7 @@ export function Survey() {
             body.style.overflow = prev.overflow;
             window.scrollTo(0, scrollY);
         };
-    }, [isReflectionStep]);
+    }, [currentStep]);
 
     const displaySteps = useMemo(
         () => (survey ? buildDisplaySteps(survey.questions) : []),
