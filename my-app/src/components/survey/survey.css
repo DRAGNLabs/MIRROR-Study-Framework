@@ -19,6 +19,20 @@
   box-sizing: border-box;
 }
 
+/* Locks the outer document so only .reflection-chat scrolls on mobile
+   (mirrors the body:has() lock used for the interaction pages) */
+body:has(.survey-container.no-scroll) {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
+
+body:has(.survey-container.no-scroll) #root {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
 .survey-container.no-scroll .survey-card {
   flex: 1;
   min-height: 0;
