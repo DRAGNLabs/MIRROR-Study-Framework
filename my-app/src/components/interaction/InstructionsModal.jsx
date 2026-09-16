@@ -1,10 +1,11 @@
 import { createPortal } from 'react-dom';
+import MessageMarkdown from './MessageMarkdown.jsx'
 
 export default function InstructionsModal({ open, onClose, game, role, timeRemaining=null, formatTime=null }) {
   if (!open) return null;
 
   const instructions = game?.instructions;
-  const overview = typeof instructions === "string" ? instructions : instructions?.overview ?? "";
+  const overview = typeof instructions === "string" ? instructions : instructions?.content ?? "";
   const firstRound = instructions?.rounds?.[0];
 
   const modalContent = (
@@ -32,14 +33,16 @@ export default function InstructionsModal({ open, onClose, game, role, timeRemai
           <p>Loading context…</p>
         ) : (
           <>
-            <p>{overview || "No overview available."}</p>
-
+            <MessageMarkdown content = {overview || "No overview available."}/>
+{/* 
             {firstRound && (
               <>
                 <h3>Your task for this round</h3>
                 <p>{firstRound.description}</p>
               </>
-            )}
+            )} */}
+            <h3>Your task for this round</h3>
+            <p>{instructions.task}</p>
 
             {role && (
               <>
