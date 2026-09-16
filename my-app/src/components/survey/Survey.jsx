@@ -51,6 +51,35 @@ export function Survey() {
         localStorage.setItem(`${storageKey}_marks`, JSON.stringify(conversationMarks));
     }, [conversationMarks, storageKey]);
 
+    // iOS Safari ignores `overflow: hidden` on body/html for touch-drag scrolling,
+    // so the CSS lock alone still lets the page rubber-band on the reflection step.
+    // Pinning body to position:fixed removes it from the scroll flow entirely.
+    useEffect(() => {
+        if (currentStep !== 0) return;
+
+        const { body } = document;
+        const scrollY = window.scrollY;
+        const prev = {
+            position: body.style.position,
+            top: body.style.top,
+            width: body.style.width,
+            overflow: body.style.overflow,
+        };
+
+        body.style.position = "fixed";
+        body.style.top = `-${scrollY}px`;
+        body.style.width = "100%";
+        body.style.overflow = "hidden";
+
+        return () => {
+            body.style.position = prev.position;
+            body.style.top = prev.top;
+            body.style.width = prev.width;
+            body.style.overflow = prev.overflow;
+            window.scrollTo(0, scrollY);
+        };
+    }, [currentStep]);
+
     const displaySteps = useMemo(
         () => (survey ? buildDisplaySteps(survey.questions) : []),
         [survey]
