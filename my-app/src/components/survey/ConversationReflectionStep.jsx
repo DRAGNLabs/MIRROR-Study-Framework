@@ -1,6 +1,6 @@
 /** Reflection step: user reviews conversation and marks up to 3 moments with optional notes. */
 
-import MarkdownMessage from "../components/MarkdownMessage.jsx";
+import MarkdownMessage from "../MarkdownMessage.jsx";
 
 const MAX_MARKS = 3;
 const PROMPT =
