@@ -90,7 +90,7 @@
         },
         {
             "id": "negotiation",
-            "label": "How satisfied are you with the process of negotiating with the Lake Manager",
+            "label": "How satisfied are you with the process of negotiating with the lake manager",
             "type": "scale",
             "min": 1,
             "max": 7,
@@ -125,9 +125,11 @@
                 "Confident",
                 "Honest",
                 "Negotiable",
+                "Empathetic",
                 "Consistent in reasoning",
                 "Transparent",
                 "Polite",
+                "Firm",
                 "Compromising"
             ]
         },
