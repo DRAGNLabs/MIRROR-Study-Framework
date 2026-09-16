@@ -11,12 +11,62 @@
 }
 
 .survey-container.no-scroll {
+  position: fixed;
+  inset: 0;
+  height: auto;
+  max-height: none;
   overflow: hidden;
-  /* height: 100vh; */
+  box-sizing: border-box;
+}
 
-  /* min-height: 0vh;
-  height: 100vh; */
+/* Locks the outer document so only .reflection-chat scrolls on mobile
+   (mirrors the body:has() lock used for the interaction pages) */
+body:has(.survey-container.no-scroll) {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
 
+body:has(.survey-container.no-scroll) #root {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.survey-container.no-scroll .survey-card {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.survey-container.no-scroll .conversation-reflection {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.survey-container.no-scroll .reflection-prompt,
+.survey-container.no-scroll .reflection-summary {
+  flex-shrink: 0;
+}
+
+.survey-container.no-scroll .reflection-chat {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.survey-container.no-scroll .survey-nav {
+  flex-shrink: 0;
+  margin-top: 0.75rem;
 }
 
 @media (max-width: 768px) {
@@ -1080,39 +1130,32 @@ survey conversation thingy
   }
 }
 
-/* Fix reflection step - remove double scroll and reduce header size */
+/* Reflection step: keep prompt compact; layout lock is on .no-scroll */
 @media (max-width: 768px) {
   .survey-progress-wrapper {
-    padding: 0rem 0rem;
-    /* display: none; */
+    padding: 0;
   }
 
-  
-  
   .survey-progress-text {
     font-size: 0.75rem;
   }
-  
-  .conversation-reflection {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
+
   .reflection-prompt {
     font-size: 0.8rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .reflection-summary {
     font-size: 0.75rem;
     margin-bottom: 0.75rem;
   }
-  
-  .reflection-chat {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
+
+  .survey-container.no-scroll .survey-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .survey-container.no-scroll .survey-nav {
+    padding-top: 0.75rem;
   }
 }
 
