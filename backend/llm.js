@@ -2,52 +2,23 @@ import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
 
-const client = new OpenAI({
-  apiKey: process.env.OPEN_ROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
+// const client = new OpenAI({
+//   apiKey: process.env.OPEN_ROUTER_API_KEY,
+//   baseURL: "https://openrouter.ai/api/v1",
+// });
 
 const openrouterClient = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
 });
 
-function resolveRequestedModel(modelOverride) {
-  const trimmed = typeof modelOverride === "string" ? modelOverride.trim() : "";
+let model = 'default'
 
-  if (trimmed && trimmed !== "default") return trimmed;
 
-  const fallback = (process.env.OPENAI_MODEL || "").trim();
-  if (fallback) return fallback;
 
-  throw new Error("No model configured.");
-}
+export async function callLLM(messages) {
 
-function normalizeModel(modelOverride) {
-  const raw = resolveRequestedModel(modelOverride);
-
-  // keep old admin value working
-  if (raw === "gemini") {
-    return "google/gemini-2.5-flash";
-  }
-
-  return raw;
-}
-
-function getClientAndModel(modelOverride) {
-  const model = normalizeModel(modelOverride);
-
-  if (model.startsWith("google/")) {
-    return { client: openrouterClient, model };
-  }
-
-  return { client: openaiClient, model };
-}
-
-export async function callLLM(messages, modelOverride) {
-  const { client, model } = getClientAndModel(modelOverride);
-
-  const response = await client.responses.create({
+  const response = await openrouterClient.responses.create({
     model,
     input: messages,
   });
@@ -55,10 +26,9 @@ export async function callLLM(messages, modelOverride) {
   return response.output_text;
 }
 
-export async function streamLLM(prompt, onToken, modelOverride) {
-  const { client, model } = getClientAndModel(modelOverride);
+export async function streamLLM(prompt, onToken) {
 
-  const stream = await client.responses.stream({
+  const stream = await openrouterClient.responses.stream({
     model,
     input: prompt,
   });
@@ -69,4 +39,21 @@ export async function streamLLM(prompt, onToken, modelOverride) {
       if (token && onToken) onToken(token);
     }
   }
+}
+
+export async function getModelIds() {
+    const openrouterModels = await openrouterClient.models.list();
+
+    const filteredModelIds = openrouterModels.data
+        .filter(model =>
+            model.id.toLowerCase().startsWith("openai/") ||
+            model.id.toLowerCase().startsWith("google/")
+        )
+        .map(model => model.id);
+
+    return filteredModelIds;
+}
+export async function updateModel(setModel){
+    model = setModel
+    console.log(model)
 }
