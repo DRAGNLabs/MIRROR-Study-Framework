@@ -38,7 +38,7 @@ async function init() {
  * (the ones that aren't obvious)
  *
  * started is boolean value (0 or 1)
- * usersNeeded currently Integer, but might consider making it a list of a range of users
+ * usersNeeded is the minimum number of users required to start a room (not a max)
  * userIds is list of userIds in room
  * userMessages: {round#1: [[userId, userMessage], [userId2, userMessage2],...], round#2: [[userId, userMessage], [userId2, userMessage2],...],...} I changed it to lists since JSON doesn't support tuples
  * llmInstructions: {round#1: "llmInstructions1", round#2: "llmInstructions2",...}
