@@ -247,12 +247,17 @@ export async function getLlmInstructions(io, roomCode, round) {
             fish_available: fallbackFish
         });
         const instruction_message = { sender: "llm", text: instructions, id: `llm-instructions-${round}` };
-        // users don't receive instructions from socket if this await delay isn't here
-        // hmm maybe this is why? do we need a longer wait delay...
-        // await appendLlmInstructions(roomCode, round, instructions);
-        await delay(500); 
-        io.to(roomCode).emit("receive-message", instruction_message); // would if we just did instructions-complete?
+        // Persist before broadcasting: round-complete (and page mounts) trigger
+        // refreshRoomState() on every client at roughly this same moment, which
+        // re-fetches the room over REST and replaces the whole message list. If
+        // that fetch lands before this write finishes, it rebuilds messages from
+        // a room row that doesn't have this round's instructions yet and the
+        // just-broadcast message gets wiped back out on whichever clients lost
+        // the race. Writing first closes that window instead of just narrowing
+        // it with a delay.
         await appendLlmInstructions(roomCode, round, instructions);
+        await delay(500);
+        io.to(roomCode).emit("receive-message", instruction_message);
     } else {
         instructions = await getLlmText(io, roomCode, true, false);
         await appendLlmInstructions(roomCode, round, instructions);
