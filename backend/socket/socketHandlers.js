@@ -59,6 +59,12 @@ export async function handleDisconnect(io, socket) {
         }
 }
 
+
+export function isUserNameActive(roomCode, userName) {
+    const users = usersInRoom[roomCode] || [];
+    return users.some((u) => u.userName === userName);
+}
+
 export function handleCloseRoom(io, roomCode) {
     io.to(roomCode).emit("force-return-to-login");
     const clients = io.sockets.adapter.rooms.get(roomCode);
