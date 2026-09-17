@@ -6,6 +6,9 @@ import { jsonrepair } from "jsonrepair";
 const games = loadGames();
 const roundTimers = {}; // maybe make this rely on database?
 
+const roundsFinalizing = new Set(); // roomCode currently running getLlmResponse
+const instructionsInFlight = new Set(); // `${roomCode}:${round}` currently running getLlmInstructions
+
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -164,67 +167,90 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
 // this function is meant to get the LLM response when all users have responded
 async function getLlmResponse(io, roomCode) {
-    if (roundTimers[roomCode]) {
-        clearTimeout(roundTimers[roomCode].timeout);
-        delete roundTimers[roomCode];
-    }
-    io.to(roomCode).emit("user-messages-complete");
-    // const buffer = await getLlmText(io, roomCode, false, true);
-    const room = await getRoomSafely(roomCode);
-    if (room == null || room.status === "survey") {
-        deleteTimer(roomCode);
-        // console.log("In survey mode, skipping LLM response")
+    if (roundsFinalizing.has(roomCode)) {
+        console.log(`getLlmResponse already running for room ${roomCode}, skipping duplicate call`);
         return null;
     }
-    const round = room.curr_round;
-    let buffer;
+    roundsFinalizing.add(roomCode);
     try {
-        buffer = await getLlmText(io, roomCode, false, true);
-    } catch (err) {
-        console.error(`[Round ${round}] getLlmText crashed:`, err);
-        io.to(roomCode).emit("ai-end");
-        buffer = "An error occurred generating the response.";
-    }
-
-    try {
+        if (roundTimers[roomCode]) {
+            clearTimeout(roundTimers[roomCode].timeout);
+            delete roundTimers[roomCode];
+        }
+        io.to(roomCode).emit("user-messages-complete");
+        // const buffer = await getLlmText(io, roomCode, false, true);
         const room = await getRoomSafely(roomCode);
-        if (room == null) {
+        if (room == null || room.status === "survey") {
             deleteTimer(roomCode);
+            // console.log("In survey mode, skipping LLM response")
             return null;
         }
-        const fish_amount = room.fish_amount ?? {};
-        const llmResponses = room.llmResponse ?? {};
-        llmResponses[round] = buffer;
-        await updateLlmResponse(llmResponses, roomCode);
-
-        const totalRounds = room.numRounds;
-        if (round >= totalRounds) {
-            io.to(roomCode).emit("game-complete");
-            const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "game-ended" };
-            io.to(roomCode).emit("receive-message", endGameMsg);
-            io.to(roomCode).emit("timer-expired");
-            return;
-        } else if (fish_amount[round+1] < 5) {
-            // abort game if fish is below 5 tons
-            const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
-            await delay(500);
-            io.to(roomCode).emit("receive-message", endGameMsg);
-            io.to(roomCode).emit("game-complete");
-            io.to(roomCode).emit("timer-expired");
-            return;
-        } else {
-            console.log(`Round ${round} completed, waiting for next round...`);
+        const round = room.curr_round;
+        let buffer;
+        try {
+            buffer = await getLlmText(io, roomCode, false, true);
+        } catch (err) {
+            console.error(`[Round ${round}] getLlmText crashed:`, err);
+            io.to(roomCode).emit("ai-end");
+            buffer = "An error occurred generating the response.";
         }
 
-        await updateCurrRound(round+1, roomCode);
-        io.to(roomCode).emit("round-complete", round+1);
-        await getLlmInstructions(io, roomCode, round+1);
-    } catch (err) {
-        console.error(`[Round ${round}] getLlmResponse post-processing crashed:`, err);
+        try {
+            const room = await getRoomSafely(roomCode);
+            if (room == null) {
+                deleteTimer(roomCode);
+                return null;
+            }
+            const fish_amount = room.fish_amount ?? {};
+            const llmResponses = room.llmResponse ?? {};
+            llmResponses[round] = buffer;
+            await updateLlmResponse(llmResponses, roomCode);
+
+            const totalRounds = room.numRounds;
+            if (round >= totalRounds) {
+                io.to(roomCode).emit("game-complete");
+                const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "game-ended" };
+                io.to(roomCode).emit("receive-message", endGameMsg);
+                io.to(roomCode).emit("timer-expired");
+                return;
+            } else if (fish_amount[round+1] < 5) {
+                // abort game if fish is below 5 tons
+                const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
+                await delay(500);
+                io.to(roomCode).emit("receive-message", endGameMsg);
+                io.to(roomCode).emit("game-complete");
+                io.to(roomCode).emit("timer-expired");
+                return;
+            } else {
+                console.log(`Round ${round} completed, waiting for next round...`);
+            }
+
+            await updateCurrRound(round+1, roomCode);
+            io.to(roomCode).emit("round-complete", round+1);
+            await getLlmInstructions(io, roomCode, round+1);
+        } catch (err) {
+            console.error(`[Round ${round}] getLlmResponse post-processing crashed:`, err);
+        }
+    } finally {
+        roundsFinalizing.delete(roomCode);
     }
 }
 
 export async function getLlmInstructions(io, roomCode, round) {
+    const key = `${roomCode}:${round}`;
+    if (instructionsInFlight.has(key)) {
+        console.log(`getLlmInstructions already running for room ${roomCode} round ${round}, skipping duplicate call`);
+        return null;
+    }
+    instructionsInFlight.add(key);
+    try {
+        return await getLlmInstructionsInner(io, roomCode, round);
+    } finally {
+        instructionsInFlight.delete(key);
+    }
+}
+
+async function getLlmInstructionsInner(io, roomCode, round) {
     const room = await getRoomSafely(roomCode);
     if (!room || room.status === "survey") {
         deleteTimer(roomCode);

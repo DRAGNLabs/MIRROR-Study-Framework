@@ -59,12 +59,20 @@ export function useInteractionSocket(
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
-            setMessages((prev) => [...prev, message]); 
+            setMessages((prev) =>
+                message.id && prev.some((m) => m.id === message.id)
+                    ? prev
+                    : [...prev, message]
+            );
         });
 
         socket.on("all-user-messages", ({ round, messages }) => {
             loadCurrUserMessages.current = true;
-            setMessages((prev) => [...prev, ...messages]);
+            setMessages((prev) => {
+                const existingIds = new Set(prev.map((m) => m.id));
+                const newOnes = messages.filter((m) => !existingIds.has(m.id));
+                return [...prev, ...newOnes];
+            });
         });
 
         socket.on("ai-start", () => {
