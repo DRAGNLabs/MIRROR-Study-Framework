@@ -40,27 +40,34 @@ export default function Login() {
                 setError("This session has already ended.");
                 return;
             }
-            if (userIds.length > 0) {
-                const user = await getCreatedUser(name, parsedRoomCode);
-                if (!user) {
-                    setError("This room has already started. You are not part of this session.");
-                    return;
-                }   
-            
-                const status = room.status;
+  
+            const existingUser = await getCreatedUser(name, parsedRoomCode);
+            if (existingUser) {
+                const status = room.status
+                if (status === "waiting" && existingUser.connected) {
+                    setError("That name is already active in this room. Please use a different name.");
+                    return; 
+                }
+                
                 if (status === "waiting") {
-                    navigate("/waiting", { state: { user }});
+                    navigate("/waiting", { state: { user: existingUser }});
                 } else if (status === "instructions") {
-                    navigate("/instructions", { state: { user }});
+                    navigate("/instructions", { state: { user: existingUser }});
                 } else if (status === "interaction") {
-                    navigate("/interaction", { state: { user }});
+                    navigate("/interaction", { state: { user: existingUser }});
                 } else if (status === "survey") {
-                    navigate("/survey", { state: { user }});
+                    navigate("/survey", { state: { user: existingUser }});
                 }
                 return;
             }
+
+            if (userIds.length > 0) {
+                setError("This room has already started. You are not part of this session.");
+                return;
+            }
+
             const user = await loginUser(name, parsedRoomCode);
-            navigate("/waiting", { state: { user } }); 
+            navigate("/waiting", { state: { user } });
         } catch (err) {
             setError(err.message || "Something went wrong. Please try again.");
         }

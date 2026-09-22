@@ -7,6 +7,14 @@ export function initializeSocketServer(httpServer, corsOrigin) {
         cors: {
             origin: corsOrigin,
             methods: ['GET', 'POST']
+        },
+        // Bridges brief drops (mobile network handoffs, Railway's proxy
+        // cycling idle connections) by keeping the socket's room
+        // membership and replaying missed broadcasts for a short window
+        // after reconnect, instead of silently losing them.
+        connectionStateRecovery: {
+            maxDisconnectionDuration: 2 * 60 * 1000,
+            skipMiddlewares: true,
         }
     });
 

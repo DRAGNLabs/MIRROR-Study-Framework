@@ -1,5 +1,6 @@
 import express from "express";
-import db from "../db.js"; 
+import db from "../db.js";
+import { isUserNameActive } from "../socket/socketHandlers.js";
  
 const router = express.Router();
 
@@ -149,7 +150,8 @@ router.get("/:userName/:roomCode", async (req, res) => {
         if (row === undefined) {
                 return res.status(200).json(null);
         }
-        res.status(200).json(row);
+
+        res.status(200).json({ ...row, connected: isUserNameActive(roomCode, userName) });
 
 
     } catch (err) {

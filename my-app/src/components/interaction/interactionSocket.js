@@ -46,14 +46,33 @@ export function useInteractionSocket(
         refreshRoomState();
     }, [refreshRoomState]);
 
+    // Re-sync from the DB on every (re)connect. Rejoining the socket room
+    // (see socketListener) only restores events going forward — anything
+    // the server broadcast while this client was disconnected (e.g.
+    // instructions-complete) is otherwise lost until a manual refresh.
+    useEffect(() => {
+        socket.on("connect", refreshRoomState);
+        return () => {
+            socket.off("connect", refreshRoomState);
+        };
+    }, [refreshRoomState]);
+
     useEffect(() => {
         socket.on("receive-message", (message) => {
-            setMessages((prev) => [...prev, message]); 
+            setMessages((prev) =>
+                message.id && prev.some((m) => m.id === message.id)
+                    ? prev
+                    : [...prev, message]
+            );
         });
 
         socket.on("all-user-messages", ({ round, messages }) => {
             loadCurrUserMessages.current = true;
-            setMessages((prev) => [...prev, ...messages]);
+            setMessages((prev) => {
+                const existingIds = new Set(prev.map((m) => m.id));
+                const newOnes = messages.filter((m) => !existingIds.has(m.id));
+                return [...prev, ...newOnes];
+            });
         });
 
         socket.on("ai-start", () => {
