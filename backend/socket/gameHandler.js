@@ -101,7 +101,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     await streamLLM(messages, token => {
         buffer += token;
         io.to(room.roomCode).emit("ai-token", token); // allows tokens to be appended to LLM message as they come
-    }, room.modelType);
+    }, room.modelType, { roomCode: room.roomCode, round, callType: getInstructions ? "instructions" : "response" });
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(room.roomCode).emit("ai-end");
 
@@ -121,11 +121,11 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         let parsed;
         try {
             // we techinically don't need to pass modelType to callLLM, I've made it so callLLM uses a cheaper model in .env
-            const raw = await callLLM(extractionMessages, room.modelType);
+            const raw = await callLLM(extractionMessages, room.modelType, { roomCode: room.roomCode, round, callType: "extraction" });
             const cleaned = stripFences(raw);
             parsed = JSON.parse(cleaned);
         } catch (err) {
-            const raw = await callLLM(extractionMessages, room.modelType);
+            const raw = await callLLM(extractionMessages, room.modelType, { roomCode: room.roomCode, round, callType: "extraction-retry" });
             const cleaned = stripFences(raw);
             const repaired = jsonrepair(cleaned);
             parsed = JSON.parse(repaired);
