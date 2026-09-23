@@ -7,9 +7,10 @@ import { getRoom } from "../../services/roomsService";
 import { socket } from '../../socket'
 import games from "../../gameLoader";
 import ConversationModal from "./ConversationModal";
+import ResourceHistoryModal from "./ResourceHistoryModal";
 import ConversationReflectionStep from "./ConversationReflectionStep";
 import { SortRankList } from "./SortRankList";
-import { buildConversation, buildDisplaySteps, displayStepHasUnanswered, formatAnswer, isRequiredQuestionUnanswered } from "./surveyUtils";
+import { buildConversation, buildResourceHistory, buildDisplaySteps, displayStepHasUnanswered, formatAnswer, isRequiredQuestionUnanswered } from "./surveyUtils";
 import './survey.css'
 
 
@@ -33,7 +34,9 @@ export function Survey() {
     });
     const [fromReview, setFromReview] = useState(false);
     const [showConversation, setShowConversation] = useState(false);
+    const [showResources, setShowResources] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
+    const [resourceHistory, setResourceHistory] = useState([]);
     const [conversationMarks, setConversationMarks] = useState(() => {
         const saved = localStorage.getItem(`${storageKey}_marks`);
         return saved ? JSON.parse(saved) : [];
@@ -111,6 +114,7 @@ export function Survey() {
             const room = await getRoom(roomCode);
             const msgs = await buildConversation(room);
             setConversationMessages(msgs);
+            setResourceHistory(buildResourceHistory(room));
         }
 
         loadData();
@@ -256,16 +260,23 @@ export function Survey() {
 
             )}
 
-            {!isReflectionStep && (
-                <div className="conversation-btn-wrapper">
+            <div className="conversation-btn-wrapper">
+                {!isReflectionStep && (
                     <button
                         className="conversation-history-btn"
                         onClick={() => setShowConversation(true)}
                     >
                         Conversation History
                     </button>
-                </div>
-            )}
+                )}
+
+                <button
+                    className="conversation-history-btn resource-history-btn"
+                    onClick={() => setShowResources(true)}
+                >
+                    Resource History
+                </button>
+            </div>
 
             <div className="survey-card">
 
@@ -511,6 +522,13 @@ export function Survey() {
                 open={showConversation}
                 onClose={() => setShowConversation(false)}
                 messages={conversationMessages}
+            />
+
+            <ResourceHistoryModal
+                open={showResources}
+                onClose={() => setShowResources(false)}
+                resourceHistory={resourceHistory}
+                currentUserName={user?.userName}
             />
         </div>
     );

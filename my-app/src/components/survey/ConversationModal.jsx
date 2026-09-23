@@ -10,9 +10,9 @@ export default function ConversationModal({ open, onClose, messages }) {
   useEffect(() => {
     if (!open) return;
     if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+      chatBoxRef.current.scrollTop = 0;
     }
-  }, [messages, open]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -29,19 +29,22 @@ export default function ConversationModal({ open, onClose, messages }) {
         </div>
 
         <div className="conversation-modal-chat-box" ref={chatBoxRef}>
-          {messages.map((msg, i) => (
-            <div
-              key={msg.id ?? i}
-              className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
-            >
-              <span className="message-sender">
-                {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
-              </span>
-              <span>
-                <MessageMarkdown content={safeText} />
-              </span>
-            </div>
-          ))}
+          {messages.map((msg, i) => {
+            const safeText = typeof msg.text === "string" ? msg.text : "";
+            return (
+              <div
+                key={msg.id ?? i}
+                className={`message ${msg.sender === "user" ? "message--user" : "message--bot"}`}
+              >
+                <span className="message-sender">
+                  {msg.sender === "user" ? (msg?.userName || "You") : "LLM"}
+                </span>
+                <span>
+                  <MessageMarkdown content={safeText} />
+                </span>
+              </div>
+            );
+            })}
         </div>
       </div>
     </div>

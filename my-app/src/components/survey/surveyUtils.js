@@ -37,6 +37,26 @@ export async function buildConversation(room) {
     return messages;
 }
 
+
+export function buildResourceHistory(room) {
+    if (!room.resourceAllocations) return [];
+    try {
+        const parsed = room.resourceAllocations ?? {};
+        return Object.keys(parsed)
+            .sort((a, b) => Number(a) - Number(b))
+            .map((roundKey) => {
+                const entry = parsed[roundKey] || {};
+                return {
+                    round: Number(roundKey),
+                    allocations: entry.allocationByUserName || {}
+                };
+            });
+    } catch (err) {
+        console.error("Error parsing resourceAllocations:", err);
+        return [];
+    }
+}
+
 export function buildDisplaySteps(questions) {
     const steps = [];
     for (let i = 0; i < questions.length; i++) {
