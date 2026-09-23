@@ -377,13 +377,15 @@ return (
                 {/* <option value="openai/gpt-4o">gpt-4o (default)</option> */}
                 <option value="openai/gpt-4.1-mini">GPT 4.1 Mini (for testing)</option>
                 {/* <option value="openai/gpt-4.1">gpt-4.1</option> */}
-                <option value="openai/gpt-5.6-sol-pro">GPT 5.6 Sol Pro</option>
+                <option value="openai/gpt-6-astra">GPT 6 Astra</option>
                 <option value="openai/gpt-6-astra-pro">GPT 6 Astra Pro</option>
+                <option value="anthropic/claude-sonnet-5">Claude Sonnet 5</option>
                 <option value="anthropic/claude-fable-5.1">Claude Fable 5.1</option>
                 <option value="anthropic/claude-opus-5">Claude Opus 5</option>
+                <option value="google/gemini-3.8-flash">Gemini 3.8 Flash</option>
                 <option value="google/gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
                 {/* <option value="qwen/qwen3.5-397b-a17b">Qwen 3.5 397b</option> */}
-                <option value="qwen/qwen3.8-max-0902">Qwen 3.8 Max</option>
+                <option value="moonshotai/kimi-k3">Kimi K3</option>
                 {/* <option value="openai/gpt-4.1-mini">gpt-4.1-mini (for testing)</option> */}
                 
                 {/* {modelIds.map((modelId) => (
