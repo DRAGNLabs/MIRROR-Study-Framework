@@ -1,6 +1,6 @@
 /* === Survey Container (User Survey Page) === */
 .survey-container {
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   padding: 2rem;
   box-sizing: border-box;
@@ -72,13 +72,10 @@ body:has(.survey-container.no-scroll) #root {
 @media (max-width: 768px) {
   .survey-container {
     padding: 1rem 0.5rem;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
-  
+
   .hide-on-mobile {
     display: none !important;
   }
@@ -1082,13 +1079,17 @@ survey conversation thingy
 } */
  
   
-  /* Show conversation button on mobile */
+  /* Conversation/resource history buttons, side by side, at every width */
   .conversation-btn-wrapper {
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
     margin-bottom: 1rem;
     text-align: center;
   }
-  
+
   .conversation-history-btn {
     display: inline-block;
     padding: 0.75rem 1.5rem;
@@ -1101,9 +1102,35 @@ survey conversation thingy
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
-  
+
   .conversation-history-btn:active {
     transform: scale(0.98);
+  }
+
+  /* Distinguish it from Conversation History while staying in the same
+     blue family used throughout the survey/interaction pages. */
+  /* .resource-history-btn {
+    background: #0ea5e9;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+  } */
+
+  /* Keep this row available on the reflection step, which uses .no-scroll's
+     fixed flex-column layout — treat it like the other fixed-size children
+     (.reflection-prompt, .survey-nav, etc.) so it doesn't get squeezed. */
+  .survey-container.no-scroll .conversation-btn-wrapper {
+    flex-shrink: 0;
+  }
+
+  /* Let the embedded ResourcesPanel read as ordinary modal content instead
+     of the interaction page's flex-sidebar / mobile-fullscreen-overlay card. */
+  .conversation-modal-chat-box .resources-panel {
+    display: flex;
+    flex: 1 1 auto;
+    max-width: none;
+    width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
   }
 
   /* Fix slider cutoff on mobile */
@@ -1200,4 +1227,20 @@ survey conversation thingy
   text-align: center;
   padding: 2rem;
   margin: auto;
+}
+
+.conversation-modal-chat-box .resources-panel {
+  display: flex;
+  flex: 1 1 auto;
+  max-width: none;
+  width: 100%;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;   /* stop painting its own white card */
+}
+
+/* Resource modal only: white body instead of the chat's #fafafa */
+.conversation-modal-chat-box:has(.resources-panel) {
+  background: #ffffff;
 }
