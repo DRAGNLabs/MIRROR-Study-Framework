@@ -10,9 +10,9 @@ export default function ConversationModal({ open, onClose, messages }) {
   useEffect(() => {
     if (!open) return;
     if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+      chatBoxRef.current.scrollTop = 0;
     }
-  }, [messages, open]);
+  }, [open]);
 
   if (!open) return null;
 
