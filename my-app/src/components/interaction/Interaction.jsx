@@ -8,6 +8,7 @@ import ChatBox from "./ChatMessages";
 import ResourcesPanel from "./ResourcePanel";
 import './interaction.css'
 import { useInteractionSocket } from "./interactionSocket";
+// import { getUsersInRoom } from "./../../services/roomsService";
 
 
 export function Interaction(){
@@ -19,7 +20,7 @@ export function Interaction(){
     const roomCode = parseInt(user.roomCode);
     
     const [prompt, setPrompt] = useState("");
-
+    const [sentMessages, setSentMessages] = useState(0);
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
@@ -54,10 +55,11 @@ export function Interaction(){
         setTimeRemaining, 
         setStreamingText, 
         setCurrentStreamingId, 
+        setSentMessages,
         setCanSend, 
         setHasSentThisRound, 
         setGame, 
-        setUserRole
+        setUserRole,
     );
 
     useEffect(() => {
@@ -77,7 +79,8 @@ export function Interaction(){
         }
     }, [messages]);
 
-
+    // const totalUsers = getUsersInRoom(roomCode).
+    // console.log("Total Users:", totalUsers);
 
     const handleSubmit = async(e) => {
         e.preventDefault();
@@ -87,7 +90,7 @@ export function Interaction(){
         }
 
         if (!prompt.trim()) return;
-
+        
         const userName = user.userName;
         socket.emit("submit-round-message", {
             roomCode,
@@ -95,6 +98,11 @@ export function Interaction(){
             userName,
             text: prompt
         });
+        const newSentMessages = sentMessages + 1;
+        setSentMessages(newSentMessages);
+
+        
+        socket.emit("submit-users-messaged", {roomCode, newSentMessages});
 
         setPrompt("");
         setHasSentThisRound(true);
@@ -145,6 +153,7 @@ export function Interaction(){
                 isAdmin={false}
                 showResources={showResources}
                 onClose={() => setShowResources(false)}
+                sentMessages={sentMessages}
             />
 
             <div className="chat-container" >

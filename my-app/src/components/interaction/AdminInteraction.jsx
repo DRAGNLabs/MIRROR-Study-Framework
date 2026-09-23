@@ -10,11 +10,13 @@ import ResourcesPanel from "./ResourcePanel.jsx";
 import './interaction.css'
 import { useInteractionSocket } from "./interactionSocket.js";
 
+
 export default function AdminInteraction(){
     const location = useLocation();
     const navigate = useNavigate();
     const { roomCode } = location.state;
     const isAdmin = true;
+    const [sentMessages, setSentMessages] = useState(0);
 
     const [messages, setMessages] = useState([]); 
     const [streamingText, setStreamingText] = useState(""); 
@@ -40,8 +42,12 @@ export default function AdminInteraction(){
         setResourceHistory,
         setTimeRemaining,
         setStreamingText,
-        setCurrentStreamingId
+        setCurrentStreamingId,
+        setSentMessages
     )
+    useEffect(() => {
+        console.log("ADMIN sentMessages:", sentMessages);
+    }, [sentMessages]);
 
     useEffect(() => {
         if (!streamingText) return;
@@ -78,6 +84,7 @@ export default function AdminInteraction(){
     }
 
     return (
+        
         <div className={`admin-interaction-page ${timeRemaining !== null ? 'has-timer' : ''}`}>
             {timeRemaining !== null && (
                 <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
@@ -109,7 +116,6 @@ export default function AdminInteraction(){
                         isAdmin="Admin"
                     />
                 </div>
-
                 <ResourcesPanel
                     resourceHistory={resourceHistory}
                     timeRemaining={timeRemaining}
@@ -117,6 +123,7 @@ export default function AdminInteraction(){
                     isAdmin={true}
                     showResources={showResources}
                     onClose={() => setShowResources(false)}
+                    sentMessages={sentMessages}
                 />
             </div>
 

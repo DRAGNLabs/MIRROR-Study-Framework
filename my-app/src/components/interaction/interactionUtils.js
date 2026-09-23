@@ -1,5 +1,5 @@
 
-import { getUser, getUserRole } from "../../services/usersService";  
+import { getUser, getUserRole} from "../../services/usersService";  
 import { getRoom } from "../../services/roomsService"; 
 import games from "../../gameLoader"; 
     
@@ -14,7 +14,9 @@ export async function loadRoomState(
     setCanSend=null, 
     setHasSentThisRound=null, 
     setGame=null, 
-    setUserRole=null
+    setUserRole=null,
+    setSentMessages = null,
+    restoreSentMessages = true
 ) {
     try {
         const room = await getRoom(roomCode);
@@ -30,6 +32,29 @@ export async function loadRoomState(
         const llmResponse = room.llmResponse ?? {};
         const numRounds = room.numRounds ?? 1;
         const fish_amount = room.fish_amount ?? {};
+
+        if (setSentMessages && restoreSentMessages) {
+
+            // const currentRound = rounds.length
+            //     ? Math.max(...rounds.map(Number))
+            //     : 1;
+
+            // const currentRoundMessages = userMessages[currentRound] || [];
+            // const uniqueUsers = new Set(
+            //     currentRoundMessages.map(([userId]) => userId)
+            // );
+
+            // setSentMessages(uniqueUsers.size);
+            const currentRound = room.currentRound;
+            const currentRoundMessages = userMessages[currentRound] || [];
+
+            setSentMessages(currentRoundMessages.length);
+        }
+
+        const rounds = Object.keys(userMessages);
+
+
+
 
         const { messages, canSend, hasSentThisRound } = await resetMessages(
             llmInstructions,
