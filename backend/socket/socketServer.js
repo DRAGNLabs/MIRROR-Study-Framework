@@ -30,6 +30,12 @@ io.on("connection", (socket) => {
         io.to(roomCode).emit("change-status", { status });
     })
 
+    socket.on("submit-users-messaged", ({roomCode, newSentMessages}) => {
+        if(!roomCode) return;
+        console.log("messages sent:", newSentMessages);
+        io.to(roomCode).emit("change-users-messaged", {newSentMessages})
+    })
+
 
     // this triggers when admin starts game in roomManagement
     // socket.on("start-game", async ({roomCode}) => {
