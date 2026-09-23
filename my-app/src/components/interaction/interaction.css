@@ -497,6 +497,20 @@ body:has(.admin-interaction-page) {
   color: #64748b;
 }
 
+/* Same "sent" confirmation shown on the mobile status bar, surfaced here
+   too so laptop-width users (who never see that bar) still get it. */
+.resources-sent-confirmation {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.5rem 0;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #15803d;
+  background: #dcfce7;
+  border-radius: 9999px;
+}
+
 .resources-round-pill {
   display: inline-flex;
   align-items: center;
@@ -1213,6 +1227,14 @@ body:has(.admin-interaction-page) {
   display: none;
 }
 
+/* Shows send confirmation + the running sent-count on narrow screens, where
+   the resources panel (which already shows this on desktop) is hidden
+   behind the "Resources" toggle button. Admin doesn't send messages, so
+   this only appears in Interaction.jsx, never AdminInteraction.jsx. */
+.mobile-sent-status-bar {
+  display: none;
+}
+
 
 @media (max-width: 960px) {
   .mobile-timer-bar {
@@ -1231,15 +1253,33 @@ body:has(.admin-interaction-page) {
     -webkit-transform: translate3d(0, 0, 0);
     will-change: transform;
   }
-  
+
   .mobile-timer-bar.urgent {
     background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
     animation: pulse 1s infinite;
   }
-  
+
+  .mobile-sent-status-bar {
+    display: block;
+    padding: 8px 12px;
+    margin: 0;
+    background: #f1f5f9;
+    color: #475569;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  /* Stronger visual confirmation once this user's own message is in */
+  .mobile-sent-status-bar.sent {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
   /* Adjust container padding */
   /* .interactions-container.has-timer {
-    padding-top: 42px; 
+    padding-top: 42px;
   } */
 
   /* Hide timer in resources panel */

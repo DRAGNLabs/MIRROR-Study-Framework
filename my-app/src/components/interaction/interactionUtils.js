@@ -1,5 +1,5 @@
 
-import { getUser, getUserRole } from "../../services/usersService";  
+import { getUser, getUserRole} from "../../services/usersService";  
 import { getRoom } from "../../services/roomsService"; 
 import games from "../../gameLoader"; 
     
@@ -11,10 +11,11 @@ export async function loadRoomState(
     loadCurrUserMessages, 
     setMessages,
     setResourceHistory,
+    setSentMessages,
     setCanSend=null, 
     setHasSentThisRound=null, 
     setGame=null, 
-    setUserRole=null
+    setUserRole=null,
 ) {
     try {
         const room = await getRoom(roomCode);
@@ -30,6 +31,13 @@ export async function loadRoomState(
         const llmResponse = room.llmResponse ?? {};
         const numRounds = room.numRounds ?? 1;
         const fish_amount = room.fish_amount ?? {};
+
+        const currentRound = room.curr_round;
+        const currentRoundMessages = userMessages[currentRound] || [];
+        setSentMessages(currentRoundMessages.length);
+
+
+
 
         const { messages, canSend, hasSentThisRound } = await resetMessages(
             llmInstructions,

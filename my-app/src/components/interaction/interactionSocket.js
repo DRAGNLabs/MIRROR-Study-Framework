@@ -16,6 +16,7 @@ export function useInteractionSocket(
     setTimeRemaining,
     setStreamingText,
     setCurrentStreamingId,
+    setSentMessages,
     setCanSend = null,
     setHasSentThisRound = null,
     setGame=null,
@@ -35,6 +36,7 @@ export function useInteractionSocket(
             loadCurrUserMessages,
             setMessages, 
             setResourceHistory, 
+            setSentMessages,
             setCanSend, 
             setHasSentThisRound, 
             setGame, 
@@ -109,7 +111,9 @@ export function useInteractionSocket(
                 clearInterval(timerIntervalRef.current);
             }
             // Refresh to pull in updated llmResponse and resourceAllocations.
+            setSentMessages(0);
             refreshRoomState();
+            
         });
 
         if (!isAdmin) {
@@ -147,6 +151,11 @@ export function useInteractionSocket(
             }
         });
 
+        socket.on("change-users-messaged", ({newSentMessages}) => {
+            console.log("sent messages on front end:", newSentMessages);
+            setSentMessages(newSentMessages);
+        });
+
         return () => {
             socket.off("receive-message");
             socket.off("all-user-messages");
@@ -160,6 +169,7 @@ export function useInteractionSocket(
             }
             socket.off("timer-start");
             socket.off("timer-expired");
+            socket.off("change-users-messaged")
             if (timerIntervalRef.current) {
                 clearInterval(timerIntervalRef.current);
             }

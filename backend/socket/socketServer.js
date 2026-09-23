@@ -38,8 +38,7 @@ io.on("connection", (socket) => {
         io.to(roomCode).emit("change-status", { status });
     })
 
-
-    // this triggers when admin starts game in roomManagement
+// this triggers when admin starts game in roomManagement
     // socket.on("start-game", async ({roomCode}) => {
     //     if (!roomCode) return;
     //     // this one will send users from waitingRoom to interactions page

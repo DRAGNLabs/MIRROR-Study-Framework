@@ -7,8 +7,12 @@ export default function ResourcesPanel({
     currentUserName = null,
     isAdmin = false,
     showResources=false,
-    onClose=null
+    onClose=null,
+    sentMessages,
+    hasSentThisRound=false
 }) {
+    // const [sentMessages, setSentMessages] = useState(0);
+    
     const renderTotalAllocations = () => {
         const totals = {};
         resourceHistory.forEach(({ allocations }) => {
@@ -88,6 +92,10 @@ export default function ResourcesPanel({
             
             <div className="resources-header">
                 <div>
+                    {!isAdmin && hasSentThisRound && (
+                        <p className="resources-sent-confirmation">✓ Your message was sent</p>
+                    )}
+                    <h2 className="resources-subtitle">Messages Received: {sentMessages}</h2>
                     <h2 className="resources-title">Resource Allocations (Fish)</h2>
                     <p className="resources-subtitle">
                         {/* {isAdmin ? "Per-user allocations by round" : "How fish are divided this game"} */}
