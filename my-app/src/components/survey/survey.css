@@ -1,6 +1,6 @@
 /* === Survey Container (User Survey Page) === */
 .survey-container {
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   padding: 2rem;
   box-sizing: border-box;
@@ -72,13 +72,10 @@ body:has(.survey-container.no-scroll) #root {
 @media (max-width: 768px) {
   .survey-container {
     padding: 1rem 0.5rem;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
-  
+
   .hide-on-mobile {
     display: none !important;
   }
