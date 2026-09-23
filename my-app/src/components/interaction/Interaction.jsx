@@ -148,6 +148,7 @@ export function Interaction(){
                 showResources={showResources}
                 onClose={() => setShowResources(false)}
                 sentMessages={sentMessages}
+                hasSentThisRound={hasSentThisRound}
             />
 
             <div className="chat-container" >
@@ -159,6 +160,14 @@ export function Interaction(){
             {timeRemaining !== null && (
                 <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
                     ⏱ Time remaining: {formatTime(timeRemaining)}
+                </div>
+            )}
+
+            {timeRemaining !== null && (
+                <div className={`mobile-sent-status-bar ${hasSentThisRound ? 'sent' : ''}`}>
+                    {hasSentThisRound
+                        ? `✓ Your message was sent — ${sentMessages} sent this round`
+                        : `${sentMessages} message sent this round`}
                 </div>
             )}
 

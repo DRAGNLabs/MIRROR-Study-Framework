@@ -1,4 +1,3 @@
-import { getUsersInRoom } from "../../services/roomsService";
 import FishPerRoundChart from "./FishPerRoundChart";
 
 export default function ResourcesPanel({ 
@@ -9,7 +8,8 @@ export default function ResourcesPanel({
     isAdmin = false,
     showResources=false,
     onClose=null,
-    sentMessages
+    sentMessages,
+    hasSentThisRound=false
 }) {
     // const [sentMessages, setSentMessages] = useState(0);
     
@@ -92,6 +92,9 @@ export default function ResourcesPanel({
             
             <div className="resources-header">
                 <div>
+                    {!isAdmin && hasSentThisRound && (
+                        <p className="resources-sent-confirmation">✓ Your message was sent</p>
+                    )}
                     <h2 className="resources-subtitle">Messages Received: {sentMessages}</h2>
                     <h2 className="resources-title">Resource Allocations (Fish)</h2>
                     <p className="resources-subtitle">
