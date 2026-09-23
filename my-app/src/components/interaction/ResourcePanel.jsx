@@ -103,16 +103,21 @@ export default function ResourcesPanel({
                 </div>
             </div>
 
-            {resourceHistory.length > 0 ? (
-                <>
+            {resourceHistory.length > 0 && (
+                <div className="resources-summary">
                     {renderTotalAllocations()}
-                    {renderRoundBreakdown()}
-                </>
-            ) : (
-                <div className="resources-empty">
-                    <p>Fish allocations will appear here after the first round.</p>
                 </div>
             )}
+
+            <div className="resources-history-scroll">
+                {resourceHistory.length > 0 ? (
+                    renderRoundBreakdown()
+                ) : (
+                    <div className="resources-empty">
+                        <p>Fish allocations will appear here after the first round.</p>
+                    </div>
+                )}
+            </div>
         </aside>
     );
 }
