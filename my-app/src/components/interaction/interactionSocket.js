@@ -36,12 +36,11 @@ export function useInteractionSocket(
             loadCurrUserMessages,
             setMessages, 
             setResourceHistory, 
+            setSentMessages,
             setCanSend, 
             setHasSentThisRound, 
             setGame, 
-            setUserRole,
-            setSentMessages,
-            false
+            setUserRole
         );
     }, [isAdmin, roomCode, user, isStreamingRef, loadCurrUserMessages, setMessages, setResourceHistory, setCanSend, setHasSentThisRound, setGame, setUserRole]);
 
@@ -155,8 +154,7 @@ export function useInteractionSocket(
         socket.on("change-users-messaged", ({newSentMessages}) => {
             console.log("sent messages on front end:", newSentMessages);
             setSentMessages(newSentMessages);
-        }
-        )
+        });
 
         return () => {
             socket.off("receive-message");

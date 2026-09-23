@@ -324,6 +324,8 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
     await updateUserMessages(existingUserMessages, roomCode);
     // io.to(roomCode).emit("receive-message", userMsg);
 
+    io.to(roomCode).emit("change-users-messaged", { newSentMessages: existingUserMessages[round].length });
+
     if(existingUserMessages[round].length === room.userIds.length) {
         await constructUserMessages(io, roomCode, existingUserMessages, round);
         await delay(100);

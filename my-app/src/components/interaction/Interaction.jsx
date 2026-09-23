@@ -98,12 +98,6 @@ export function Interaction(){
             userName,
             text: prompt
         });
-        const newSentMessages = sentMessages + 1;
-        setSentMessages(newSentMessages);
-
-        
-        socket.emit("submit-users-messaged", {roomCode, newSentMessages});
-
         setPrompt("");
         setHasSentThisRound(true);
         setCanSend(false);
