@@ -45,9 +45,6 @@ export default function AdminInteraction(){
         setCurrentStreamingId,
         setSentMessages
     )
-    useEffect(() => {
-        console.log("ADMIN sentMessages:", sentMessages);
-    }, [sentMessages]);
 
     useEffect(() => {
         if (!streamingText) return;
