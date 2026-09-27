@@ -7,7 +7,8 @@ async function init() {
       "userId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
       "userName" TEXT NOT NULL,
       "roomCode" INTEGER NOT NULL,
-      role INTEGER NOT NULL DEFAULT 0 
+      role INTEGER NOT NULL DEFAULT 0,
+      user_status jsonb NOT NULL DEFAULT '{"1": 0}'::jsonb
     )
   `); //make default of role 0
 

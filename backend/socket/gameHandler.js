@@ -1,6 +1,7 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM, callLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound } from "../services/roomsService.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound } from "../services/roomsService.js";
+import { getUser, updateUserStatus } from "../services/usersService.js"
 import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
@@ -57,6 +58,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     const llmResponses = room.llmResponse ?? {};
     const userMessages = room.userMessages ?? {};
     const fish_amount = room.fish_amount ?? {};
+    
 
     const messages = [
         { "role": "system", "content": systemPrompt },
@@ -72,6 +74,29 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         const allUserIds = room.userIds || [];
         const roundMessages = userMessages[i] || [];
 
+        const town_report = ""
+
+        if (round > 1) {
+            town_report = (
+                await Promise.all(
+                    allUserIds.map(async (userId) => {
+                        const user = await getUser(userId);
+                        const name = user?.userName || `User ${userId}`;
+                        const status = user.user_status[round]
+                        const prev_status = user.user_status[round-1]
+                        const user_report = ""
+                        if ((prev_status < status && prev_status < 0) || (prev_status > status && prev_status > 0)) {
+                            user_report = fillPrompt(game.role_prompt[user.role][status]["llm_exit"], {user_name: name})
+                        } else {
+                           user_report = fillPrompt(game.role_prompt[user.role][status]["llm_enter"], {user_name: name})
+                        }
+                        fish_amount = room.resourceAllocations[round-1]["allocationByUserName"][name]["fish"]
+                        return `${name}: Last month you allocated ${fish_amount} tons to ${name}. ${user_report}\n`
+                    })
+                )
+            )
+        }
+
         const formattedUserMessages = (
             await Promise.all(
                 allUserIds.map(async (userId) => {
@@ -85,7 +110,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         ).join("\n");
         
         // do we want to put in this user instructions everytime?
-        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i] })} \n ${formattedUserMessages}` });
+        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: round, town_report: town_report })} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
@@ -145,6 +170,23 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
             fish_amount[round + 1] = fish_left * 2;
         }
         await updateFishAmount(fish_amount, roomCode);
+
+        for (const userId in allUserIds) {
+            const user = await getUser(userId)
+            const name = user?.userName || `User ${userId}`;
+            const user_allocation = allocationByUserName[name]["fish"]
+            const curr_user_status = user.user_status[round]
+            if (user_allocation < 20) { // kind of hardcoded with 20 tons of fish, might want to rethink that
+                curr_user_status = curr_user_status - 1
+            } else {
+                curr_user_status = curr_user_status + 1
+            }
+            const user_status = user.user_status
+            user_status[round+1] =  curr_user_status;
+            await updateUserStatus(userId, user_status);
+        }
+
+        // {1: 0, 2: 1}
 
         const existingResourceAllocations = room.resourceAllocations ?? {};
         existingResourceAllocations[round] = {

@@ -104,15 +104,6 @@ export async function updateCurrRound(currRound, roomCode) {
     return response.json();
 }
 
-// these should probably be in different service file (this one in userService and other in surveyService),
-// I just felt like it was annoying to have one function in each file so added them to this one
-export async function getUser(userId) {
-    const response = await fetch(`${API_BASE}/users/${userId}`);
-    if (!response.ok) throw new Error("Can't get user.");
-
-    return response.json();
-}
-
 // for adminSurvey page, checking if each user has finished their survey
 export async function getSurveyStatus(userId) {
   const response = await fetch(`${API_BASE}/survey/${userId}`, {

@@ -194,5 +194,37 @@ router.delete("/delete/:userId", async (req,res) => {
 });
 
 
+// updates user_status for user
+router.patch("/:userId/user_status", async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { user_status } = req.body;
+        if (userId === undefined || user_id === undefined) {
+            return res.status(400).json({ error: "userId and user_status are required"});
+        }
+
+        const result = await db.query(
+            'UPDATE users SET user_status = $1 WHERE "userId" = $2 RETURNING user_status, "userId";', 
+            [user_status, userId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        return res.status(200).json({
+            userId: result.rows[0].userId, 
+            user_status: result.rows[0].user_status, 
+            message: "user_status in users successfully updated!"
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message });
+    }
+
+});
+
+
 
 export default router;
