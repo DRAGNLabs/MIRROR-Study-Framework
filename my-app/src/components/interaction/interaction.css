@@ -52,6 +52,11 @@ body:has(.admin-interaction-page) {
 
 .interaction-header-title {
   margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 1.125rem;
   font-weight: 600;
   color: #1e293b;
@@ -428,6 +433,95 @@ body:has(.admin-interaction-page) {
 
 .modal-card h2 {
   text-align: center;
+}
+
+/* Status update popup (private per-user "something happened" notice) */
+.status-update-card {
+  max-width: 480px;
+  border-top: 6px solid #94a3b8;
+}
+
+.status-update-card--good {
+  border-top-color: #16a34a;
+}
+
+.status-update-card--good .instruction-modal-header h2 {
+  color: #15803d;
+}
+
+.status-update-card--bad {
+  border-top-color: #dc2626;
+}
+
+.status-update-card--bad .instruction-modal-header h2 {
+  color: #b91c1c;
+}
+
+.status-update-card .modal-content-wrapper p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+/* Status history list (the "My Status" button's modal) */
+.status-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-history-item {
+  border-left: 4px solid #94a3b8;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.status-history-item--good {
+  border-left-color: #16a34a;
+}
+
+.status-history-item--bad {
+  border-left-color: #dc2626;
+}
+
+.status-history-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.status-history-round {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.status-history-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+  color: #fff;
+}
+
+.status-history-item--good .status-history-badge {
+  background: #16a34a;
+}
+
+.status-history-item--bad .status-history-badge {
+  background: #dc2626;
+}
+
+.status-history-message {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #334155;
 }
 
 
