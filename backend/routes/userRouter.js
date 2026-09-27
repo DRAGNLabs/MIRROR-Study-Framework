@@ -199,7 +199,7 @@ router.patch("/:userId/user_status", async (req, res) => {
     try {
         const { userId } = req.params;
         const { user_status } = req.body;
-        if (userId === undefined || user_id === undefined) {
+        if (userId === undefined || user_status === undefined) {
             return res.status(400).json({ error: "userId and user_status are required"});
         }
 

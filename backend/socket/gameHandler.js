@@ -58,7 +58,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     const llmResponses = room.llmResponse ?? {};
     const userMessages = room.userMessages ?? {};
     const fish_amount = room.fish_amount ?? {};
-    
+    const allUserIds = room.userIds || [];
 
     const messages = [
         { "role": "system", "content": systemPrompt },
@@ -68,33 +68,41 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         if (!game.instructions?.template) { // basically only puts instructions prompt in if we don't have a template in the file
             messages.push({ "role": "user", "content": instructionsPrompt})
             // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
-        } 
+        }
         if (!llmInstructions[i]) break;
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        const allUserIds = room.userIds || [];
         const roundMessages = userMessages[i] || [];
 
-        const town_report = ""
+        let town_report = "";
 
-        if (round > 1) {
-            town_report = (
-                await Promise.all(
-                    allUserIds.map(async (userId) => {
-                        const user = await getUser(userId);
-                        const name = user?.userName || `User ${userId}`;
-                        const status = user.user_status[round]
-                        const prev_status = user.user_status[round-1]
-                        const user_report = ""
-                        if ((prev_status < status && prev_status < 0) || (prev_status > status && prev_status > 0)) {
-                            user_report = fillPrompt(game.role_prompt[user.role][status]["llm_exit"], {user_name: name})
-                        } else {
-                           user_report = fillPrompt(game.role_prompt[user.role][status]["llm_enter"], {user_name: name})
-                        }
-                        fish_amount = room.resourceAllocations[round-1]["allocationByUserName"][name]["fish"]
-                        return `${name}: Last month you allocated ${fish_amount} tons to ${name}. ${user_report}\n`
-                    })
-                )
-            )
+        if (i > 1 && game.role_prompt) {
+            const reports = await Promise.all(
+                allUserIds.map(async (userId) => {
+                    const user = await getUser(userId);
+                    const name = user?.userName || `User ${userId}`;
+                    const status = user.user_status?.[i] ?? 0;
+                    const prev_status = user.user_status?.[i - 1] ?? 0;
+                    const rolePrompts = game.role_prompt[user.role];
+                    if (!rolePrompts) return "";
+
+                    // Moving further from 0 (either direction) is an "enter" into
+                    // the new, more extreme status; moving back toward 0 is an
+                    // "exit" from the status being left, so it's keyed by the old
+                    // status, not the new one.
+                    const isExit =
+                        (prev_status < status && prev_status < 0) ||
+                        (prev_status > status && prev_status > 0);
+                    const statusKey = isExit ? prev_status : status;
+                    const promptSet = rolePrompts[statusKey];
+                    const user_report = promptSet
+                        ? fillPrompt(promptSet[isExit ? "llm_exit" : "llm_enter"], { user_name: name })
+                        : "";
+
+                    const lastAllocation = room.resourceAllocations?.[i - 1]?.allocationByUserName?.[name]?.fish ?? 0;
+                    return `${name}: Last month you allocated ${lastAllocation} tons to ${name}. ${user_report}\n`;
+                })
+            );
+            town_report = reports.join("");
         }
 
         const formattedUserMessages = (
@@ -108,9 +116,9 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
                 })
             )
         ).join("\n");
-        
+
         // do we want to put in this user instructions everytime?
-        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: round, town_report: town_report })} \n ${formattedUserMessages}` });
+        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: i, town_report: town_report })} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
@@ -171,19 +179,37 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         }
         await updateFishAmount(fish_amount, roomCode);
 
-        for (const userId in allUserIds) {
-            const user = await getUser(userId)
-            const name = user?.userName || `User ${userId}`;
-            const user_allocation = allocationByUserName[name]["fish"]
-            const curr_user_status = user.user_status[round]
-            if (user_allocation < 20) { // kind of hardcoded with 20 tons of fish, might want to rethink that
-                curr_user_status = curr_user_status - 1
-            } else {
-                curr_user_status = curr_user_status + 1
+        if (game.role_prompt) {
+            for (const userId of allUserIds) {
+                const user = await getUser(userId);
+                const name = user?.userName || `User ${userId}`;
+                const user_allocation = allocationByUserName[name]?.fish ?? 0;
+                const prev_status = user.user_status?.[round] ?? 0;
+                let curr_user_status = prev_status;
+                const gotEnoughFish = user_allocation >= 20; // kind of hardcoded with 20 tons of fish, might want to rethink that
+                curr_user_status = gotEnoughFish ? curr_user_status + 1 : curr_user_status - 1;
+
+                const user_status = user.user_status ?? {};
+                user_status[round + 1] = curr_user_status;
+                await updateUserStatus(userId, user_status);
+
+                const rolePrompts = game.role_prompt[user.role];
+                const isExit =
+                    (prev_status < curr_user_status && prev_status < 0) ||
+                    (prev_status > curr_user_status && prev_status > 0);
+                const statusKey = isExit ? prev_status : curr_user_status;
+                const promptSet = rolePrompts?.[statusKey];
+                if (promptSet) {
+                    const kind = isExit ? "exit" : "enter";
+                    io.to(`user-${userId}`).emit("status-update", {
+                        round: round + 1,
+                        status: curr_user_status,
+                        kind,
+                        good: gotEnoughFish,
+                        message: fillPrompt(promptSet[kind], { user_name: name })
+                    });
+                }
             }
-            const user_status = user.user_status
-            user_status[round+1] =  curr_user_status;
-            await updateUserStatus(userId, user_status);
         }
 
         // {1: 0, 2: 1}
