@@ -12,6 +12,18 @@ async function init() {
     )
   `); //make default of role 0
 
+  // Same issue as the rooms migration below: CREATE TABLE IF NOT EXISTS skips
+  // altering a users table that already existed before role/user_status were
+  // added to this definition.
+  await db.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS role INTEGER NOT NULL DEFAULT 0
+  `);
+  await db.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS user_status jsonb NOT NULL DEFAULT '{"1": 0}'::jsonb
+  `);
+
 /*
  * =====================================
  *  Survey Table
