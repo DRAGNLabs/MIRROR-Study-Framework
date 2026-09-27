@@ -27,7 +27,12 @@ export async function handleJoinRoom(io, socket, { roomCode, isAdmin, user }) {
         const alreadyInRoom = usersInRoom[roomCode].some((u) => u.userId === user.userId);
         if (!alreadyInRoom) {
             usersInRoom[roomCode].push(user);
-        } 
+        }
+
+        // this is just so a user has a private room so their status is only sent to them
+        if (user?.userId) {
+            socket.join(`user-${user.userId}`);
+        }
     }
     // send updated user list
     io.to(roomCode).emit("room-users", usersInRoom[roomCode]);
