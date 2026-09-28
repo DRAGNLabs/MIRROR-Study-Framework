@@ -113,9 +113,37 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     console.log(`[Round ${round}] Starting extraction call...`);
     try {
         const extractionPrompt = game.prompts[0].extraction_prompt;
+        // Previously only the raw LLM response was sent, so the extractor had to guess round, fish available, names, and totals
+        // const extractionMessages = [
+        //     { role: "system", content: extractionPrompt },
+        //     { role: "user", content: buffer },
+        // ];
+
+        // Exact names so the extractor doesn't have to guess keys from the prose
+        const userNames = await Promise.all(
+            (room.userIds || []).map(async (userId) => (await getUser(userId))?.userName || `User ${userId}`)
+        );
+
+        // Each user's total from earlier rounds, so totalFishSoFar doesn't have to be guessed
+        const previousTotals = {};
+        for (const [r, entry] of Object.entries(room.resourceAllocations ?? {})) {
+            if (Number(r) >= round) continue;
+            for (const [name, a] of Object.entries(entry?.allocationByUserName ?? {})) {
+                previousTotals[name] = (previousTotals[name] || 0) + (Number(a?.fish) || 0);
+            }
+        }
+
+        const extractionInput = {
+            round,
+            fish_available: fish_amount[round],
+            userNames,
+            previousTotalFishByUserName: previousTotals,
+            llmResponse: buffer,
+        };
+
         const extractionMessages = [
             { role: "system", content: extractionPrompt },
-            { role: "user", content: buffer },
+            { role: "user", content: JSON.stringify(extractionInput, null, 2) },
         ];
 
         let parsed;
@@ -136,7 +164,11 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
                 ? parsed.allocationByUserName
                 : {};
 
-        const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
+        // Previously fish_left came from the extractor's own fish_left field, which could disagree with allocationByUserName, I think this would've been the cause for 
+        // const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
+        const allocated = Object.values(allocationByUserName)
+            .reduce((sum, a) => sum + (Number(a?.fish) || 0), 0);
+        const fish_left = fish_amount[round] - allocated;
         if (fish_left < 5) {
             fish_amount[round + 1] = fish_left;
         } else if (fish_left > 50) {
@@ -152,7 +184,8 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
             assistantMessage: buffer
         };
         await updateResourceAllocations(existingResourceAllocations, roomCode);
-        console.log(`[Round ${round}] Extraction succeeded, fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
+        // console.log(`[Round ${round}] Extraction succeeded, fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
+        console.log(`[Round ${round}] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated}), extractor fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
     } catch (err) {
         console.error(`[Round ${round}] Extraction failed, continuing with natural response:`, err);
         fish_amount[round + 1] = fish_amount[round];
