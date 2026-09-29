@@ -7,6 +7,8 @@ import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted
 import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
+import { getFolders } from "../../services/foldersService";
+import CompletedRooms from "./CompletedRooms";
 import './admin.css';
 
 function formatRoomCreatedAt(value) {
@@ -42,6 +44,11 @@ export function Admin() {
     const [roomUsers, setRoomUsers] = useState({});
     // When true shows the completed rooms page.
     const [completed, setCompleted] = useState(false);
+    // Folders for organizing completed rooms, and which one is open (null = top level)
+    const [folders, setFolders] = useState([]);
+    const [openFolderId, setOpenFolderId] = useState(null);
+    // Folder a new automated test room gets filed into
+    const [testFolderId, setTestFolderId] = useState("");
 
     const [ rooms, setRooms ] = useState([]);
 
@@ -51,10 +58,20 @@ export function Admin() {
     const location = useLocation();
 
 
-    async function showCompletedRooms() {
+    async function loadFolders() {
+      try {
+        setFolders(await getFolders());
+      } catch (error) {
+        console.error("Error loading folders:", error);
+      }
+    }
+
+    async function showCompletedRooms(folderId = null) {
       try {
         const data = await fetchCompletedRooms();
+        await loadFolders();
         setCompletedRoomList(data);
+        setOpenFolderId(folderId);
         setCompleted(true);
         setStart(false);
         setRoomCreated(false);
@@ -66,6 +83,7 @@ export function Admin() {
     async function init(){
         const rooms = await getOpenRooms();
         setRooms(rooms);
+        loadFolders();
     }
 
     function getGameById(id) {
@@ -121,7 +139,7 @@ export function Admin() {
     //Navigating back from the room details page it'll take you back where you were. 
     useEffect(() => {
       if (location.state?.showCompletedRooms === true) {
-        showCompletedRooms();
+        showCompletedRooms(location.state?.folderId ?? null);
       }
     }, [location.state?.showCompletedRooms]);
 
@@ -157,7 +175,8 @@ export function Admin() {
     async function buildRoom() { //sends the room into the backend
         try {
             const gameData = games.find(g => g.id === selectedGame);
-            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count, selectedModel, isTestMode);
+            const folderId = isTestMode && testFolderId !== "" ? Number(testFolderId) : null;
+            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count, selectedModel, isTestMode, folderId);
 
             if (isTestMode) {
   
@@ -260,7 +279,7 @@ return (
       <button className="btn-primary-admin" onClick={activeRoomsDisplay}>
         Rooms
       </button>
-      <button className="btn-primary-admin" onClick={showCompletedRooms}>
+      <button className="btn-primary-admin" onClick={() => showCompletedRooms()}>
         Completed Rooms
       </button>
       <button className="btn-primary-admin" onClick={createRoom}>
@@ -376,6 +395,22 @@ return (
               Seats {count} simulated bot users and runs to completion on its own. 
             </p>
           )}
+          {isTestMode && (
+            <div className="label-inline">
+              <label htmlFor="testFolder">Save results to folder</label>
+              <select
+                id="testFolder"
+                className="model-select-input folder-inline-select"
+                value={testFolderId}
+                onChange={(e) => setTestFolderId(e.target.value)}
+              >
+                <option value="">No folder</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <h3 className="room-info-section">Game</h3>
           <div className="games-options">
@@ -445,58 +480,17 @@ return (
       )}
       </>
     ): (
-      <div className="rooms-grid">
-        <h2 className="rooms-section-title">Completed Rooms</h2>
-          <p className="rooms-section-subtitle">Completed room data here.</p>
-        <div className="rooms-container">
-          {Array.isArray(completedRoomList) && completedRoomList.length > 0 ? (
-            completedRoomList.map((room) => (
-              <div className="room-display" key={room.roomCode}>
-                <div className="room-display-header">
-                  <span className="room-code-badge">{room.roomCode}</span>
-                  <span
-                    className="room-created-at"
-                    title={room.createdAt != null ? String(room.createdAt) : ""}
-                  >
-                    {formatRoomCreatedAt(room.createdAt)}
-                  </span>
-                </div>
-
-                <div className="room-meta">
-                  {room.isTest && (
-                    <span className="meta-item test-mode-badge">Automated Test</span>
-                  )}
-                  {(() => {
-                    const game = games.find((g) => parseInt(g.id) == room.gameType);
-                    return game ? (
-                      <span className="meta-item"><strong>{game.title}</strong></span>
-                    ) : (
-                      <span className="meta-item"><strong>Unknown Game</strong></span>
-                    );
-                  })()}
-                  {/* <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span> */}
-                  {/* <span></span> */}
-                  <span className="meta-item">
-                    Users: {Array.isArray(roomUsers?.[room.roomCode])
-                      ? roomUsers[room.roomCode].join(", ")
-                      : "No users"}
-                  </span>
-                  
-                  <span className="meta-item">Model used: {room.modelType}</span>
-    
-                </div>
-
-                <div className="room-actions">
-                  <button className="btn-primary-admin" onClick={() => navigate(`/admin/completed-room/${room.roomCode}`)}>View</button>
-                  <button className="btn-secondary-admin"  onClick={() => setRoomPendingDelete(room)}>Delete</button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No completed rooms found.</p>
-          )}
-        </div>
-      </div>
+      <CompletedRooms
+        completedRoomList={completedRoomList}
+        setCompletedRoomList={setCompletedRoomList}
+        folders={folders}
+        setFolders={setFolders}
+        roomUsers={roomUsers}
+        openFolderId={openFolderId}
+        setOpenFolderId={setOpenFolderId}
+        onView={(room) => navigate(`/admin/completed-room/${room.roomCode}`)}
+        onDelete={(room) => setRoomPendingDelete(room)}
+      />
     )
     }
       {roomPendingDelete && createPortal(

@@ -53,7 +53,7 @@ async function init() {
  * rooms: [roomCode, roomCode, ...] in the folder, oldest first. Redundant with
  *   rooms."folderId" (which stays the source of truth) but handy when looking at
  *   the table directly. The routes keep it up to date by calling syncFolderRooms()
- *   in folderRooms.js whenever a room changes folders.
+ *   in routes/foldersRouter.js whenever a room changes folders.
  */
   await db.query(`
     CREATE TABLE IF NOT EXISTS room_folders (
