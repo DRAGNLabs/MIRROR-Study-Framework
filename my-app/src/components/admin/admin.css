@@ -569,7 +569,7 @@
 }
 
 /* === Custom Checkbox (matches .custom-radio's look/alignment) === */
-.admin-container .custom-checkbox {
+:is(.admin-container, .folder-room-picker) .custom-checkbox {
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -580,11 +580,11 @@
   color: #f1f5f9;
 }
 
-.admin-container .custom-checkbox input[type="checkbox"] {
+:is(.admin-container, .folder-room-picker) .custom-checkbox input[type="checkbox"] {
   display: none;
 }
 
-.admin-container .custom-checkbox .checkbox-mark {
+:is(.admin-container, .folder-room-picker) .custom-checkbox .checkbox-mark {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
@@ -596,12 +596,12 @@
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.admin-container .custom-checkbox input[type="checkbox"]:checked + .checkbox-mark {
+:is(.admin-container, .folder-room-picker) .custom-checkbox input[type="checkbox"]:checked + .checkbox-mark {
   background: #38bdf8;
   border-color: #38bdf8;
 }
 
-.admin-container .custom-checkbox input[type="checkbox"]:checked + .checkbox-mark::after {
+:is(.admin-container, .folder-room-picker) .custom-checkbox input[type="checkbox"]:checked + .checkbox-mark::after {
   content: "";
   position: absolute;
   left: 5px;
@@ -613,7 +613,7 @@
   transform: rotate(45deg);
 }
 
-.admin-container .custom-checkbox:hover .checkbox-mark {
+:is(.admin-container, .folder-room-picker) .custom-checkbox:hover .checkbox-mark {
   border-color: #38bdf8;
 }
 
@@ -1362,4 +1362,246 @@
 
 .message--bot .message-survey-annotation-note {
   color: #334155;
+}
+/* === Completed room folders === */
+.folder-section-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.folder-section-heading {
+  margin: 1.75rem 0 1rem 0;
+}
+
+.folder-grid {
+  margin-bottom: 0.5rem;
+}
+
+.folder-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-left: 3px solid rgba(56, 189, 248, 0.6);
+}
+
+.folder-card:hover,
+.folder-card:focus-visible {
+  border-color: rgba(56, 189, 248, 0.6);
+  outline: none;
+}
+
+.folder-card-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  overflow-wrap: anywhere;
+}
+
+.folder-card--test,
+.folder-card--test:hover,
+.folder-card--test:focus-visible {
+  border-left-color: rgba(168, 85, 247, 0.7);
+}
+
+.folder-card-name,
+.folder-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Small purple 🤖 pill: same colors as .test-mode-badge */
+.folder-test-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.folder-card-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.folder-detail {
+  margin-top: 1rem;
+}
+
+.folder-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.folder-detail-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.folder-description {
+  margin: 0.75rem 0 1rem 0;
+  color: #e2e8f0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.folder-summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.folder-summary dt {
+  color: #94a3b8;
+}
+
+.folder-summary dd {
+  margin: 0;
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
+}
+
+.folder-move {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.folder-move .model-select-input,
+.folder-inline-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-modal-card {
+  max-width: 520px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.folder-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.folder-text-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.4rem;
+  border: 1px solid #334155;
+  background: #020617;
+  color: #e5e7eb;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.folder-text-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  outline: none;
+}
+
+.folder-textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.folder-room-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 0.35rem;
+  border: 1px solid #334155;
+  border-radius: 0.4rem;
+  background: #0f172a;
+}
+
+.folder-room-picker .folder-room-option {
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.3rem;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.folder-room-option:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.folder-room-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.folder-room-option-code {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.folder-room-option-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.18);
+  color: #d8b4fe;
+}
+
+.folder-room-option-meta {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  overflow-wrap: anywhere;
+}
+
+.folder-link-button {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #38bdf8;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
 }

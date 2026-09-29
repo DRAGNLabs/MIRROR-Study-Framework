@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
+import { getFolders } from "../../services/foldersService";
 import { buildConversation, buildResourceHistory } from "../survey/surveyUtils";
 import { buildStatusHistory } from "../interaction/interactionUtils";
 import { buildTownReportForRound } from "./completedRoomUtils";
@@ -60,12 +61,19 @@ export function CompletedRoomPage() {
   const [usernames, setUsernames] = useState([]);
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [folder, setFolder] = useState(null);
 
   useEffect(() => {
     async function loadRoom() {
       try {
         const roomData = await getRoom(roomCode);
         setRoom(roomData);
+
+        if (roomData?.folderId != null) {
+          getFolders()
+            .then((folders) => setFolder(folders.find((f) => f.id === roomData.folderId) ?? null))
+            .catch((error) => console.error("Failed to load folder:", error));
+        }
 
         const userIds = roomData?.userIds ?? [];
 
@@ -197,7 +205,7 @@ export function CompletedRoomPage() {
         <button
           className="btn-secondary-admin completed-room-back"
           onClick={() =>
-            navigate("/admin", { state: { showCompletedRooms: true } })
+            navigate("/admin", { state: { showCompletedRooms: true, folderId: room.folderId ?? null } })
           }
         >
           Back
@@ -213,6 +221,9 @@ export function CompletedRoomPage() {
           <div className="room-badges">
             {room.isTest && (
               <span className="room-badge test-mode-badge">Automated Test</span>
+            )}
+            {folder && (
+              <span className="room-badge" title={folder.description || ""}>{folder.name}</span>
             )}
             <span className="room-badge">Room Code: {room.roomCode}</span>
             <span className="room-badge">Game: {selectedSurvey?.title || room.gameType || "Unknown"}</span>
