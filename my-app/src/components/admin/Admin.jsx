@@ -25,6 +25,8 @@ export function Admin() {
     const [roomPendingDelete, setRoomPendingDelete] = useState(null);
     const [start, setStart] = useState(true);
     const [count, setCount] = useState(3);
+    const [isTestMode, setIsTestMode] = useState(false);
+    const [testStatusMessage, setTestStatusMessage] = useState("");
 
     //This is populated from the backend when started to read from the available models 
     const [modelIds, setModelIds] = useState([]);
@@ -155,11 +157,24 @@ export function Admin() {
     async function buildRoom() { //sends the room into the backend
         try {
             const gameData = games.find(g => g.id === selectedGame);
-            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count, selectedModel); 
+            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count, selectedModel, isTestMode);
+
+            if (isTestMode) {
+  
+                socket.emit("run-automated-test", { roomCode: Number(newRoomCode), testUserCount: Number(count) });
+                setTestStatusMessage(
+                    `Automated test started for room ${newRoomCode} with ${count} bot users. ` +
+                    `It'll run in the background — check Completed Rooms in a few minutes.`
+                );
+            } else {
+                setTestStatusMessage("");
+            }
+
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?
+            setIsTestMode(false);
             // sendModel(selectedModel);
         } catch (error){
             console.error("Error:", error);
@@ -256,6 +271,9 @@ return (
 
     {!completed ? (
     <>
+      {testStatusMessage && (
+        <p className="rooms-section-subtitle test-status-banner">{testStatusMessage}</p>
+      )}
       {start && rooms && (
         <div className="rooms-grid">
           <h2 className="rooms-section-title">Your rooms</h2>
@@ -281,6 +299,9 @@ return (
                   </div>
 
                   <div className="room-meta">
+                    {room.isTest && (
+                      <span className="meta-item test-mode-badge">Automated Test</span>
+                    )}
                     <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
                     <span className="meta-item">{room.modelType}</span>
                     <span className="meta-item">Min {room.usersNeeded} user(s)</span>
@@ -328,7 +349,7 @@ return (
 
           <h3 className="room-info-section">Participants</h3>
           <div className="label-inline">
-            <label>Minimum users</label>
+            <label>{isTestMode ? "Number of simulated bot users" : "Minimum users"}</label>
             <input
               className="text-input small"
               type="number"
@@ -339,6 +360,22 @@ return (
               required
             />
           </div>
+
+          <h3 className="room-info-section">Automated Test</h3>
+          <label className="custom-checkbox">
+            <input
+              type="checkbox"
+              checked={isTestMode}
+              onChange={(e) => setIsTestMode(e.target.checked)}
+            />
+            <span className="checkbox-mark" />
+            <span>🤖 Run as automated test</span>
+          </label>
+          {isTestMode && (
+            <p className="rooms-section-subtitle">
+              Seats {count} simulated bot users and runs to completion on its own. 
+            </p>
+          )}
 
           <h3 className="room-info-section">Game</h3>
           <div className="games-options">
@@ -426,6 +463,9 @@ return (
                 </div>
 
                 <div className="room-meta">
+                  {room.isTest && (
+                    <span className="meta-item test-mode-badge">Automated Test</span>
+                  )}
                   {(() => {
                     const game = games.find((g) => parseInt(g.id) == room.gameType);
                     return game ? (

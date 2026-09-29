@@ -99,7 +99,7 @@ function fillUserName(template, userName) {
 }
 
 
-function buildStatusHistory(fullUser, game, currentRound) {
+export function buildStatusHistory(fullUser, game, currentRound) {
     const rolePrompts = game?.role_prompt?.[fullUser?.role];
     const userStatus = fullUser?.user_status;
     if (!rolePrompts || !userStatus) return [];

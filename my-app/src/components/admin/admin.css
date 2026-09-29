@@ -277,6 +277,22 @@
   font-weight: 600;
 }
 
+.test-mode-badge {
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #d8b4fe;
+  font-weight: 600;
+}
+
+.test-status-banner {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
 .meta-item.users {
   white-space: normal;
   word-wrap: break-word;
@@ -552,6 +568,55 @@
   border-color: #38bdf8;
 }
 
+/* === Custom Checkbox (matches .custom-radio's look/alignment) === */
+.admin-container .custom-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 10px;
+  margin: 8px 0;
+  user-select: none;
+  font-size: 16px;
+  color: #f1f5f9;
+}
+
+.admin-container .custom-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.admin-container .custom-checkbox .checkbox-mark {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  background: #0f172a;
+  display: inline-block;
+  position: relative;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.admin-container .custom-checkbox input[type="checkbox"]:checked + .checkbox-mark {
+  background: #38bdf8;
+  border-color: #38bdf8;
+}
+
+.admin-container .custom-checkbox input[type="checkbox"]:checked + .checkbox-mark::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #0f172a;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.admin-container .custom-checkbox:hover .checkbox-mark {
+  border-color: #38bdf8;
+}
+
 /* === Checkbox Labels === */
 .checkbox-label {
   display: flex;
@@ -812,24 +877,6 @@
   margin-bottom: 1rem;
 }
 
-.completed-room-split {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-  min-height: 0;
-  box-sizing: border-box;
-}
-
-@media (min-width: 900px) {
-  .completed-room-split {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    align-items: stretch;
-  }
-}
-
 .completed-room-panel {
   display: flex;
   flex-direction: column;
@@ -863,7 +910,10 @@
 .completed-room-survey-scroll {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  /* The single real scroll container for this panel — both axes here (not
+     on .completed-room-table-wrap inside it) so position:sticky in the
+     table header binds to this element and actually tracks its scrolling. */
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
   padding-right: 0.25rem;
 }
@@ -871,6 +921,11 @@
 .completed-room-chat-scroll {
   display: flex;
   flex-direction: column;
+}
+
+.completed-room-panel--full {
+  width: 100%;
+  margin-top: 1.5rem;
 }
 
 .completed-room-messages {
@@ -1031,6 +1086,185 @@
   padding-bottom: 0.75rem;
   margin-bottom: 0.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.survey-answer-empty {
+  color: #f59e0b;
+  font-style: italic;
+}
+
+/* === Data tables (survey answers, resource allocations, status) === */
+.completed-room-table-wrap {
+  /* Deliberately NOT a scroll container of its own (no overflow-x/y here).
+     Per spec, giving one axis auto/hidden forces the other non-visible too,
+     which would make this div a scroll container even though it never
+     actually scrolls (it's exactly as tall as its content) — and
+     position:sticky binds to the NEAREST scroll container, so the header
+     would stick to this motionless box instead of the real scrolling one
+     around it (.completed-room-survey-scroll, or this wrapper's own
+     .completed-room-table-wrap--scroll modifier when there's no outer
+     scroll panel already), and never appear to move. */
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* For tables that aren't already inside a bounded scroll panel (Survey's
+   table relies on .completed-room-survey-scroll around it instead) — this
+   makes the wrapper itself the one real, single-level scroll container, so
+   its sticky header has something correct to bind to. */
+.completed-room-table-wrap--scroll {
+  max-height: 50vh;
+  overflow: auto;
+}
+
+.completed-room-table {
+  width: 100%;
+  /* border-collapse: collapse breaks position:sticky on th/td in Safari
+     (long-standing WebKit bug) and is flaky elsewhere — separate + zero
+     spacing looks pixel-identical (single border-bottom per row, no gaps)
+     but keeps sticky headers working everywhere. */
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+}
+
+.completed-room-table th,
+.completed-room-table td {
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.completed-room-table td {
+  white-space: normal;
+}
+
+.completed-room-table thead th {
+  /* Fully opaque (was semi-transparent): rows sliding underneath a
+     see-through sticky header make it look like it isn't sticking at all
+     even when it is. */
+  background: #0f172a;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.completed-room-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.completed-room-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.completed-room-table tfoot td {
+  border-bottom: none;
+  border-top: 2px solid rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+  color: #f1f5f9;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.completed-room-table-row-label {
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+}
+
+.completed-room-table .survey-answer-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+/* Status-over-time table: color the raw status value at a glance */
+.completed-room-status-table td.status-cell--good {
+  color: #4ade80;
+  font-weight: 600;
+}
+
+.completed-room-status-table td.status-cell--bad {
+  color: #f87171;
+  font-weight: 600;
+}
+
+.completed-room-status-table td.status-cell--neutral {
+  color: #94a3b8;
+}
+
+/* === Round-by-round detail: town report + status messages === */
+.completed-room-round-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.completed-room-round-card {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.completed-room-round-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.completed-room-town-report {
+  margin-bottom: 0.75rem;
+}
+
+.completed-room-round-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  margin-bottom: 0.35rem;
+}
+
+.completed-room-town-report-text {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* The status-history-* classes themselves come from interaction.css (shared
+   with the live "My Status" popup) — this just fits them into a dark card
+   here instead of a light modal. */
+.completed-room-round-card .status-history-list {
+  gap: 0.5rem;
+}
+
+.completed-room-round-card .status-history-item {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.completed-room-round-card .status-history-round {
+  color: #cbd5e1;
+}
+
+.completed-room-round-card .status-history-message {
+  color: #e2e8f0;
 }
 
 .completed-room-page .completed-room-mark-row:last-child {

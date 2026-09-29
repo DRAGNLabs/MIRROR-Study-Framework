@@ -78,7 +78,8 @@ async function init() {
       "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb,
       fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb,
       curr_round INTEGER NOT NULL DEFAULT 1,
-      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      "isTest" BOOLEAN NOT NULL DEFAULT FALSE
     )
   `);
 
@@ -89,6 +90,13 @@ async function init() {
   await db.query(`
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  `);
+  // Flags a room as an automated/simulated run (predetermined bot messages,
+  // no real participants) so it's obvious on the admin pages and never gets
+  // confused with a real study session.
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "isTest" BOOLEAN NOT NULL DEFAULT FALSE
   `);
 
   console.log("✅ Tables checked/created");

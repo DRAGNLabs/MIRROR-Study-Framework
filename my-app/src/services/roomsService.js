@@ -1,22 +1,24 @@
 import { API_BASE } from "../config.js";
 
 // creates new room in rooms table
-export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType){ 
+export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType, isTest=false){
   const res = await fetch(`${API_BASE}/rooms`, {
-    method: 'POST', 
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       roomCode: Number(roomCode),
       gameType: Number(gameType),
       numRounds: Number(numRounds),
       usersNeeded: Number(usersNeeded),
-      ...(modelType ? { modelType } : {})
+      ...(modelType ? { modelType } : {}),
+      isTest: !!isTest
     }), //do we need the Number() function, idk
   })
   if(!res.ok) throw new Error("Error creating room.");
 
   return res.json();
 }
+
 
 // get room with specified roomCode
 export async function getRoom(roomCode) {

@@ -17,3 +17,24 @@ export async function updateUserStatus(userId, user_status) {
     if (!response.ok) throw new Error("Failed to update user status.");
     return response.json();
 }
+
+// Used to create the simulated bot users for an automated test run.
+export async function createUser(userName, roomCode) {
+    const response = await fetch(`${API_BASE}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName, roomCode })
+    });
+    if (!response.ok) throw new Error("Failed to create user.");
+    return response.json();
+}
+
+export async function setUserRole(userId, role) {
+    const response = await fetch(`${API_BASE}/users/${userId}/role`, {
+        method: "PATCH",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role })
+    });
+    if (!response.ok) throw new Error("Failed to set user role.");
+    return response.json();
+}

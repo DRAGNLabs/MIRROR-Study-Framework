@@ -94,6 +94,29 @@ export async function updateFishAmount(fishAmount, roomCode) {
 }
 
 
+// Used to seat the simulated bot users into a room for an automated test.
+export async function updateUserIds(userIds, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/userIds`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds })
+    });
+    if (!response.ok) throw new Error(`Error updating userIds in room ${roomCode}`);
+    return response.json();
+}
+
+// Used to skip an automated test room straight to "interaction" — there's no
+// real admin/participants to walk it through waiting/instructions by hand.
+export async function updateStatus(status, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+    });
+    if (!response.ok) throw new Error(`Error updating status in room ${roomCode}`);
+    return response.json();
+}
+
 export async function updateCurrRound(currRound, roomCode) {
     const response = await fetch(`${API_BASE}/rooms/${roomCode}/currRound`, {
         method: 'PATCH',

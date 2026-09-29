@@ -8,7 +8,7 @@ import {getModelIds, updateModel} from "../llm.js"
 // Creates room, puts roomCode, gameType, numRounds, usersNeeded, and modelType into table (rest of info will be updated later)
 router.post('/', async (req, res) => {
   try{
-    const { roomCode, gameType, numRounds, usersNeeded, modelType } = req.body;
+    const { roomCode, gameType, numRounds, usersNeeded, modelType, isTest } = req.body;
 
     if (roomCode === undefined || gameType === undefined || numRounds === undefined || usersNeeded === undefined) {
       return res.status(400).json({message: "roomCode, gameType, numRounds, and usersNeeded are required"});
@@ -23,13 +23,13 @@ router.post('/', async (req, res) => {
     }
 
     const sql = `
-      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType") 
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt";
+      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "isTest")
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt", "isTest";
     `;
 
-    const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType]);
-    
+    const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType, !!isTest]);
+
     return res.status(201).json(result.rows[0]);
 
   } catch (err) {
