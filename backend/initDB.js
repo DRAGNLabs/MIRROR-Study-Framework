@@ -42,6 +42,29 @@ async function init() {
     )
   `);
 
+/*
+ * =====================================
+ *  Room Folders Table
+ * =====================================
+ * Folders for grouping completed rooms (e.g. "Version 1" of an automated
+ * test batch). Created before rooms because rooms."folderId" references it.
+ *
+ * description is free text the researcher writes about what changed before the batch was run
+ * rooms: [roomCode, roomCode, ...] in the folder, oldest first. Redundant with
+ *   rooms."folderId" (which stays the source of truth) but handy when looking at
+ *   the table directly. The routes keep it up to date by calling syncFolderRooms()
+ *   in folderRooms.js whenever a room changes folders.
+ */
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS room_folders (
+      id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      rooms jsonb NOT NULL DEFAULT '[]'::jsonb
+    )
+  `);
+
  /*
  * =====================================
  *  Rooms Table
@@ -60,6 +83,7 @@ async function init() {
  * completed is boolean value (0 or 1) used to know what rooms to show on admin page
  * I believe resoureAllocations is {"round_num": {"userName": "Allocation", "userName": "Allocation"}} -- Khaleel if you could update this
  * fish_amount: {round#1: <amount of fish>, round#2: <amount of fish>, ...}
+ * folderId is the room_folders id this room is filed in (null = unfiled). Deleting a folder just un-files its rooms
  */
   await db.query(`
     CREATE TABLE IF NOT EXISTS rooms (
@@ -79,7 +103,8 @@ async function init() {
       fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb,
       curr_round INTEGER NOT NULL DEFAULT 1,
       "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      "isTest" BOOLEAN NOT NULL DEFAULT FALSE
+      "isTest" BOOLEAN NOT NULL DEFAULT FALSE,
+      "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL
     )
   `);
 
@@ -97,6 +122,21 @@ async function init() {
   await db.query(`
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "isTest" BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+  // Which room_folders folder the room is filed in (see Room Folders Table above).
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL
+  `);
+
+  // Rebuild every folder's list on startup in case anything drifted.
+  await db.query(`
+    UPDATE room_folders f
+    SET rooms = COALESCE(
+      (SELECT jsonb_agg(r."roomCode" ORDER BY r."createdAt")
+       FROM rooms r WHERE r."folderId" = f.id),
+      '[]'::jsonb
+    )
   `);
 
   console.log("✅ Tables checked/created");
