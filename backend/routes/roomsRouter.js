@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 import db from "../db.js"; 
 import {getModelIds, updateModel} from "../llm.js"
+import { buildPreviewExport, DuplicateParticipantNameError } from "../pseudonymize.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -393,6 +394,56 @@ router.delete("/delete/:roomCode", async (req,res) => {
     return res.status(500).json({ success: false, message: "Error deleting room." });
   }
 
+});
+
+// downloads a labeled preview of a completed room without changing the database
+router.get("/:roomCode/export", async (req, res) => {
+  try {
+    const roomCode = parseInt(req.params.roomCode, 10);
+    if (!Number.isInteger(roomCode)) {
+      return res.status(400).json({ message: "roomCode is required" });
+    }
+
+    const roomResult = await db.query(
+      'SELECT * FROM rooms WHERE "roomCode" = $1',
+      [roomCode]
+    );
+    const room = roomResult.rows[0];
+    if (!room || room.completed !== true) {
+      return res.status(404).json({ message: "Completed room not found" });
+    }
+
+    const usersResult = await db.query(
+      `SELECT "userId", "userName", "roomCode", role
+       FROM users
+       WHERE "roomCode" = $1
+       ORDER BY "userId"`,
+      [roomCode]
+    );
+    const surveysResult = await db.query(
+      `SELECT "roomCode", "userId", data
+       FROM survey
+       WHERE "roomCode" = $1
+       ORDER BY "userId"`,
+      [roomCode]
+    );
+
+    const body = buildPreviewExport({
+      room,
+      users: usersResult.rows,
+      surveys: surveysResult.rows,
+    });
+    const filename = `room-${roomCode}-preview.json`;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    return res.status(200).send(`${JSON.stringify(body, null, 2)}\n`);
+  } catch (err) {
+    if (err instanceof DuplicateParticipantNameError) {
+      return res.status(409).json({ error: err.message });
+    }
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 // gets room

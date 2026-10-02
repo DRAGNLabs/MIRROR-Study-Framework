@@ -206,6 +206,31 @@ export async function getModels() {
   return response.json();
 }
 
+// downloads a labeled preview JSON for a completed room
+export async function exportCompletedRoom(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/export`);
+  if (!response.ok) {
+    let message = "Can't export room.";
+    try {
+      const body = await response.json();
+      if (body?.error || body?.message) message = body.error || body.message;
+    } catch {
+      // The error body was not JSON.
+    }
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `room-${roomCode}-preview.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 export async function sendModel(model, roomCode) {
   const response = await fetch(`${API_BASE}/rooms/${roomCode}/updateModel`, {
     method: 'PUT',
