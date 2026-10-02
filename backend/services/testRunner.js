@@ -5,22 +5,25 @@ import { getLlmInstructions, submitUserMessages } from "../socket/gameHandler.js
 
 const games = loadGames();
 
-function fillUserName(template, userName) {
+// Fills {{user_name}} and {{tons}} (tons each player needs this game) in role text
+function fillRoleText(template, userName, tons) {
     if (typeof template !== "string") return "";
-    return template.replace(/\{\{user_name\}\}/g, userName ?? "");
+    return template
+        .replace(/\{\{user_name\}\}/g, userName ?? "")
+        .replace(/\{\{tons\}\}/g, tons ?? "");
 }
 
 // Same enter/exit rule used everywhere else this status feature shows up
 // (gameHandler.js's status-update loop, interactionUtils.js's
 // buildStatusHistory): moving further from 0 is an "enter" into the new
 // status, moving back toward 0 is an "exit" from the one being left.
-async function pickRequestMessage(fakeUser, round, game) {
+async function pickRequestMessage(fakeUser, round, game, tons) {
     const rolePrompts = game.role_prompt?.[fakeUser.role];
     const fallback = `Requesting fish for round ${round}.`;
     if (!rolePrompts) return fallback;
 
     if (round === 1) {
-        return fillUserName(rolePrompts.initial_request, fakeUser.userName) || fallback;
+        return fillRoleText(rolePrompts.initial_request, fakeUser.userName, tons) || fallback;
     }
 
     // user_status is only known accurately after the previous round's
@@ -36,7 +39,7 @@ async function pickRequestMessage(fakeUser, round, game) {
     const promptSet = rolePrompts[isExit ? prevStatus : status];
     const key = isExit ? "exit_request" : "enter_request";
     const template = promptSet?.[key] ?? rolePrompts.initial_request;
-    return fillUserName(template, fakeUser.userName) || fallback;
+    return fillRoleText(template, fakeUser.userName, tons) || fallback;
 }
 
 // Seats `testUserCount` simulated bot users (round-robin across the game's
@@ -80,7 +83,8 @@ export async function runAutomatedTest(io, roomCode, testUserCount) {
             fakeUsers.push({ userId: created.userId, userName, role: roleId });
         }
 
-        await updateUserIds(fakeUsers.map(u => u.userId), roomCode);
+        // also works out tons_needed now that the number of players is known
+        const { tonsNeeded } = await updateUserIds(fakeUsers.map(u => u.userId), roomCode);
         // No real admin/participants walking this through waiting/instructions.
         await updateStatus("interaction", roomCode);
 
@@ -106,7 +110,7 @@ export async function runAutomatedTest(io, roomCode, testUserCount) {
             // concurrent calls racing that read is exactly the kind of bug
             // this whole feature set has already had to fix elsewhere.
             for (const fakeUser of fakeUsers) {
-                const text = await pickRequestMessage(fakeUser, round, game);
+                const text = await pickRequestMessage(fakeUser, round, game, tonsNeeded);
                 await submitUserMessages(io, roomCode, fakeUser.userId, fakeUser.userName, text);
             }
         }
