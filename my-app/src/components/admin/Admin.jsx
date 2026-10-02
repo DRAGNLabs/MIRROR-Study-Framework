@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel, exportCompletedRoom } from "../../services/roomsService";
 import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
@@ -40,6 +40,7 @@ export function Admin() {
     const [roomUsers, setRoomUsers] = useState({});
     // When true shows the completed rooms page.
     const [completed, setCompleted] = useState(false);
+    const [exportError, setExportError] = useState("");
 
     const [ rooms, setRooms ] = useState([]);
 
@@ -146,6 +147,15 @@ export function Admin() {
       setCompleted(false);
       setStart(true);
       setRoomCreated(false);
+    }
+
+    async function exportRoom(roomCode) {
+        setExportError("");
+        try {
+            await exportCompletedRoom(roomCode);
+        } catch (error) {
+            setExportError(error.message || "Can't export room.");
+        }
     }
 
     async function completedRooms(){
@@ -411,6 +421,7 @@ return (
       <div className="rooms-grid">
         <h2 className="rooms-section-title">Completed Rooms</h2>
           <p className="rooms-section-subtitle">Completed room data here.</p>
+          {exportError && <p role="alert">{exportError}</p>}
         <div className="rooms-container">
           {Array.isArray(completedRoomList) && completedRoomList.length > 0 ? (
             completedRoomList.map((room) => (
@@ -448,6 +459,7 @@ return (
 
                 <div className="room-actions">
                   <button className="btn-primary-admin" onClick={() => navigate(`/admin/completed-room/${room.roomCode}`)}>View</button>
+                  <button className="btn-secondary-admin" onClick={() => exportRoom(room.roomCode)}>Export</button>
                   <button className="btn-secondary-admin"  onClick={() => setRoomPendingDelete(room)}>Delete</button>
                 </div>
               </div>

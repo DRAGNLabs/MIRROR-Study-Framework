@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getRoom } from "../../services/roomsService";
+import { getRoom, exportCompletedRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
 import { buildConversation } from "../survey/surveyUtils";
@@ -59,6 +59,16 @@ export function CompletedRoomPage() {
   const [usernames, setUsernames] = useState([]);
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [exportError, setExportError] = useState("");
+
+  async function exportRoom() {
+    setExportError("");
+    try {
+      await exportCompletedRoom(roomCode);
+    } catch (error) {
+      setExportError(error.message || "Can't export room.");
+    }
+  }
 
   useEffect(() => {
     async function loadRoom() {
@@ -143,15 +153,20 @@ export function CompletedRoomPage() {
   return (
     <div className="admin-container admin-dashboard">
       <div className="rooms-grid">
-        <button
-          className="btn-secondary-admin"
-          style={{ marginBottom: "1rem"}}
-          onClick={() =>
-            navigate("/admin", { state: { showCompletedRooms: true } })
-          }
-        >
-          Back
-        </button>
+        <div className="room-actions" style={{ marginBottom: "1rem" }}>
+          <button
+            className="btn-secondary-admin"
+            onClick={() =>
+              navigate("/admin", { state: { showCompletedRooms: true } })
+            }
+          >
+            Back
+          </button>
+          <button className="btn-secondary-admin" onClick={exportRoom}>
+            Export
+          </button>
+        </div>
+        {exportError && <p role="alert">{exportError}</p>}
 
         <div className="room-display">
           <h2 className="room-section-title">
