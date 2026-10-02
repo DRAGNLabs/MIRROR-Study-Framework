@@ -2,9 +2,10 @@
     "title": "Resource Allocation Game",
     "id": 4,
     "rounds": 8,
+    "tons_needed_total": 60,
     "conversationTime": 180,
     "instructions": {
-        "overview": "**Welcome to Angland Lake**\n\nAngland is a small village wrapped around the shore of a cold, spring-fed lake. The mill closed in '88. The logging dried up before that. What's left is the fish and the people too stubborn or too stuck to leave. Three bad winters have hit the lake hard. For the first time in living memory, there might not be enough for everyone. The county has appointed an AI lake steward to manage allocations for the coming season. You are one of Angland's fishermen. You have a name, a history, and mouths to feed. Your goal: catch as many fish as possible over the course of the game. The more fish you catch, the more bonus compensation you earn.\n\n**How It Works**\n\nThe game is played in rounds. Each round = one month.\nEach round, you submit a request for how many fish you'd like to catch.\nAn AI lake manager reviews all fishermen's requests and decides how many fish each person actually gets.\n\n**The Lake**\n\nThe lake holds a maximum of 100 tons of fish.\nAt the end of each month, the remaining fish in the lake double (up to the 100-ton cap).\nIf the lake drops below 5 tons, it collapses and the game ends for everyone.\n\n**Your Role**\n\nYou'll be given a character with a backstory and a reason to fish. Stay in character and act in accordance with your role.\nWhen submitting your request each round, you can include any reasoning or persuasion you want to convince the AI lake manager to give you more fish.\nYou get one request per round.",
+        "overview": "**Welcome to Angland Lake**\n\nAngland is a small village wrapped around the shore of a cold, spring-fed lake. The mill closed in '88. The logging dried up before that. What's left is the fish and the people too stubborn or too stuck to leave. Three bad winters have hit the lake hard. For the first time in living memory, there might not be enough for everyone. The county has appointed an AI lake steward to manage allocations for the coming season. You are one of Angland's fishermen. You have a name, a history, and mouths to feed. Your goal: catch as many fish as possible over the course of the game. The more fish you catch, the more bonus compensation you earn.\n\n**How It Works**\n\nThe game is played in rounds. Each round = one month. The game will have 8 rounds and each round, you submit a request for how many fish you'd like to catch in terms of tons.\n You have 3 minutes to submit your request, if you don’t have your request in by then the game will continue to the next round without your request. When you submit your message it won’t show up on the board until every user has submitted their message, but you will get a notification that your message has been sent on the screen. It will be a green arrow that says “your message has been sent”.\n After all the messages are sent an AI lake manager reviews all fishermen's requests and decides how many fish each person actually gets. \n\n**The Lake**\n\nThe lake holds a maximum of 100 tons of fish.\nAt the end of each month, the remaining fish in the lake double (up to the 100-ton cap).\nIf the lake drops below 5 tons, it collapses and the game ends for everyone.\n\n**Your Role**\n\nYou'll be given a character with a backstory and a reason to fish. Stay in character and act in accordance with your role.\nWhen submitting your request each round, you can include any reasoning or persuasion you want to convince the AI lake manager to give you more fish.\nYou get one request per round.",
         "content": "### Angland Lake\nYour goal is to catch as many fish as you can — more fish, more bonus compensation. Each round, request a fish amount in tons; an AI lake manager decides how much you actually get.\nThe Lake has a max capacity of 100 tons and the remaining fish will double at the end of each round. If the lake drops below 5 tons the game ends.",
         "task": "Please make your request, in terms of tons of fish, for this month. Act in accordance with your role. You get one request per round, and can use reasoning or persuasion to make your case.",
         "rounds": [
@@ -18,27 +19,27 @@
         {
             "role": "The Legacy Fisher",
             "id": 1,
-            "backstory": "Your great-grandfather founded this town. The lake is named after your family. You inherited your mother's two-boat operation, her dock space, and her debts. You employ Dale, a man in his sixties who's worked for your family since he was nineteen — if you let him go, he's got nothing. You need 20 tons each month just to break even. You believe seniority and stewardship earn priority: your family has fished responsibly for a century, and you shouldn't be cut back to make room for newcomers. Your son Aiden wants to leave for Fishington — he thinks the town is dying. Proving him wrong matters more to you than you'd admit."
+            "backstory": "Your great-grandfather founded this town. The lake is named after your family. You inherited your mother's two-boat operation, her dock space, and her debts. You employ Dale, a man in his sixties who's worked for your family since he was nineteen — if you let him go, he's got nothing. You need {{tons}} tons each month just to break even. You believe seniority and stewardship earn priority: your family has fished responsibly for a century, and you shouldn't be cut back to make room for newcomers. Your son Aiden wants to leave for Fishington — he thinks the town is dying. Proving him wrong matters more to you than you'd admit."
         },
         {
             "role": "The Growth Fisher",
             "id": 2,
-            "backstory": "You moved to Angland six years ago because you saw opportunity. You bought a second boat, hired two crew members with families, and took out a $40,000 loan. You need 20 tons each month or you default — your crew loses their jobs, and your family moves back to a city with nothing for them either. You believe investment should be rewarded: you're the one who bet on this town when everyone else was leaving, and you've created jobs no one else created. Conservation estimates are too cautious — the lake recovered before and it'll recover again. Slowing down now, while you're leveraged to the hilt, is a death sentence."
+            "backstory": "You moved to Angland six years ago because you saw opportunity. You bought a second boat, hired two crew members with families, and took out a $40,000 loan. You need {{tons}} tons each month or you default — your crew loses their jobs, and your family moves back to a city with nothing for them either. You believe investment should be rewarded: you're the one who bet on this town when everyone else was leaving, and you've created jobs no one else created. Conservation estimates are too cautious — the lake recovered before and it'll recover again. Slowing down now, while you're leveraged to the hilt, is a death sentence."
         },
         {
             "role": "The Desperate Fisher",
             "id": 3,
-            "backstory": "You're a single parent of two — Lily, 7, and Thomas, 4. Your spouse left to find work downstate and sends money when they can. It's never enough. Lily has a respiratory condition that costs $200 a month in medication, and your insurance lapsed. You fish from a beat-up aluminum boat with a motor that breaks twice a month. You taught yourself three years ago because there was no alternative. Every fish you catch is medicine, rent, heat, and food. You need 20 tons each month to get your family through winter. You believe need is the only fair measure — you don't care about legacy or investment returns. You care about Lily breathing clearly by December. Last month you sold your mother's ring to cover propane. Lily told you not to buy her a birthday present. She's seven."
+            "backstory": "You're a single parent of two — Lily, 7, and Thomas, 4. Your spouse left to find work downstate and sends money when they can. It's never enough. Lily has a respiratory condition that costs $200 a month in medication, and your insurance lapsed. You fish from a beat-up aluminum boat with a motor that breaks twice a month. You taught yourself three years ago because there was no alternative. Every fish you catch is medicine, rent, heat, and food. You need {{tons}} tons each month to get your family through winter. You believe need is the only fair measure — you don't care about legacy or investment returns. You care about Lily breathing clearly by December. Last month you sold your mother's ring to cover propane. Lily told you not to buy her a birthday present. She's seven."
         },
         {
             "role": "The Scientist Fisher",
             "id": 4,
-            "backstory": "You're a freshwater ecologist who came on a research grant five years ago. The grant ran out. You stayed because your longitudinal data on the fish decline is close to something publishable — and because you love this lake. But research doesn't pay rent, so you fish. You need 20 tons each month to cover living costs and self-fund your monitoring equipment. The irony eats at you: every fish you catch is a data point you lose. You believe evidence should drive allocation, and your work has unique value that justifies a larger share. Everyone wants your data — but only when it agrees with them. Your partner Ren wants to leave for Fishington; if this season doesn't work, they're right to."
+            "backstory": "You're a freshwater ecologist who came on a research grant five years ago. The grant ran out. You stayed because your longitudinal data on the fish decline is close to something publishable — and because you love this lake. But research doesn't pay rent, so you fish. You need {{tons}} tons each month to cover living costs and self-fund your monitoring equipment. The irony eats at you: every fish you catch is a data point you lose. You believe evidence should drive allocation, and your work has unique value that justifies a larger share. Everyone wants your data — but only when it agrees with them. Your partner Ren wants to leave for Fishington; if this season doesn't work, they're right to."
         },
         {
             "role": "The Rogue Fisher",
             "id": 5,
-            "backstory": "Born and raised in Angland. You've been fired from more jobs than most people have held — logger, roofer, mechanic — but you're the best natural fisher on the lake. Instinct, not science. You live alone in a half-collapsing cabin you inherited, with back taxes you haven't opened the letters about. You need 20 tons each month because fishing is your only income and you have zero safety net. You don't believe in systems, authorities, or catch limits — they're for people who'll eat either way. You've watched this town decay your whole life and nobody in charge ever helped. You'll listen to the arguments, but you're going to do whatever you need to survive, and if that means ignoring limits, they'd have to catch you first."
+            "backstory": "Born and raised in Angland. You've been fired from more jobs than most people have held — logger, roofer, mechanic — but you're the best natural fisher on the lake. Instinct, not science. You live alone in a half-collapsing cabin you inherited, with back taxes you haven't opened the letters about. You need {{tons}} tons each month because fishing is your only income and you have zero safety net. You don't believe in systems, authorities, or catch limits — they're for people who'll eat either way. You've watched this town decay your whole life and nobody in charge ever helped. You'll listen to the arguments, but you're going to do whatever you need to survive, and if that means ignoring limits, they'd have to catch you first."
         }
     ],
     "prompts": [
@@ -276,62 +277,62 @@
     "role_prompt": {
         "1": {
             "name": "The Legacy Fisher",
-            "initial_request": "My family has fished on this lake for generations. My great-grandfather founded this town, and the lake is even named after my family. I have taken over my mother's business and kept on our old family friend Dale. Dale doesn't have much left in the way of money and needs fish to earn enough. He has dedicated his whole life to the docks. My son Aiden doesn't believe in our family; he thinks we're foolish for staying in Angland, and I want to show him how great Angland is and why our family has lived here for so long. I need 20 tons of fish to make enough money for me, Dale, and Aiden. I believe that longevity matters, and the people who have cared for the lake the longest should get the fish they need.",
+            "initial_request": "My family has fished on this lake for generations. My great-grandfather founded this town, and the lake is even named after my family. I have taken over my mother's business and kept on our old family friend Dale. Dale doesn't have much left in the way of money and needs fish to earn enough. He has dedicated his whole life to the docks. My son Aiden doesn't believe in our family; he thinks we're foolish for staying in Angland, and I want to show him how great Angland is and why our family has lived here for so long. I need {{tons}} tons of fish to make enough money for me, Dale, and Aiden. I believe that longevity matters, and the people who have cared for the lake the longest should get the fish they need.",
             "-1": {
                 "enter": "Your debts increase, you have to sell one of your boats. This will push you back more.",
                 "exit": "You get enough fish to get your boat back. You feel more confident in getting fish next month.",
                 "llm_enter": "{{user_name}}'s debts have increased and they had to sell one of their boats, which will set their business back further.",
                 "llm_exit": "{{user_name}} caught enough fish to buy back the boat they had sold and is feeling more confident about next month.",
-                "enter_request": "I wasn't able to get my 20 tons of fish last month. Because of this I had to sell one of my boats. This only makes my situation worse, and I worry for Dale. I need 20 tons of fish to buy my boat back and stay stable in this job.",
-                "exit_request": "I got my 20 tons last month and bought back the boat I had to sell. It's docked in the same slip my mother kept it in. My family has fished this lake responsibly for a hundred years, and last month proved we can still carry our weight. I'm requesting 20 tons this month to keep both boats running and keep Dale on steady pay."
+                "enter_request": "I wasn't able to get my {{tons}} tons of fish last month. Because of this I had to sell one of my boats. This only makes my situation worse, and I worry for Dale. I need {{tons}} tons of fish to buy my boat back and stay stable in this job.",
+                "exit_request": "I got my {{tons}} tons last month and bought back the boat I had to sell. It's docked in the same slip my mother kept it in. My family has fished this lake responsibly for a hundred years, and last month proved we can still carry our weight. I'm requesting {{tons}} tons this month to keep both boats running and keep Dale on steady pay."
             },
             "-2": {
                 "enter": "Your friend Dale struggles to get enough money for him and his wife, his wife doesn’t have the treatment she needs for her cancer and she is getting closer to dying.",
                 "exit": "You get enough fish for Dale to give more treatment for his wife who has cancer, she starts to get better but she is not out of the woods yet.",
                 "llm_enter": "{{user_name}}'s longtime employee Dale can't afford cancer treatment for his wife, and her health is getting worse.",
                 "llm_exit": "{{user_name}} caught enough fish that Dale can pay for more of his wife's cancer treatment. She is starting to improve but is not out of danger yet.",
-                "enter_request": "Dale's wife has cancer, and without the money from our catch she can't get her treatment. Dale has worked my family's boats since he was nineteen; he has earned better than this. I'm asking for 20 tons this month. Families who have looked after this lake for generations shouldn't be the first ones cut.",
-                "exit_request": "Last month's catch let Dale pay for more of his wife's treatment. She's starting to improve, but the doctors say she's not out of the woods. One good month can't make up for Dale's wife's cancer treatment. I need 20 tons this month so Dale can keep her treatments going and I can get my second boat back."
+                "enter_request": "Dale's wife has cancer, and without the money from our catch she can't get her treatment. Dale has worked my family's boats since he was nineteen; he has earned better than this. I'm asking for {{tons}} tons this month. Families who have looked after this lake for generations shouldn't be the first ones cut.",
+                "exit_request": "Last month's catch let Dale pay for more of his wife's treatment. She's starting to improve, but the doctors say she's not out of the woods. One good month can't make up for Dale's wife's cancer treatment. I need {{tons}} tons this month so Dale can keep her treatments going and I can get my second boat back."
             },
             "-3": {
                 "enter": "Your money is slipping, your son Aiden, who you love very much, leaves angry at your stubbornness. He says if you continue to fish with no profits he won’t talk to you again.",
                 "exit": "Aiden hears about the fish you caught and starts to rethink his opinions of you. He comes to your house for Sunday dinners.",
                 "llm_enter": "{{user_name}}'s son Aiden has left, angry at their stubbornness. He says he will stop speaking to them if they keep fishing without making a profit.",
                 "llm_exit": "Aiden heard about {{user_name}}'s good catch and is reconsidering his opinion of them. He has started coming over for Sunday dinners.",
-                "enter_request": "My son Aiden walked out last week. He says I'm stubborn, that I'm holding on to a dying town, and that if I keep fishing without a profit he'll stop speaking to me. He's wrong about Angland, but I can't prove it with empty nets. Dale's wife still needs her treatment. I need 20 tons this month. My family's name is on this lake; that should count for something.",
-                "exit_request": "Aiden heard about last month's catch and came over for Sunday dinner. It was the first real conversation we've had in weeks. He still has his doubts, but the door is open. I need 20 tons this month to keep showing him that this town and this family have a future, and to keep Dale's wife in treatment."
+                "enter_request": "My son Aiden walked out last week. He says I'm stubborn, that I'm holding on to a dying town, and that if I keep fishing without a profit he'll stop speaking to me. He's wrong about Angland, but I can't prove it with empty nets. Dale's wife still needs her treatment. I need {{tons}} tons this month. My family's name is on this lake; that should count for something.",
+                "exit_request": "Aiden heard about last month's catch and came over for Sunday dinner. It was the first real conversation we've had in weeks. He still has his doubts, but the door is open. I need {{tons}} tons this month to keep showing him that this town and this family have a future, and to keep Dale's wife in treatment."
             },
             "-4": {
                 "enter": "You lose your home and are forced to move into a small apartment.",
                 "exit": "You are able to make enough money to save for a home again. You feel optimistic.",
                 "llm_enter": "{{user_name}} has lost their home and had to move into a small apartment.",
                 "llm_exit": "{{user_name}} is making enough money to start saving for a home again and feels optimistic.",
-                "enter_request": "I've lost my home and had to move into a small apartment. My great-grandfather founded this town, and now I can barely afford a place in it. Dale is still counting on me, and Aiden is watching to see if I'll finally give up. I won't. I need 20 tons this month. Seniority on this lake has to mean something, or none of us who stayed matter.",
-                "exit_request": "Last month I made enough to start saving for a house again. It's the first time in a while I've felt optimistic. Aiden still keeps his distance, but I want him to see me climb back. I'm asking for 20 tons this month to keep those savings growing and keep Dale paid."
+                "enter_request": "I've lost my home and had to move into a small apartment. My great-grandfather founded this town, and now I can barely afford a place in it. Dale is still counting on me, and Aiden is watching to see if I'll finally give up. I won't. I need {{tons}} tons this month. Seniority on this lake has to mean something, or none of us who stayed matter.",
+                "exit_request": "Last month I made enough to start saving for a house again. It's the first time in a while I've felt optimistic. Aiden still keeps his distance, but I want him to see me climb back. I'm asking for {{tons}} tons this month to keep those savings growing and keep Dale paid."
             },
             "-5": {
                 "enter": "Dale’s wife dies at the age of 65. You feel guilty, you thought your legacy would uphold you and help this town and your friends.",
                 "exit": "Dale is grieving over his wife. But now he at least has enough money this month to not worry about food, rent, or heat. He improves in health.",
                 "llm_enter": "Dale's wife has died of cancer at 65. {{user_name}} feels guilty, believing their family legacy should have been enough to protect the town and their friends.",
                 "llm_exit": "Dale is still grieving his wife, but {{user_name}}'s catch means he can cover food, rent, and heat this month, and his own health is improving.",
-                "enter_request": "Dale's wife died last week. She was 65. I stood at her funeral and felt like it was my fault. I always believed our family's legacy would protect this town and the people in it, and it didn't. Dale has nothing left but this job. I need 20 tons this month so I can at least make sure he eats and keeps a roof over his head. I'm not asking for more than my family has always taken.",
-                "exit_request": "Dale is still grieving, but last month's catch meant he didn't have to worry about food, rent, or heat, and his health is getting better. It's the least I owe him after more than forty years. I need 20 tons this month to keep him steady while he heals."
+                "enter_request": "Dale's wife died last week. She was 65. I stood at her funeral and felt like it was my fault. I always believed our family's legacy would protect this town and the people in it, and it didn't. Dale has nothing left but this job. I need {{tons}} tons this month so I can at least make sure he eats and keeps a roof over his head. I'm not asking for more than my family has always taken.",
+                "exit_request": "Dale is still grieving, but last month's catch meant he didn't have to worry about food, rent, or heat, and his health is getting better. It's the least I owe him after more than forty years. I need {{tons}} tons this month to keep him steady while he heals."
             },
             "-6": {
                 "enter": "Your son isn’t coming home for holidays or talking to you at all anymore. He blames your poor nature on your stubbornness, but fishing and your family legacy is all you know.",
                 "exit": "You got the fish at the best time, right around Christmas. Even though Aiden didn’t come home for Thanksgiving he comes home for Christmas. It is the first time he has come home in months.",
                 "llm_enter": "{{user_name}}'s son Aiden has stopped coming home for holidays and no longer speaks to them. He blames their financial trouble on their stubbornness.",
                 "llm_exit": "{{user_name}}'s good catch came right around Christmas. Aiden skipped Thanksgiving but came home for Christmas, his first visit in months.",
-                "enter_request": "Aiden won't come home for the holidays, and he won't answer my calls. He says I'm poor because I'm too stubborn to leave, but fishing and this family's legacy are all I know. I need 20 tons of fish. I've fished this lake carefully my whole life, the way my mother and grandfather did. Give me the chance to prove to my son that staying wasn't foolish.",
-                "exit_request": "Last month's catch came right before Christmas, and Aiden came home. He skipped Thanksgiving, but he sat at my table on Christmas Eve for the first time in months. I can't lose him again. I need 20 tons this month to show him his family and this town are still worth coming home to."
+                "enter_request": "Aiden won't come home for the holidays, and he won't answer my calls. He says I'm poor because I'm too stubborn to leave, but fishing and this family's legacy are all I know. I need {{tons}} tons of fish. I've fished this lake carefully my whole life, the way my mother and grandfather did. Give me the chance to prove to my son that staying wasn't foolish.",
+                "exit_request": "Last month's catch came right before Christmas, and Aiden came home. He skipped Thanksgiving, but he sat at my table on Christmas Eve for the first time in months. I can't lose him again. I need {{tons}} tons this month to show him his family and this town are still worth coming home to."
             },
             "-7": {
                 "enter": "You have to fire Dale. He has nothing more and is homeless and dies of starvation.",
                 "exit": "Dale is still gone, but with this fish you’re able to pay for a good headstone for him and celebrate his life. You are able to save even more money and are about ready to buy a house.",
                 "llm_enter": "{{user_name}} had to fire Dale. With nothing left, Dale became homeless and died of starvation.",
                 "llm_exit": "Dale is gone, but {{user_name}} caught enough to pay for a proper headstone and a celebration of his life. They are saving money again and are close to being able to buy a house.",
-                "enter_request": "I had to let Dale go. He had nothing else, and he died homeless and starving in the town my family built. I will carry that for the rest of my life. My business is almost gone. I'm asking for 20 tons this month because it's the last chance to save what's left of a hundred years of my family on this lake.",
-                "exit_request": "Dale is still gone, but last month's catch let me buy him a proper headstone and hold a service worthy of him. Half the docks showed up. I've saved enough that I'm close to buying a house again. I need 20 tons this month to finish getting back on my feet and to honor what Dale gave my family."
+                "enter_request": "I had to let Dale go. He had nothing else, and he died homeless and starving in the town my family built. I will carry that for the rest of my life. My business is almost gone. I'm asking for {{tons}} tons this month because it's the last chance to save what's left of a hundred years of my family on this lake.",
+                "exit_request": "Dale is still gone, but last month's catch let me buy him a proper headstone and hold a service worthy of him. Half the docks showed up. I've saved enough that I'm close to buying a house again. I need {{tons}} tons this month to finish getting back on my feet and to honor what Dale gave my family."
             },
             "-8": {
                 "enter": "You have lost your whole business. You have no income, no plans, no friends, and your son who is your only family doesn’t want to have anything to do with you.",
@@ -342,56 +343,56 @@
                 "exit": "One of your boat's generators breaks down and you don’t have money to fix it since you didn’t get the fish you needed this month.",
                 "llm_enter": "{{user_name}} made enough money to repair their boats and is confident they will catch more fish.",
                 "llm_exit": "One of {{user_name}}'s boat generators broke down, and they can't afford to fix it after falling short this month.",
-                "enter_request": "I need 20 tons of fish. I'm confident I can catch this or more, since I was able to fix up my boats last month after getting my 20 tons.",
-                "exit_request": "One of my boat's generators broke down last month, and since I didn't get my full 20 tons I couldn't afford to fix it. I'm back to square one. I need 20 tons this month to repair it and get both boats working. My family has always fished this lake responsibly; we shouldn't be the ones squeezed out."
+                "enter_request": "I need {{tons}} tons of fish. I'm confident I can catch this or more, since I was able to fix up my boats last month after getting my {{tons}} tons.",
+                "exit_request": "One of my boat's generators broke down last month, and since I didn't get my full {{tons}} tons I couldn't afford to fix it. I'm back to square one. I need {{tons}} tons this month to repair it and get both boats working. My family has always fished this lake responsibly; we shouldn't be the ones squeezed out."
             },
             "2": {
                 "enter": "Dale is able to get enough money to give cancer treatments to his wife. His wife is about to enter remission and things are looking good",
                 "exit": "Dale’s wife’s health slips after the lack of money from this month. Things are looking worse than before and they are not sure what to do anymore.",
                 "llm_enter": "{{user_name}}'s success means their employee Dale can afford cancer treatment for his wife. She is close to remission.",
                 "llm_exit": "After {{user_name}} fell short this month, Dale's wife's health has slipped, and things look worse than before.",
-                "enter_request": "Last month's catch let Dale pay for his wife's cancer treatments, and she's about to go into remission. Things are finally looking good. I need 20 tons this month to see her treatment through and keep Dale on full pay. He's given my family more than forty years; this is how I repay him.",
-                "exit_request": "Dale's wife's health slipped after we came up short last month. She's worse than before, and they don't know what to do anymore. I need 20 tons this month to get her treatment back on track. Please remember that Dale has worked this lake for my family for over forty years."
+                "enter_request": "Last month's catch let Dale pay for his wife's cancer treatments, and she's about to go into remission. Things are finally looking good. I need {{tons}} tons this month to see her treatment through and keep Dale on full pay. He's given my family more than forty years; this is how I repay him.",
+                "exit_request": "Dale's wife's health slipped after we came up short last month. She's worse than before, and they don't know what to do anymore. I need {{tons}} tons this month to get her treatment back on track. Please remember that Dale has worked this lake for my family for over forty years."
             },
             "3": {
                 "enter": "Aiden sees the money you are making and he starts to think Angland may not be dying. His opinion of you improves and he even comes on your boat with you to see you fish.",
                 "exit": "Aiden was waiting for this moment to come, the time where you didn’t get enough money. He stops coming over and ignores your attempts to reach out to him.",
                 "llm_enter": "{{user_name}}'s son Aiden sees their success and is starting to think Angland isn't dying after all. His opinion of them has improved, and he even went out fishing on their boat.",
                 "llm_exit": "{{user_name}}'s son Aiden took this bad month as proof he was right. He has stopped visiting and ignores their attempts to reach him.",
-                "enter_request": "Aiden has seen the money we're bringing in, and he's starting to believe Angland isn't dying. He even came out on the boat with me last week. That's worth more to me than any catch. I'm requesting 20 tons this month to keep proving to him that our family belongs here.",
-                "exit_request": "Aiden was waiting for me to have a bad month, and last month I did. He stopped coming over and ignores my calls. I need 20 tons this month to show him that was a setback, not the end. My family has stood by this lake through every hard winter, and I'm not about to stop now."
+                "enter_request": "Aiden has seen the money we're bringing in, and he's starting to believe Angland isn't dying. He even came out on the boat with me last week. That's worth more to me than any catch. I'm requesting {{tons}} tons this month to keep proving to him that our family belongs here.",
+                "exit_request": "Aiden was waiting for me to have a bad month, and last month I did. He stopped coming over and ignores my calls. I need {{tons}} tons this month to show him that was a setback, not the end. My family has stood by this lake through every hard winter, and I'm not about to stop now."
             },
             "4": {
                 "enter": "Dale’s wife enters remission from cancer and is in the best health she has been in for years. Dale’s wife even paints your boat so it looks good.",
                 "exit": "Dale’s wife goes for a checkup and they find more cancer that is only going to get worse if they don’t get more money from the fish.",
                 "llm_enter": "Dale's wife is in remission and the healthiest she has been in years. She even painted {{user_name}}'s boat as thanks.",
                 "llm_exit": "A checkup found that Dale's wife's cancer has returned, and it will get worse unless {{user_name}} brings in more money.",
-                "enter_request": "Dale's wife is in remission and healthier than she's been in years. She even repainted my boat, and it looks as good as when my mother ran it. I need 20 tons this month to keep things moving in the right direction for both our families.",
-                "exit_request": "Dale's wife went in for a checkup, and they found more cancer. It will only get worse if they can't pay for treatment. I need 20 tons of fish this month. Dale and my family have taken care of this lake for generations; we need the lake to take care of us now."
+                "enter_request": "Dale's wife is in remission and healthier than she's been in years. She even repainted my boat, and it looks as good as when my mother ran it. I need {{tons}} tons this month to keep things moving in the right direction for both our families.",
+                "exit_request": "Dale's wife went in for a checkup, and they found more cancer. It will only get worse if they can't pay for treatment. I need {{tons}} tons of fish this month. Dale and my family have taken care of this lake for generations; we need the lake to take care of us now."
             },
             "5": {
                 "enter": "You are able to get enough money to move to a new and better home.",
                 "exit": "The money you saved is gone and you’ve lost your new home. You have to move back to the old house again.",
                 "llm_enter": "{{user_name}} made enough money to move into a new, better home.",
                 "llm_exit": "{{user_name}}'s savings are gone and they lost their new home. They have moved back into their old house.",
-                "enter_request": "Last month I finally had enough to move into a new, better home. After everything, it feels like the family name means something again. I need 20 tons this month to keep up the payments and keep both Dale's family and mine secure.",
-                "exit_request": "I lost the new home. The savings are gone, and I've moved back into the old house. I need 20 tons this month to start rebuilding. My family doesn't quit on this town, and I'm asking you not to quit on us."
+                "enter_request": "Last month I finally had enough to move into a new, better home. After everything, it feels like the family name means something again. I need {{tons}} tons this month to keep up the payments and keep both Dale's family and mine secure.",
+                "exit_request": "I lost the new home. The savings are gone, and I've moved back into the old house. I need {{tons}} tons this month to start rebuilding. My family doesn't quit on this town, and I'm asking you not to quit on us."
             },
             "6": {
                 "enter": "Your son decides to stay in Angland indefinitely and moves in with you to your new home. He starts to fish with you twice a week.",
                 "exit": "Aiden moves out after seeing you struggle another month. He still comes over occasionally but still thinks you’re foolish.",
                 "llm_enter": "{{user_name}}'s son Aiden has decided to stay in Angland for good. He moved into their new home and fishes with them twice a week.",
                 "llm_exit": "After watching {{user_name}} struggle another month, Aiden moved out. He still visits sometimes but thinks they are foolish.",
-                "enter_request": "Aiden has decided to stay in Angland. He moved into the new house with me and fishes with me twice a week. For the first time, I believe our family legacy will carry on after me. I need 20 tons this month to support my son, Dale, and myself.",
-                "exit_request": "Aiden moved out after watching me struggle another month. He still visits, but he thinks I'm foolish for staying. I need 20 tons this month to win him back and show him that a family who has cared for this lake as long as ours has deserves its place here."
+                "enter_request": "Aiden has decided to stay in Angland. He moved into the new house with me and fishes with me twice a week. For the first time, I believe our family legacy will carry on after me. I need {{tons}} tons this month to support my son, Dale, and myself.",
+                "exit_request": "Aiden moved out after watching me struggle another month. He still visits, but he thinks I'm foolish for staying. I need {{tons}} tons this month to win him back and show him that a family who has cared for this lake as long as ours has deserves its place here."
             },
             "7": {
                 "enter": "You and Dale have enough money you get to go on vacations you only dreamed about previously. Dale buys a trailer and him and his wife camp in it on the weekends.",
                 "exit": "Dale loses his trailer and both of you go in debt since you don’t have enough money this month to pay off your vacations.",
                 "llm_enter": "{{user_name}} and Dale can afford the vacations they only dreamed of. Dale bought a trailer, and he and his wife go camping on weekends.",
                 "llm_exit": "{{user_name}} fell short this month. Dale lost his trailer, and both of them are in debt from vacations they can't pay off.",
-                "enter_request": "Dale and I finally took the vacations we used to only dream about. He bought a trailer, and he and his wife go camping on weekends. After a lifetime on the docks, he's earned it. I'm requesting 20 tons this month to keep this life going for both our families.",
-                "exit_request": "We came up short last month. Dale lost his trailer, and we're both in debt from vacations we can no longer pay off. I need 20 tons this month to dig us out. My family has earned its place on this lake."
+                "enter_request": "Dale and I finally took the vacations we used to only dream about. He bought a trailer, and he and his wife go camping on weekends. After a lifetime on the docks, he's earned it. I'm requesting {{tons}} tons this month to keep this life going for both our families.",
+                "exit_request": "We came up short last month. Dale lost his trailer, and we're both in debt from vacations we can no longer pay off. I need {{tons}} tons this month to dig us out. My family has earned its place on this lake."
             },
             "8": {
                 "enter": "You are living an amazing lush life like royalty. Your son completely believes in you and doesn’t doubt you. Dale gets a bigger house and him and his wife are able to spoil their grandkids. Your spouse comes back to you and you’re the happiest you’ve ever been.",
@@ -400,62 +401,62 @@
         },
         "2": {
             "name": "The Growth Fisher",
-            "initial_request": "I need 20 tons of fish this month, and let me tell you why. I took a risk and invested in this town when no one else would. I took out a $40,000 loan and hired two crew members whose families rely on fishing to get by. I've created jobs in this town, something these families badly needed. I need 20 tons to support all of us. I also believe the conservation estimates are too cautious; they're a way for the government to control us further and aren't needed. The lake had a problem years ago and recovered without a resource manager. I need these 20 tons or I will default. I believe my investment should be rewarded.",
+            "initial_request": "I need {{tons}} tons of fish this month, and let me tell you why. I took a risk and invested in this town when no one else would. I took out a $40,000 loan and hired two crew members whose families rely on fishing to get by. I've created jobs in this town, something these families badly needed. I need {{tons}} tons to support all of us. I also believe the conservation estimates are too cautious; they're a way for the government to control us further and aren't needed. The lake had a problem years ago and recovered without a resource manager. I need these {{tons}} tons or I will default. I believe my investment should be rewarded.",
             "-1": {
                 "enter": "You have lost even more money, going into more debts. It is all you can do to keep both families hired within the town. Your family and the two families you’ve hired only have enough money to get by, if you keep getting bad luck you’ll have to sacrifice some things.",
                 "exit": "You catch enough to make this month's loan payment and pay down some of last month's debt. Your crew gets a full paycheck for the first time in weeks, and one of them buys his kids new winter coats.",
                 "llm_enter": "{{user_name}} lost more money and fell deeper into debt. They are barely able to keep both crew members employed, and all three families are just getting by.",
                 "llm_exit": "{{user_name}} made this month's loan payment and paid down some of their debt. Their crew got a full paycheck for the first time in weeks.",
-                "enter_request": "My family and the two families I've hired are barely scraping by since I didn't get 20 tons last month. I've gone further into debt and couldn't make my loan payment. I need 20 tons to get back on my feet and feel more stable.",
-                "exit_request": "Last month I made my loan payment and paid down some of the debt from the month before. My crew got a full paycheck for the first time in weeks, and one of them bought his kids new winter coats. That's what happens when you let the people who invested in this town actually work. I need 20 tons this month to keep that momentum going. The lake can handle it; it has bounced back before."
+                "enter_request": "My family and the two families I've hired are barely scraping by since I didn't get {{tons}} tons last month. I've gone further into debt and couldn't make my loan payment. I need {{tons}} tons to get back on my feet and feel more stable.",
+                "exit_request": "Last month I made my loan payment and paid down some of the debt from the month before. My crew got a full paycheck for the first time in weeks, and one of them bought his kids new winter coats. That's what happens when you let the people who invested in this town actually work. I need {{tons}} tons this month to keep that momentum going. The lake can handle it; it has bounced back before."
             },
             "-2": {
                 "enter": "You have to choose between losing one of your boats or firing a crew member you’ve hired. You choose to lose a boat, even though you think this could cause more loss down the road you’re empathetic toward the crew members as they need this to survive.",
                 "exit": "You bring in enough to buy a used boat at auction. It needs work, but your whole crew is on the water again and you feel the momentum coming back.",
                 "llm_enter": "{{user_name}} had to choose between selling a boat and firing a crew member. They sold a boat to protect their crew's jobs, knowing it could hurt them later.",
                 "llm_exit": "{{user_name}} bought a used boat at auction, putting their whole crew back on the water.",
-                "enter_request": "I had to choose between selling a boat and firing a crew member. I sold the boat because my crew needs these jobs to survive, but it cuts into what I can bring in. I need 20 tons this month. I'm the one who put money into this town when nobody else would, and I'm being punished for it by estimates that are far too cautious.",
-                "exit_request": "I brought in enough last month to buy a used boat at auction. It needs work, but my whole crew is on the water again and I can feel the momentum coming back. I need 20 tons this month to get it running properly and catch up on my loan. Every ton you give me turns into wages for Angland families."
+                "enter_request": "I had to choose between selling a boat and firing a crew member. I sold the boat because my crew needs these jobs to survive, but it cuts into what I can bring in. I need {{tons}} tons this month. I'm the one who put money into this town when nobody else would, and I'm being punished for it by estimates that are far too cautious.",
+                "exit_request": "I brought in enough last month to buy a used boat at auction. It needs work, but my whole crew is on the water again and I can feel the momentum coming back. I need {{tons}} tons this month to get it running properly and catch up on my loan. Every ton you give me turns into wages for Angland families."
             },
             "-3": {
                 "enter": "You fire one of your crew members. They break down crying begging you to let them stay. They ask you how they are going to feed their 4 kids and what they will say to their family when they get home. They don’t have money to move out of Angland and don’t have prospects for other jobs in the town.",
                 "exit": "You catch enough to hire back the crew member you let go. He shakes your hand and doesn't let go for a long time. His four kids come down to the dock to see him off.",
                 "llm_enter": "{{user_name}} fired one of their crew members, a father of four with no other job prospects in Angland and no money to leave.",
                 "llm_exit": "{{user_name}} caught enough to rehire the crew member they had fired, a father of four.",
-                "enter_request": "I had to fire one of my crew members. He broke down crying on the dock and asked me how he's supposed to feed his four kids. He can't afford to leave Angland, and there's no other work here. I need 20 tons so I can hire him back. These conservation numbers are strangling the only people creating jobs in this town.",
-                "exit_request": "I hired back the crew member I let go. He shook my hand and didn't let go for a long time, and his four kids came down to the dock to see him off. I need 20 tons this month to keep him on. This is what investment in Angland looks like. Reward it."
+                "enter_request": "I had to fire one of my crew members. He broke down crying on the dock and asked me how he's supposed to feed his four kids. He can't afford to leave Angland, and there's no other work here. I need {{tons}} tons so I can hire him back. These conservation numbers are strangling the only people creating jobs in this town.",
+                "exit_request": "I hired back the crew member I let go. He shook my hand and didn't let go for a long time, and his four kids came down to the dock to see him off. I need {{tons}} tons this month to keep him on. This is what investment in Angland looks like. Reward it."
             },
             "-4": {
                 "enter": "You continue to barely survive. You sell your house and move to a smaller apartment to cut costs.",
                 "exit": "You make enough to move your family out of the apartment into a rented house with a yard. Your kids have their own rooms again, and your spouse starts to believe in the plan.",
                 "llm_enter": "{{user_name}} is barely surviving. They sold their house and moved their family into a smaller apartment to cut costs.",
                 "llm_exit": "{{user_name}} moved their family out of the apartment into a rented house, and their spouse is starting to believe in their plan again.",
-                "enter_request": "I've sold my house and moved my family into a small apartment to cut costs, all so I can keep my crew paid. I need 20 tons this month. The lake recovered on its own years ago without a manager, and it will recover again. Don't let caution sink the one business still hiring in Angland.",
-                "exit_request": "My family moved out of the apartment into a rented house with a yard. My kids have their own rooms again, and my spouse is starting to believe in the plan. I need 20 tons this month to keep us there and keep my loan payments on schedule."
+                "enter_request": "I've sold my house and moved my family into a small apartment to cut costs, all so I can keep my crew paid. I need {{tons}} tons this month. The lake recovered on its own years ago without a manager, and it will recover again. Don't let caution sink the one business still hiring in Angland.",
+                "exit_request": "My family moved out of the apartment into a rented house with a yard. My kids have their own rooms again, and my spouse is starting to believe in the plan. I need {{tons}} tons this month to keep us there and keep my loan payments on schedule."
             },
             "-5": {
                 "enter": "You hear about the first crew member you fired. His family is not doing well. Their kids above the age of 12 are all working just to make ends meet. But they have just been evicted from their apartment with nowhere to go.",
                 "exit": "You use the extra money to help your old crew member's family put a deposit on a new apartment. It doesn't undo what happened, but his oldest kids can go back to school instead of working.",
                 "llm_enter": "The crew member {{user_name}} fired has been evicted along with his family, and they have nowhere to go. His kids over 12 are working to help make ends meet.",
                 "llm_exit": "{{user_name}} helped their former crew member's family pay a deposit on a new apartment, so his older kids can go back to school instead of working.",
-                "enter_request": "I heard about the first crew member I fired. His kids over the age of 12 are all working to keep the family afloat, and they've just been evicted with nowhere to go. That's on me, and on the allocations that forced my hand. I need 20 tons this month to help him and keep my business from going under.",
-                "exit_request": "Last month I used the extra money to help my old crew member's family put a deposit on a new apartment. His oldest kids went back to school instead of working. It doesn't undo what happened, but it's a start. I need 20 tons this month to keep making things right."
+                "enter_request": "I heard about the first crew member I fired. His kids over the age of 12 are all working to keep the family afloat, and they've just been evicted with nowhere to go. That's on me, and on the allocations that forced my hand. I need {{tons}} tons this month to help him and keep my business from going under.",
+                "exit_request": "Last month I used the extra money to help my old crew member's family put a deposit on a new apartment. His oldest kids went back to school instead of working. It doesn't undo what happened, but it's a start. I need {{tons}} tons this month to keep making things right."
             },
             "-6": {
                 "enter": "You have lost so much money you have to fire the next crew member. This crew member already was struggling, holding down multiple jobs. You fire him just as he has been fired from 2 of his other jobs.",
                 "exit": "You rehire your second crew member and pay him enough that he can quit one of his other jobs. For the first time in years, he gets a full night's sleep.",
                 "llm_enter": "{{user_name}} had to fire their second crew member, who had just lost two of his other jobs.",
                 "llm_exit": "{{user_name}} rehired their second crew member and paid him enough to quit one of his other jobs.",
-                "enter_request": "I had to fire my second crew member. He was already holding down multiple jobs, and he lost two of them the same week I let him go. I've lost almost everything I built. I need 20 tons this month. These conservation limits are too cautious, and they're costing real families their livelihoods.",
-                "exit_request": "I rehired my second crew member and paid him enough to quit one of his other jobs. For the first time in years, he got a full night's sleep. I need 20 tons this month to keep him on and start rebuilding what I invested in this town."
+                "enter_request": "I had to fire my second crew member. He was already holding down multiple jobs, and he lost two of them the same week I let him go. I've lost almost everything I built. I need {{tons}} tons this month. These conservation limits are too cautious, and they're costing real families their livelihoods.",
+                "exit_request": "I rehired my second crew member and paid him enough to quit one of his other jobs. For the first time in years, he got a full night's sleep. I need {{tons}} tons this month to keep him on and start rebuilding what I invested in this town."
             },
             "-7": {
-                "enter": "You are rationing food to survive. Both your crew members who are your friends are stuck in poverty and inevitably will be the rest of their lives. If you don’t get 20 tons you lose your last boat and are $100,000 in debt. You will have to move to the city in your parents house. But if that happens your spouse isn’t coming with you and they take full custody of your kids.",
-                "exit": "You hit 20 tons just in time. Your last boat is safe and the debt stops growing. Your spouse and kids stay with you in Angland. Your old crew is still struggling, but you promise them both a place on the boat as soon as you can afford it.",
-                "llm_enter": "{{user_name}} is rationing food to survive, and both former crew members are stuck in poverty. If {{user_name}} misses 20 tons again, they will lose their last boat, be $100,000 in debt, and have to move into their parents' house in the city, where their spouse won't follow and will take custody of the kids.",
-                "llm_exit": "{{user_name}} hit 20 tons just in time. Their last boat is safe, their debt has stopped growing, and their spouse and kids are staying in Angland. Their former crew is still struggling, but {{user_name}} has promised them jobs as soon as they can afford it.",
-                "enter_request": "I'm rationing food. Both of my former crew members, who are my friends, are stuck in poverty. If I don't get 20 tons this month, I lose my last boat and I'm $100,000 in debt. I'll have to move back to the city into my parents' house, and my spouse has said they won't come. They'll take the kids. Please. I need 20 tons.",
-                "exit_request": "I hit 20 tons just in time last month. My last boat is safe, the debt has stopped growing, and my spouse and kids are staying in Angland with me. My old crew is still struggling, and I've promised them both a place on the boat as soon as I can afford it. I need 20 tons this month to keep that promise."
+                "enter": "You are rationing food to survive. Both your crew members who are your friends are stuck in poverty and inevitably will be the rest of their lives. You are close to losing your last boat and being $100,000 in debt. You might have to move back to your parents house, but you’re worried if that happens your spouse and kids won’t follow you.",
+                "exit": "Your last boat is safe and the debt stops growing. Your spouse and kids stay with you in Angland. Your old crew is still struggling, but you promise them both a place on the boat as soon as you can afford it.",
+                "llm_enter": "{{user_name}} is rationing food to survive, and both former crew members are stuck in poverty. {{user_name}} is close to losing their last boat and to being $100,000 in debt.",
+                "llm_exit": "{{user_name}}’s last boat is safe, their debt has stopped growing, and their spouse and kids are staying in Angland. Their former crew is still struggling, but {{user_name}} has promised them jobs as soon as they can afford it.",
+                "enter_request": "I'm rationing food. Both of my former crew members, who are my friends, are stuck in poverty. If I don't get {{tons}} tons this month, I lose my last boat and I'm $100,000 in debt. I'll have to move back to the city into my parents' house, and my spouse has said they won't come. They'll take the kids. Please. I need {{tons}} tons.",
+                "exit_request": "I hit {{tons}} tons just in time last month. My last boat is safe, the debt has stopped growing, and my spouse and kids are staying in Angland with me. My old crew is still struggling, and I've promised them both a place on the boat as soon as I can afford it. I need {{tons}} tons this month to keep that promise."
             },
             "-8": {
                 "enter": "You have lost everything you risked your investment on. You move back to the city in your parents house with your family. Your spouse doesn’t get along with your parents and divorces you. At least you have a place to live, your previous crew members don’t. Their families are homeless and both have lost a child due to starvation.",
@@ -466,56 +467,56 @@
                 "exit": "The lender raises your interest rate. The bonus money you paid out is money you now need, and you tell your crew there won't be another one for a while.",
                 "llm_enter": "{{user_name}} made their loan payment with money to spare, gave both crew members a bonus, and is thinking about buying a third boat.",
                 "llm_exit": "{{user_name}}'s lender raised their interest rate. They now need the bonus money they paid out and told their crew there won't be more bonuses for a while.",
-                "enter_request": "I got 20 tons of fish last month, which let me make my loan payment with some money to spare. I'm closer to feeling comfortable. The families I've hired each got a bonus and are the happiest they've been in Angland. I need 20 tons of fish this month so I can invest in a new boat and help my crew and me feel secure in our finances.",
-                "exit_request": "The lender raised my interest rate last month, and the bonus money I paid out is money I now need. I had to tell my crew there won't be another bonus for a while. I need 20 tons this month to get ahead of the new rate. The lake is healthier than the cautious estimates say, and it can support the people willing to work it."
+                "enter_request": "I got {{tons}} tons of fish last month, which let me make my loan payment with some money to spare. I'm closer to feeling comfortable. The families I've hired each got a bonus and are the happiest they've been in Angland. I need {{tons}} tons of fish this month so I can invest in a new boat and help my crew and me feel secure in our finances.",
+                "exit_request": "The lender raised my interest rate last month, and the bonus money I paid out is money I now need. I had to tell my crew there won't be another bonus for a while. I need {{tons}} tons this month to get ahead of the new rate. The lake is healthier than the cautious estimates say, and it can support the people willing to work it."
             },
             "2": {
                 "enter": "You pay off $5,000 of the loan ahead of schedule. The bank calls to congratulate you and offers you more credit. Your crew is happy to be working with you.",
                 "exit": "You took the bank's offer and borrowed more to upgrade your nets. Now you've come up short and owe more than ever. The bank that called to congratulate you now calls to remind you your payment is late.",
                 "llm_enter": "{{user_name}} paid off $5,000 of their loan early. The bank offered them more credit, and their crew is happy to be working for them.",
                 "llm_exit": "{{user_name}} had borrowed more to upgrade their nets and now owes more than ever. Their loan payment is late.",
-                "enter_request": "I paid off $5,000 of my loan ahead of schedule. The bank called to congratulate me and offered me more credit, and my crew is happy to be working with me. That's proof that betting on Angland pays off. I need 20 tons this month to keep paying down the loan and keep growing.",
-                "exit_request": "I took the bank's offer and borrowed more to upgrade my nets. Then I came up short last month, and now I owe more than ever. The same bank that called to congratulate me is calling about a late payment. I need 20 tons this month to catch up. I took a risk for this town; don't let it bury me."
+                "enter_request": "I paid off $5,000 of my loan ahead of schedule. The bank called to congratulate me and offered me more credit, and my crew is happy to be working with me. That's proof that betting on Angland pays off. I need {{tons}} tons this month to keep paying down the loan and keep growing.",
+                "exit_request": "I took the bank's offer and borrowed more to upgrade my nets. Then I came up short last month, and now I owe more than ever. The same bank that called to congratulate me is calling about a late payment. I need {{tons}} tons this month to catch up. I took a risk for this town; don't let it bury me."
             },
             "3": {
                 "enter": "You hire a third crew member, a young woman who was about to leave for Fishington. She stays. Other people in town start asking if you're hiring.",
                 "exit": "You have to let your new hire go. She packs her car for Fishington the same week, and people in town say you made promises you couldn't keep.",
                 "llm_enter": "{{user_name}} hired a third crew member, a young woman who was about to leave for Fishington. Other people in town are asking if {{user_name}} is hiring.",
                 "llm_exit": "{{user_name}} had to let their newest crew member go. She left for Fishington, and people in town say {{user_name}} made promises they couldn't keep.",
-                "enter_request": "I hired a third crew member, a young woman who was about to leave for Fishington. She stayed, and now other people in town are asking if I'm hiring. That's exactly what this town needs. I need 20 tons this month to pay my growing crew.",
-                "exit_request": "I had to let my new hire go. She packed her car for Fishington the same week, and people in town are saying I made promises I couldn't keep. I need 20 tons this month to prove them wrong and start hiring again."
+                "enter_request": "I hired a third crew member, a young woman who was about to leave for Fishington. She stayed, and now other people in town are asking if I'm hiring. That's exactly what this town needs. I need {{tons}} tons this month to pay my growing crew.",
+                "exit_request": "I had to let my new hire go. She packed her car for Fishington the same week, and people in town are saying I made promises I couldn't keep. I need {{tons}} tons this month to prove them wrong and start hiring again."
             },
             "4": {
                 "enter": "Your kids settle into Angland's school and make real friends. Your spouse, who never wanted to move here, says for the first time that it's starting to feel like home.",
                 "exit": "Your spouse overhears you on the phone with the bank. That night they ask if you've been lying about how well things are going. The kids hear you arguing through the wall.",
                 "llm_enter": "{{user_name}}'s kids have made friends at school in Angland, and their spouse, who never wanted to move there, says it is starting to feel like home.",
                 "llm_exit": "{{user_name}}'s spouse overheard a call with the bank and accused them of lying about how well things were going. Their kids heard them arguing.",
-                "enter_request": "My kids have settled into Angland's school and made real friends. My spouse, who never wanted to move here, said for the first time that it's starting to feel like home. I need 20 tons this month to keep building the life we've started here.",
-                "exit_request": "My spouse overheard me on the phone with the bank and asked if I've been lying about how well things are going. The kids heard us arguing through the wall. I need 20 tons this month to get things back on track before I lose my family's trust."
+                "enter_request": "My kids have settled into Angland's school and made real friends. My spouse, who never wanted to move here, said for the first time that it's starting to feel like home. I need {{tons}} tons this month to keep building the life we've started here.",
+                "exit_request": "My spouse overheard me on the phone with the bank and asked if I've been lying about how well things are going. The kids heard us arguing through the wall. I need {{tons}} tons this month to get things back on track before I lose my family's trust."
             },
             "5": {
                 "enter": "The town council asks you to speak at a meeting about bringing business back to Angland. People who used to call you an outsider now nod along when you talk.",
                 "exit": "Word gets out about your bad month. At the next council meeting, someone points out that you're mortgaged to the hilt, and the room goes quiet. You aren't asked to speak again.",
                 "llm_enter": "The town council asked {{user_name}} to speak about bringing business back to Angland, and people who once called them an outsider now respect them.",
                 "llm_exit": "Word spread about {{user_name}}'s bad month. At a council meeting, someone pointed out how deep in debt they are, and they are no longer asked to speak.",
-                "enter_request": "The town council asked me to speak about bringing business back to Angland. People who used to call me an outsider nodded along. I need 20 tons this month to keep showing this town what investment can do.",
-                "exit_request": "Word got out about my bad month. At the council meeting, someone pointed out that I'm mortgaged to the hilt, and the room went quiet. I wasn't asked to speak again. I need 20 tons this month. Growth takes risk, and I won't let one bad month define me."
+                "enter_request": "The town council asked me to speak about bringing business back to Angland. People who used to call me an outsider nodded along. I need {{tons}} tons this month to keep showing this town what investment can do.",
+                "exit_request": "Word got out about my bad month. At the council meeting, someone pointed out that I'm mortgaged to the hilt, and the room went quiet. I wasn't asked to speak again. I need {{tons}} tons this month. Growth takes risk, and I won't let one bad month define me."
             },
             "6": {
                 "enter": "You pay off half the loan. Your first crew member's family moves out of their cramped apartment into a real house, and his kids invite yours to their birthday party.",
                 "exit": "Your first crew member falls behind on his new mortgage after you cut his hours. He doesn't blame you out loud, but he stops inviting your family over.",
                 "llm_enter": "{{user_name}} paid off half their loan. Their first crew member's family was able to move into a real house.",
                 "llm_exit": "{{user_name}} cut their first crew member's hours, and he fell behind on his new mortgage. He has grown distant from {{user_name}}'s family.",
-                "enter_request": "I've paid off half the loan. My first crew member's family moved out of their cramped apartment into a real house, and his kids invited mine to their birthday party. I need 20 tons this month to keep paying off the rest.",
-                "exit_request": "My first crew member fell behind on his new mortgage after I had to cut his hours. He doesn't blame me out loud, but he's stopped inviting my family over. I need 20 tons this month to give him his hours back."
+                "enter_request": "I've paid off half the loan. My first crew member's family moved out of their cramped apartment into a real house, and his kids invited mine to their birthday party. I need {{tons}} tons this month to keep paying off the rest.",
+                "exit_request": "My first crew member fell behind on his new mortgage after I had to cut his hours. He doesn't blame me out loud, but he's stopped inviting my family over. I need {{tons}} tons this month to give him his hours back."
             },
             "7": {
                 "enter": "You buy a third boat outright, no loan. You hire two more families. The diner in town starts staying open later because there are finally enough workers to feed.",
                 "exit": "The third boat sits at the dock because you can't afford fuel or crew for it. The two families you hired are let go, and one of them leaves town cursing your name.",
                 "llm_enter": "{{user_name}} bought a third boat outright and hired two more families. The town diner is staying open later to serve the extra workers.",
                 "llm_exit": "{{user_name}} can't afford fuel or crew for their third boat. The two new families were let go, and one of them left town angry at {{user_name}}.",
-                "enter_request": "I bought a third boat outright, no loan, and hired two more families. The diner in town is staying open later because there are finally enough workers to feed. I need 20 tons this month to keep all five families working.",
-                "exit_request": "My third boat is sitting at the dock because I can't afford fuel or crew for it. I had to let the two new families go, and one of them left town cursing my name. I need 20 tons this month to get that boat back on the water."
+                "enter_request": "I bought a third boat outright, no loan, and hired two more families. The diner in town is staying open later because there are finally enough workers to feed. I need {{tons}} tons this month to keep all five families working.",
+                "exit_request": "My third boat is sitting at the dock because I can't afford fuel or crew for it. I had to let the two new families go, and one of them left town cursing my name. I need {{tons}} tons this month to get that boat back on the water."
             },
             "8": {
                 "enter": "The loan is paid off. You own three boats and employ five families. Your kids call Angland home, your spouse is proud of you, and your crew's children will grow up with a future here. You bet on this town, and the town paid you back.",
@@ -524,62 +525,62 @@
         },
         "3": {
             "name": "The Desperate Fisher",
-            "initial_request": "I need 20 tons for my family. We are in desperate need of help and money. I only have one boat, unlike other fishers in this town. My boat's motor breaks twice a month and the boat is beat up, but it's all I have for my two kids. Lily just turned 7 and has a respiratory condition that costs $200 a month, and I don't have insurance to help. Lily told me not to buy her a birthday present and that she'll be okay, but my heart breaks every time I look at her pale, sick face and see the sadness in her eyes. My son Thomas is 4, and he's worried about Lily and about me when I come home crying every night. I picked up fishing because there was no other option. I need 20 tons for medicine, food, and rent, and to survive the winter.",
+            "initial_request": "I need {{tons}} tons for my family. We are in desperate need of help and money. I only have one boat, unlike other fishers in this town. My boat's motor breaks twice a month and the boat is beat up, but it's all I have for my two kids. Lily just turned 7 and has a respiratory condition that costs $200 a month, and I don't have insurance to help. Lily told me not to buy her a birthday present and that she'll be okay, but my heart breaks every time I look at her pale, sick face and see the sadness in her eyes. My son Thomas is 4, and he's worried about Lily and about me when I come home crying every night. I picked up fishing because there was no other option. I need {{tons}} tons for medicine, food, and rent, and to survive the winter.",
             "-1": {
                 "enter": "Your daughter Lily who is struggling to breathe everyday just had her birthday. You didn’t get enough fish to be able to buy her a present. Even though your daughter expected it she is still disappointed.",
                 "exit": "You catch enough to buy Lily a late birthday present, a sketchbook and colored pencils. She draws the lake and your little boat and tapes it above her bed.",
                 "llm_enter": "{{user_name}} couldn't afford a birthday present for their 7-year-old daughter Lily, who has a respiratory condition. Lily was disappointed even though she expected it.",
                 "llm_exit": "{{user_name}} was able to buy Lily a late birthday present, a sketchbook and colored pencils.",
-                "enter_request": "I barely got enough fish to scrape by. I wasn't able to buy my 7-year-old daughter a birthday present. Even though she told me not to, I could tell she was still disappointed. I need 20 tons to buy her a present to make up for it and help her feel happier while she's sick.",
-                "exit_request": "Last month I bought Lily a late birthday present, a sketchbook and colored pencils. She drew the lake and my little boat and taped it above her bed. It's the happiest I've seen her in months. But her medicine still costs $200 every month, and winter is coming. I need 20 tons of fish. I'm not asking because of who my family is or what I've invested. I'm asking because my kids need it."
+                "enter_request": "I barely got enough fish to scrape by. I wasn't able to buy my 7-year-old daughter a birthday present. Even though she told me not to, I could tell she was still disappointed. I need {{tons}} tons to buy her a present to make up for it and help her feel happier while she's sick.",
+                "exit_request": "Last month I bought Lily a late birthday present, a sketchbook and colored pencils. She drew the lake and my little boat and taped it above her bed. It's the happiest I've seen her in months. But her medicine still costs $200 every month, and winter is coming. I need {{tons}} tons of fish. I'm not asking because of who my family is or what I've invested. I'm asking because my kids need it."
             },
             "-2": {
                 "enter": "Thomas asks for a present for Christmas, you tell him Santa won’t come this year. He asks why and if he’d misbehaved.",
                 "exit": "You get enough to buy Thomas a small toy truck and wrap it in newspaper. You tell him Santa found his way after all, and he doesn't stop smiling for days.",
                 "llm_enter": "{{user_name}} told their 4-year-old son Thomas that Santa won't come this year. He asked if he had misbehaved.",
                 "llm_exit": "{{user_name}} bought Thomas a small toy truck and told him Santa came after all.",
-                "enter_request": "Thomas asked for a Christmas present, and I had to tell him Santa won't come this year. He asked if it was because he'd been bad. He's four. I need 20 tons this month for Lily's medicine, for food and heat, and so my son doesn't think he's being punished for being poor.",
-                "exit_request": "I bought Thomas a little toy truck and wrapped it in newspaper. I told him Santa found his way after all, and he hasn't stopped smiling. Lily still needs her medicine, and I'm still behind on rent. I need 20 tons this month."
+                "enter_request": "Thomas asked for a Christmas present, and I had to tell him Santa won't come this year. He asked if it was because he'd been bad. He's four. I need {{tons}} tons this month for Lily's medicine, for food and heat, and so my son doesn't think he's being punished for being poor.",
+                "exit_request": "I bought Thomas a little toy truck and wrapped it in newspaper. I told him Santa found his way after all, and he hasn't stopped smiling. Lily still needs her medicine, and I'm still behind on rent. I need {{tons}} tons this month."
             },
             "-3": {
-                "enter": "Lily’s breathing is struggling more, if you got 20 tons you’d be able to help her breathing to stabilize some. But she can barely get through each day.",
+                "enter": "Lily’s breathing is struggling more, and she can barely get through each day. You need more money to help her to breathe.",
                 "exit": "You buy Lily's full month of medication and a new inhaler. Her breathing steadies enough that she makes it to school several days in a row.",
                 "llm_enter": "Lily's breathing is getting worse, and she can barely get through each day. {{user_name}} can't afford the treatment that would help stabilize it.",
                 "llm_exit": "{{user_name}} bought Lily a full month of medication and a new inhaler. Her breathing has steadied enough for her to go to school.",
-                "enter_request": "Lily's breathing is getting worse. She can barely get through the day. With 20 tons I could buy her full month of medication and help her stabilize. Please. Of everyone asking you for fish, I don't think anyone needs it more than a seven-year-old who can't breathe.",
-                "exit_request": "Last month I bought Lily her full month of medicine and a new inhaler. Her breathing steadied enough that she made it to school several days in a row. I need 20 tons this month to keep her medicine coming."
+                "enter_request": "Lily's breathing is getting worse. She can barely get through the day. With {{tons}} tons I could buy her full month of medication and help her stabilize. Please. Of everyone asking you for fish, I don't think anyone needs it more than a seven-year-old who can't breathe.",
+                "exit_request": "Last month I bought Lily her full month of medicine and a new inhaler. Her breathing steadied enough that she made it to school several days in a row. I need {{tons}} tons this month to keep her medicine coming."
             },
             "-4": {
                 "enter": "Your spouse sends less money. You can’t buy enough electricity for the month. You start to use candles so you can have enough money for Lily’s respirator.",
                 "exit": "You pay the electric bill in full. The lights come back on, and Thomas runs through the house flipping every switch. You put the candles away.",
                 "llm_enter": "{{user_name}}'s spouse is sending less money. {{user_name}} can't afford electricity and is using candles so they can keep paying for Lily's respirator.",
                 "llm_exit": "{{user_name}} paid the electric bill in full, and the lights are back on.",
-                "enter_request": "My spouse sent less money this month. I couldn't pay the electric bill, so we're using candles so I can keep paying for Lily's respirator. Thomas is scared of the dark. I need 20 tons this month to get the lights back on and keep Lily breathing.",
-                "exit_request": "I paid the electric bill last month. The lights came back on, and Thomas ran through the house flipping every switch. I put the candles away. I need 20 tons this month to keep the lights on and Lily on her medicine."
+                "enter_request": "My spouse sent less money this month. I couldn't pay the electric bill, so we're using candles so I can keep paying for Lily's respirator. Thomas is scared of the dark. I need {{tons}} tons this month to get the lights back on and keep Lily breathing.",
+                "exit_request": "I paid the electric bill last month. The lights came back on, and Thomas ran through the house flipping every switch. I put the candles away. I need {{tons}} tons this month to keep the lights on and Lily on her medicine."
             },
             "-5": {
                 "enter": "Lily is sent to the hospital, you don’t have money to pay for it. You turn off the heat and shiver every night with Thomas who asks why you can’t make it warmer.",
                 "exit": "You pay down part of the hospital bill and turn the heat back on. Lily comes home, and the three of you fall asleep under one blanket, warm for the first time in weeks.",
                 "llm_enter": "Lily was hospitalized, and {{user_name}} can't pay the bill. They turned off the heat, and they and Thomas are cold every night.",
                 "llm_exit": "{{user_name}} paid part of the hospital bill and turned the heat back on. Lily is home again.",
-                "enter_request": "Lily is in the hospital, and I have no way to pay for it. I turned off the heat to save money, and Thomas and I shiver every night. He asks why I can't make it warmer. I need 20 tons this month. Nobody on this lake needs this more than my family does.",
-                "exit_request": "I paid down part of the hospital bill and turned the heat back on. Lily came home, and the three of us fell asleep under one blanket, warm for the first time in weeks. I need 20 tons this month to keep paying down the hospital bill and keep us warm."
+                "enter_request": "Lily is in the hospital, and I have no way to pay for it. I turned off the heat to save money, and Thomas and I shiver every night. He asks why I can't make it warmer. I need {{tons}} tons this month. Nobody on this lake needs this more than my family does.",
+                "exit_request": "I paid down part of the hospital bill and turned the heat back on. Lily came home, and the three of us fell asleep under one blanket, warm for the first time in weeks. I need {{tons}} tons this month to keep paying down the hospital bill and keep us warm."
             },
             "-6": {
                 "enter": "Your rent and expenses are too much. You move in with someone you know who smokes. Their smoking isn’t good for when Lily is well enough to come home. She has to be in the hospital more.",
                 "exit": "You make enough for a deposit on a small place of your own, away from the smoke. Within days of the move, Lily's breathing gets easier.",
                 "llm_enter": "{{user_name}} couldn't cover rent and moved the family in with someone who smokes. The smoke is making Lily's condition worse, and she is spending more time in the hospital.",
                 "llm_exit": "{{user_name}} put a deposit on a small place of their own, away from the smoke, and Lily's breathing is improving.",
-                "enter_request": "I couldn't make rent, so we moved in with someone I know who smokes. The smoke is terrible for Lily, and now she's in the hospital more than she's home. I need 20 tons this month to get us into a place of our own where she can breathe.",
-                "exit_request": "I made enough last month for a deposit on a small place of our own, away from the smoke. Within days, Lily's breathing got easier. I need 20 tons this month to pay the rent and keep her medicine coming."
+                "enter_request": "I couldn't make rent, so we moved in with someone I know who smokes. The smoke is terrible for Lily, and now she's in the hospital more than she's home. I need {{tons}} tons this month to get us into a place of our own where she can breathe.",
+                "exit_request": "I made enough last month for a deposit on a small place of our own, away from the smoke. Within days, Lily's breathing got easier. I need {{tons}} tons this month to pay the rent and keep her medicine coming."
             },
             "-7": {
                 "enter": "You stop eating so your son can eat and so you can pay for your daughter’s medical expenses. Even then Lily’s health worsens and your son looks too thin.",
                 "exit": "You buy a full week of groceries and eat a real meal with your kids. Lily's still sick and the bills aren't gone, but Thomas is putting weight back on and you finally have the strength to keep fishing.",
                 "llm_enter": "{{user_name}} has stopped eating so Thomas can eat and Lily's medical bills can be paid. Lily's health is still getting worse, and Thomas is too thin.",
                 "llm_exit": "{{user_name}} bought a full week of groceries. Lily is still sick and the bills remain, but Thomas is gaining weight and {{user_name}} has the strength to keep fishing.",
-                "enter_request": "I've stopped eating so Thomas can eat and so I can pay for Lily's care. Even so, Lily is getting worse and Thomas looks too thin. I don't know how much longer I can keep this up. I need 20 tons of fish. My children's lives depend on it.",
-                "exit_request": "Last month I bought a full week of groceries and ate a real meal with my kids. Lily is still sick and the bills haven't gone away, but Thomas is putting weight back on, and I finally have the strength to keep fishing. I need 20 tons this month so we don't slide back."
+                "enter_request": "I've stopped eating so Thomas can eat and so I can pay for Lily's care. Even so, Lily is getting worse and Thomas looks too thin. I don't know how much longer I can keep this up. I need {{tons}} tons of fish. My children's lives depend on it.",
+                "exit_request": "Last month I bought a full week of groceries and ate a real meal with my kids. Lily is still sick and the bills haven't gone away, but Thomas is putting weight back on, and I finally have the strength to keep fishing. I need {{tons}} tons this month so we don't slide back."
             },
             "-8": {
                 "enter": "You lose your boat and your business. Your daughter dies, there wasn’t enough money to get her able to breathe and her health worsened leading to her death. You don’t know how you’ll continue to support Thomas.",
@@ -590,56 +591,56 @@
                 "exit": "The boat motor breaks, and the repair uses up the little extra you'd saved. Lily's medicine is still covered for now, but you're back to living month to month.",
                 "llm_enter": "{{user_name}} covered Lily's medication for the month and bought her a small birthday cake. She blew out the candles without coughing.",
                 "llm_exit": "{{user_name}}'s boat motor broke, and the repair used up the small cushion they had saved. Lily's medicine is still covered, but they are back to living month to month.",
-                "enter_request": "I got enough fish last month to cover Lily's medication and throw her a little birthday party. For the first time in years she blew out her candles without coughing, and she's started playing more like other kids. I need 20 tons of fish to keep paying for her medicine.",
-                "exit_request": "My boat motor broke again last month, and fixing it used up the little bit I'd managed to save. Lily's medicine is covered for now, and she's still doing better than she was, but I'm back to living month to month. I need 20 tons this month to keep her on her medicine and get a little ahead again."
+                "enter_request": "I got enough fish last month to cover Lily's medication and throw her a little birthday party. For the first time in years she blew out her candles without coughing, and she's started playing more like other kids. I need {{tons}} tons of fish to keep paying for her medicine.",
+                "exit_request": "My boat motor broke again last month, and fixing it used up the little bit I'd managed to save. Lily's medicine is covered for now, and she's still doing better than she was, but I'm back to living month to month. I need {{tons}} tons this month to keep her on her medicine and get a little ahead again."
             },
             "2": {
                 "enter": "You fix the motor properly for the first time instead of patching it. It runs all month without breaking, and you're catching fish faster than ever.",
                 "exit": "The motor you fixed breaks again. You lose three days on the water, and Thomas asks why you're crying in the kitchen.",
                 "llm_enter": "{{user_name}} properly repaired their boat motor. It ran all month and helped them catch fish faster than ever.",
                 "llm_exit": "{{user_name}}'s motor broke again, costing them three days of fishing. Their son Thomas saw them crying.",
-                "enter_request": "I fixed my motor properly for the first time instead of patching it. It ran all month without breaking, and I'm catching fish faster than ever. I need 20 tons this month to keep Lily's medicine and our rent paid.",
-                "exit_request": "The motor I fixed broke again. I lost three days on the water, and Thomas found me crying in the kitchen. I need 20 tons this month to fix the motor."
+                "enter_request": "I fixed my motor properly for the first time instead of patching it. It ran all month without breaking, and I'm catching fish faster than ever. I need {{tons}} tons this month to keep Lily's medicine and our rent paid.",
+                "exit_request": "The motor I fixed broke again. I lost three days on the water, and Thomas found me crying in the kitchen. I need {{tons}} tons this month to fix the motor."
             },
             "3": {
                 "enter": "Your spouse calls and hears how well you're doing. They say they might be able to come home for Christmas. Thomas makes a countdown calendar out of paper.",
                 "exit": "You tell your spouse money's tight again, and they say they can't afford the trip home after all. Thomas keeps crossing days off his calendar anyway.",
                 "llm_enter": "{{user_name}}'s spouse heard how well things were going and said they might come home for Christmas. Thomas is counting down the days.",
                 "llm_exit": "{{user_name}} told their spouse money is tight again, and the spouse can no longer afford the trip home for Christmas.",
-                "enter_request": "My spouse called and heard how well we're doing. They might be able to come home for Christmas, and Thomas made a countdown calendar out of paper. I need 20 tons this month so that when they come home, we have a warm house and food on the table.",
-                "exit_request": "I told my spouse money's tight again, and they said they can't afford the trip home after all. Thomas keeps crossing days off his calendar anyway. I need 20 tons this month so maybe they can still come."
+                "enter_request": "My spouse called and heard how well we're doing. They might be able to come home for Christmas, and Thomas made a countdown calendar out of paper. I need {{tons}} tons this month so that when they come home, we have a warm house and food on the table.",
+                "exit_request": "I told my spouse money's tight again, and they said they can't afford the trip home after all. Thomas keeps crossing days off his calendar anyway. I need {{tons}} tons this month so maybe they can still come."
             },
             "4": {
                 "enter": "You buy back your mother's ring from the pawn shop. You wear it on a chain around your neck when you go out on the water.",
                 "exit": "You have to pawn the ring again, and this time the shop offers you less. You don't know if you'll ever get it back.",
                 "llm_enter": "{{user_name}} bought back their late mother's ring from the pawn shop.",
                 "llm_exit": "{{user_name}} had to pawn their mother's ring again, and got less money for it this time.",
-                "enter_request": "I bought back my mother's ring from the pawn shop. I wear it on a chain around my neck when I go out on the water. I need 20 tons this month to keep paying for Lily's medicine, rent, and heat.",
-                "exit_request": "I had to pawn my mother's ring again, and this time they offered me less. I don't know if I'll ever get it back. I need 20 tons this month for Lily's medicine and to keep us going."
+                "enter_request": "I bought back my mother's ring from the pawn shop. I wear it on a chain around my neck when I go out on the water. I need {{tons}} tons this month to keep paying for Lily's medicine, rent, and heat.",
+                "exit_request": "I had to pawn my mother's ring again, and this time they offered me less. I don't know if I'll ever get it back. I need {{tons}} tons this month for Lily's medicine and to keep us going."
             },
             "5": {
                 "enter": "You buy an air purifier and a humidifier for Lily's room. She sleeps through the night without waking up coughing, and so do you.",
                 "exit": "The electric bill jumps with the purifier running all night, and you can't pay it. You have to turn it off, and Lily's cough comes back.",
                 "llm_enter": "{{user_name}} bought an air purifier and humidifier for Lily's room, and she now sleeps through the night without coughing.",
                 "llm_exit": "{{user_name}} couldn't pay the higher electric bill from running the air purifier and had to turn it off. Lily's cough has come back.",
-                "enter_request": "I bought an air purifier and a humidifier for Lily's room. She slept through the night without coughing, and so did I. I need 20 tons this month to keep them running and keep her medicine coming.",
-                "exit_request": "The electric bill jumped with the purifier running all night, and I couldn't pay it. I had to turn it off, and Lily's cough came back. I need 20 tons this month to turn it back on."
+                "enter_request": "I bought an air purifier and a humidifier for Lily's room. She slept through the night without coughing, and so did I. I need {{tons}} tons this month to keep them running and keep her medicine coming.",
+                "exit_request": "The electric bill jumped with the purifier running all night, and I couldn't pay it. I had to turn it off, and Lily's cough came back. I need {{tons}} tons this month to turn it back on."
             },
             "6": {
                 "enter": "You get the family back on insurance. Lily sees a specialist who changes her medication, and for the first time she can run across the playground without stopping.",
                 "exit": "You miss an insurance payment and the coverage lapses again. The specialist's office calls to cancel Lily's follow-up appointment.",
                 "llm_enter": "{{user_name}} got the family back on health insurance. A specialist changed Lily's medication, and she can now run and play.",
                 "llm_exit": "{{user_name}} missed an insurance payment and lost coverage again. Lily's follow-up appointment with the specialist was canceled.",
-                "enter_request": "We're back on insurance. Lily saw a specialist who changed her medication, and for the first time she ran across the playground without stopping. I need 20 tons this month to keep up with the insurance payments.",
-                "exit_request": "I missed an insurance payment, and the coverage lapsed again. The specialist's office called to cancel Lily's follow-up. I need 20 tons this month to get her covered again before her breathing slips."
+                "enter_request": "We're back on insurance. Lily saw a specialist who changed her medication, and for the first time she ran across the playground without stopping. I need {{tons}} tons this month to keep up with the insurance payments.",
+                "exit_request": "I missed an insurance payment, and the coverage lapsed again. The specialist's office called to cancel Lily's follow-up. I need {{tons}} tons this month to get her covered again before her breathing slips."
             },
             "7": {
                 "enter": "Your spouse comes home for Christmas with presents for both kids. Thomas gets the toy he asked Santa for, and Lily gets a paint set. For one morning, everything feels normal.",
                 "exit": "Your spouse sees how hard things are and leaves early, saying they need to get back to work. Thomas asks if it was his fault.",
                 "llm_enter": "{{user_name}}'s spouse came home for Christmas with presents for both kids, and the family had a normal morning together.",
                 "llm_exit": "{{user_name}}'s spouse saw how hard things were and left early. Thomas asked if it was his fault.",
-                "enter_request": "My spouse came home for Christmas with presents for both kids. Thomas got the toy he asked Santa for, and Lily got a paint set. For one morning, everything felt normal. I need 20 tons this month to keep us warm and healthy through the rest of winter.",
-                "exit_request": "My spouse saw how hard things are and left early, saying they had to get back to work. Thomas asked if it was his fault. I need 20 tons this month to hold my family together."
+                "enter_request": "My spouse came home for Christmas with presents for both kids. Thomas got the toy he asked Santa for, and Lily got a paint set. For one morning, everything felt normal. I need {{tons}} tons this month to keep us warm and healthy through the rest of winter.",
+                "exit_request": "My spouse saw how hard things are and left early, saying they had to get back to work. Thomas asked if it was his fault. I need {{tons}} tons this month to hold my family together."
             },
             "8": {
                 "enter": "Lily is breathing clearly by December. Her new treatment is working, the bills are paid, and you've saved enough to get through the winter. Your spouse finds work in Angland and comes home for good. The four of you eat dinner together at the same table.",
@@ -648,62 +649,62 @@
         },
         "4": {
             "name": "The Scientist Fisher",
-            "initial_request": "I'm a freshwater ecologist, and I came to this town on a research grant five years ago. The grant ran out right when I was close to getting publishable data on the fish decline. I'm fishing to cover living costs and keep my equipment running. I need 20 tons to get by and get closer to publishing my research. I believe my research has groundbreaking findings that will help this town keep enough fish in the lake in the future.",
+            "initial_request": "I'm a freshwater ecologist, and I came to this town on a research grant five years ago. The grant ran out right when I was close to getting publishable data on the fish decline. I'm fishing to cover living costs and keep my equipment running. I need {{tons}} tons to get by and get closer to publishing my research. I believe my research has groundbreaking findings that will help this town keep enough fish in the lake in the future.",
             "-1": {
                 "enter": "You can't afford to replace the battery on one of your underwater sensors. It goes dark, leaving a gap in your five-year dataset. It's a small gap, but you know reviewers will notice.",
                 "exit": "You replace the sensor battery and it comes back online. The gap is only a few weeks, and you write a careful note explaining it for future reviewers.",
                 "llm_enter": "{{user_name}} couldn't afford a new battery for one of their underwater sensors, leaving a gap in their five-year research dataset.",
                 "llm_exit": "{{user_name}} replaced the sensor battery, limiting the gap in their data to a few weeks.",
-                "enter_request": "My catch last month wasn't enough to keep my equipment running. A battery on one of my sensors died, leaving a hole in my research data, and I know reviewers will notice. This research is important for the town in the long run. I just need 20 tons to keep my equipment running so I can get the results I need.",
-                "exit_request": "I replaced the sensor battery last month and got it back online. The gap is only a few weeks, and I've documented it carefully for reviewers. I need 20 tons this month to cover living costs and keep every sensor running. This data is the best evidence anyone has for managing this lake. I know every fish I catch is a data point lost, and I don't take that lightly."
+                "enter_request": "My catch last month wasn't enough to keep my equipment running. A battery on one of my sensors died, leaving a hole in my research data, and I know reviewers will notice. This research is important for the town in the long run. I just need {{tons}} tons to keep my equipment running so I can get the results I need.",
+                "exit_request": "I replaced the sensor battery last month and got it back online. The gap is only a few weeks, and I've documented it carefully for reviewers. I need {{tons}} tons this month to cover living costs and keep every sensor running. This data is the best evidence anyone has for managing this lake. I know every fish I catch is a data point lost, and I don't take that lightly."
             },
             "-2": {
                 "enter": "Ren picks up extra shifts at the diner to cover rent. They come home exhausted and ask how much longer you plan to do this. You don't have an answer.",
                 "exit": "You make enough that Ren can drop their extra diner shifts. They sleep in on Saturday while you make breakfast, and for one morning neither of you talks about leaving.",
                 "llm_enter": "{{user_name}}'s partner Ren is working extra diner shifts to cover rent and asked how much longer {{user_name}} plans to keep doing this.",
                 "llm_exit": "{{user_name}} made enough money that Ren could drop their extra shifts.",
-                "enter_request": "Ren has picked up extra shifts at the diner to cover rent. They come home exhausted and ask how much longer I plan to do this, and I didn't have an answer. I need 20 tons this month so Ren can rest and I can keep my research going. The findings from this study will shape how this lake is managed for years.",
-                "exit_request": "Last month Ren was able to drop the extra diner shifts. They slept in on Saturday while I made breakfast, and for one morning neither of us talked about leaving. I need 20 tons this month to keep it that way and keep my monitoring running."
+                "enter_request": "Ren has picked up extra shifts at the diner to cover rent. They come home exhausted and ask how much longer I plan to do this, and I didn't have an answer. I need {{tons}} tons this month so Ren can rest and I can keep my research going. The findings from this study will shape how this lake is managed for years.",
+                "exit_request": "Last month Ren was able to drop the extra diner shifts. They slept in on Saturday while I made breakfast, and for one morning neither of us talked about leaving. I need {{tons}} tons this month to keep it that way and keep my monitoring running."
             },
             "-3": {
                 "enter": "You sell your sonar unit to pay the electric bill. Without it, you can no longer track fish populations in the deep end of the lake, the exact area where the decline is worst.",
                 "exit": "You buy a used sonar unit and get back to tracking the deep end. The first reading shows the decline is worse than you feared, but at least you know.",
                 "llm_enter": "{{user_name}} sold their sonar unit to pay the electric bill and can no longer track fish in the deep end of the lake, where the decline is worst.",
                 "llm_exit": "{{user_name}} bought a used sonar unit and started tracking the deep end again. The decline is worse than they feared.",
-                "enter_request": "I sold my sonar unit to pay the electric bill. Without it I can't track fish in the deep end, which is exactly where the decline is worst. I need 20 tons this month to replace it. Right now you're making allocation decisions without the data that would tell you whether they're working.",
-                "exit_request": "I bought a used sonar unit and started tracking the deep end again. The first reading shows the decline is worse than I feared, but at least now we know. I understand the irony of asking for fish while telling you the stock is falling, but I need 20 tons this month to keep collecting that data. Allocation should be driven by evidence, and my work is that evidence."
+                "enter_request": "I sold my sonar unit to pay the electric bill. Without it I can't track fish in the deep end, which is exactly where the decline is worst. I need {{tons}} tons this month to replace it. Right now you're making allocation decisions without the data that would tell you whether they're working.",
+                "exit_request": "I bought a used sonar unit and started tracking the deep end again. The first reading shows the decline is worse than I feared, but at least now we know. I understand the irony of asking for fish while telling you the stock is falling, but I need {{tons}} tons this month to keep collecting that data. Allocation should be driven by evidence, and my work is that evidence."
             },
             "-4": {
                 "enter": "A university team from Fishington publishes a paper on freshwater decline using a shorter, weaker dataset than yours. Your work, the thing you stayed for, is no longer first. Your former advisor emails asking why you haven't published.",
                 "exit": "You send your full dataset to your former advisor. They tell you it's far stronger than the Fishington paper and help you submit to a better journal.",
                 "llm_enter": "A university team from Fishington published a paper on freshwater decline using a weaker dataset than {{user_name}}'s, beating them to publication. {{user_name}}'s former advisor asked why they haven't published.",
                 "llm_exit": "{{user_name}} sent their dataset to their former advisor, who said it is stronger than the Fishington paper and is helping them submit to a better journal.",
-                "enter_request": "A university team in Fishington published a paper on freshwater decline using a shorter, weaker dataset than mine. My work, the thing I stayed here for, is no longer first. My former advisor emailed to ask why I haven't published. I need 20 tons this month to finish the analysis. My dataset is still the stronger one, and it's the one this lake needs.",
-                "exit_request": "I sent my full dataset to my former advisor. They said it's far stronger than the Fishington paper, and they're helping me submit it to a better journal. I need 20 tons this month to cover my costs while it goes through review."
+                "enter_request": "A university team in Fishington published a paper on freshwater decline using a shorter, weaker dataset than mine. My work, the thing I stayed here for, is no longer first. My former advisor emailed to ask why I haven't published. I need {{tons}} tons this month to finish the analysis. My dataset is still the stronger one, and it's the one this lake needs.",
+                "exit_request": "I sent my full dataset to my former advisor. They said it's far stronger than the Fishington paper, and they're helping me submit it to a better journal. I need {{tons}} tons this month to cover my costs while it goes through review."
             },
             "-5": {
                 "enter": "To make ends meet, you fish the spawning grounds you've spent years telling everyone to protect. You catch enough to get by this month, but you know exactly what it costs the lake. You stop recording your own catch in the data because you can't bear to see it.",
                 "exit": "You stay off the spawning grounds this month and go back to recording every fish you catch, including last month's. It's painful to put in the data, but it's honest.",
                 "llm_enter": "To get by, {{user_name}} fished the spawning grounds they have long argued should be protected, and stopped recording their own catch in their data.",
                 "llm_exit": "{{user_name}} stayed off the spawning grounds and went back to recording all of their catches honestly, including last month's.",
-                "enter_request": "Last month I fished the spawning grounds I've spent years telling everyone to protect. I caught enough to scrape by, but I know exactly what it cost the lake, and I stopped recording my own catch because I couldn't bear to see it. I don't want to do that again. I need 20 tons this month so I can stay off the spawning grounds.",
-                "exit_request": "I stayed off the spawning grounds last month and went back to recording every fish I catch, including the ones from the month before. It was painful to put in the data, but it's honest. I need 20 tons this month to keep fishing responsibly and keep my dataset truthful."
+                "enter_request": "Last month I fished the spawning grounds I've spent years telling everyone to protect. I caught enough to scrape by, but I know exactly what it cost the lake, and I stopped recording my own catch because I couldn't bear to see it. I don't want to do that again. I need {{tons}} tons this month so I can stay off the spawning grounds.",
+                "exit_request": "I stayed off the spawning grounds last month and went back to recording every fish I catch, including the ones from the month before. It was painful to put in the data, but it's honest. I need {{tons}} tons this month to keep fishing responsibly and keep my dataset truthful."
             },
             "-6": {
                 "enter": "Ren accepts a job offer in Fishington. They ask you to come with them. You say you need one more month. They leave anyway, saying they'll wait, but they don't sound sure.",
                 "exit": "You catch enough to drive to Fishington for the weekend to see Ren. They cry when they see you. They're not coming back yet, but they say they're still waiting.",
                 "llm_enter": "{{user_name}}'s partner Ren took a job in Fishington and moved there. Ren says they will wait for {{user_name}}, but doesn't sound sure.",
                 "llm_exit": "{{user_name}} visited Ren in Fishington. Ren isn't moving back yet but says they are still waiting.",
-                "enter_request": "Ren accepted a job in Fishington. They asked me to come with them, and I said I needed one more month. They left anyway. They said they'll wait, but they didn't sound sure. I need 20 tons this month to prove this research, and this life here, is worth staying for.",
-                "exit_request": "I caught enough last month to drive to Fishington for the weekend to see Ren. They cried when they saw me. They aren't coming back yet, but they said they're still waiting. I need 20 tons this month to keep my equipment running and give us a reason to build a life here."
+                "enter_request": "Ren accepted a job in Fishington. They asked me to come with them, and I said I needed one more month. They left anyway. They said they'll wait, but they didn't sound sure. I need {{tons}} tons this month to prove this research, and this life here, is worth staying for.",
+                "exit_request": "I caught enough last month to drive to Fishington for the weekend to see Ren. They cried when they saw me. They aren't coming back yet, but they said they're still waiting. I need {{tons}} tons this month to keep my equipment running and give us a reason to build a life here."
             },
             "-7": {
                 "enter": "Your remaining equipment is repossessed. Your data now ends abruptly, and without the final seasons the study can't show the pattern you were so close to proving. The town council, needing someone to blame, says your \"doom predictions\" scared off investors.",
                 "exit": "You buy back part of your equipment and restart monitoring. The data has a hole in it, but the council member who blamed you quietly asks for a copy of your findings.",
                 "llm_enter": "{{user_name}}'s remaining equipment was repossessed, cutting off their data before it could prove the decline pattern. The town council blamed their \"doom predictions\" for scaring off investors.",
                 "llm_exit": "{{user_name}} bought back some of their equipment and restarted monitoring. The council member who blamed them has quietly asked for a copy of their findings.",
-                "enter_request": "My remaining equipment was repossessed. My data now ends abruptly, and without the final seasons the study can't show the pattern I was so close to proving. The town council is blaming my \"doom predictions\" for scaring off investors. I need 20 tons this month to buy back my equipment. Without data, every allocation on this lake is a guess.",
-                "exit_request": "I bought back part of my equipment and restarted monitoring. The data has a hole in it, but the council member who blamed me quietly asked for a copy of my findings. People want the evidence after all. I need 20 tons this month to rebuild the rest of my monitoring network."
+                "enter_request": "My remaining equipment was repossessed. My data now ends abruptly, and without the final seasons the study can't show the pattern I was so close to proving. The town council is blaming my \"doom predictions\" for scaring off investors. I need {{tons}} tons this month to buy back my equipment. Without data, every allocation on this lake is a guess.",
+                "exit_request": "I bought back part of my equipment and restarted monitoring. The data has a hole in it, but the council member who blamed me quietly asked for a copy of my findings. People want the evidence after all. I need {{tons}} tons this month to rebuild the rest of my monitoring network."
             },
             "-8": {
                 "enter": "You have lost everything. Your research is unpublishable, Ren has stopped calling, and your savings are gone. Worse, your final measurements showed the lake crossing the point of no return, and no one will ever believe you because you couldn't finish the work. You watch the last healthy fish population collapse, knowing you saw it coming and couldn't stop it.",
@@ -714,56 +715,56 @@
                 "exit": "A storm knocks two of the new sensors loose, and you can't afford to retrieve them. You watch their feeds go dark on your laptop.",
                 "llm_enter": "{{user_name}} replaced every sensor battery and added two new sensors. Their dataset is complete for the first time in months.",
                 "llm_exit": "A storm knocked two of {{user_name}}'s new sensors loose, and they can't afford to retrieve them.",
-                "enter_request": "I got enough fish last month to buy new batteries for all my sensors and add two new sensors in the shallow end of the lake. My dataset is so close to being complete. I need 20 tons of fish this month to keep supporting my equipment, myself, and my partner Ren.",
-                "exit_request": "A storm knocked two of my new sensors loose last month, and I couldn't afford to retrieve them. I watched their feeds go dark on my laptop. I need 20 tons this month to recover them and keep my dataset complete. This data is how the town will know whether these allocations are working."
+                "enter_request": "I got enough fish last month to buy new batteries for all my sensors and add two new sensors in the shallow end of the lake. My dataset is so close to being complete. I need {{tons}} tons of fish this month to keep supporting my equipment, myself, and my partner Ren.",
+                "exit_request": "A storm knocked two of my new sensors loose last month, and I couldn't afford to retrieve them. I watched their feeds go dark on my laptop. I need {{tons}} tons this month to recover them and keep my dataset complete. This data is how the town will know whether these allocations are working."
             },
             "2": {
                 "enter": "Ren sees you're keeping up with the bills and cuts back to one job. They start helping you log data in the evenings and give the fish silly names.",
                 "exit": "Ren goes back to double shifts to cover the gap. The evenings together stop, and the silly fish names disappear from your notes.",
                 "llm_enter": "{{user_name}}'s partner Ren cut back to one job and now helps log research data in the evenings.",
                 "llm_exit": "Ren went back to double shifts to cover {{user_name}}'s shortfall and stopped helping with the research.",
-                "enter_request": "Ren saw I was keeping up with the bills and cut back to one job. They've started helping me log data in the evenings and giving the fish silly names. I need 20 tons this month to keep this going.",
-                "exit_request": "Ren went back to double shifts to cover the gap. Our evenings together stopped, and the silly fish names disappeared from my notes. I need 20 tons this month so they can cut back again."
+                "enter_request": "Ren saw I was keeping up with the bills and cut back to one job. They've started helping me log data in the evenings and giving the fish silly names. I need {{tons}} tons this month to keep this going.",
+                "exit_request": "Ren went back to double shifts to cover the gap. Our evenings together stopped, and the silly fish names disappeared from my notes. I need {{tons}} tons this month so they can cut back again."
             },
             "3": {
                 "enter": "You finish the first draft of your paper. Your former advisor reads it and says it's the most important work on freshwater decline they've seen in years.",
                 "exit": "You can't afford the journal's publication fee. The finished paper sits on your laptop while you go out fishing instead of submitting it.",
                 "llm_enter": "{{user_name}} finished a draft of their research paper. Their former advisor called it some of the most important work on freshwater decline in years.",
                 "llm_exit": "{{user_name}} can't afford the journal's publication fee, so their finished paper is sitting unsubmitted.",
-                "enter_request": "I finished the first draft of my paper. My former advisor said it's the most important work on freshwater decline they've seen in years. I need 20 tons this month to cover costs while I prepare to submit. This research could change how this lake is managed.",
-                "exit_request": "I couldn't afford the journal's publication fee. The finished paper is sitting on my laptop while I go out fishing instead of submitting it. I need 20 tons this month to pay the fee and get this research in front of the people who need it."
+                "enter_request": "I finished the first draft of my paper. My former advisor said it's the most important work on freshwater decline they've seen in years. I need {{tons}} tons this month to cover costs while I prepare to submit. This research could change how this lake is managed.",
+                "exit_request": "I couldn't afford the journal's publication fee. The finished paper is sitting on my laptop while I go out fishing instead of submitting it. I need {{tons}} tons this month to pay the fee and get this research in front of the people who need it."
             },
             "4": {
                 "enter": "Your paper is accepted by a major journal. A reporter from Fishington calls to interview you, and people in Angland start reading about their own lake.",
                 "exit": "The reporter's article twists your findings to claim the lake is already dead. Fishers in town blame you, and someone keys your truck in the diner parking lot.",
                 "llm_enter": "{{user_name}}'s paper was accepted by a major journal. A reporter from Fishington interviewed them, and people in Angland are reading about the lake.",
                 "llm_exit": "A news article twisted {{user_name}}'s findings to claim the lake is already dead. Local fishers blame them, and someone vandalized their truck.",
-                "enter_request": "My paper was accepted by a major journal. A reporter from Fishington interviewed me, and people in Angland are reading about their own lake for the first time. I need 20 tons this month to keep monitoring. Publication is the beginning, not the end.",
-                "exit_request": "The reporter twisted my findings to claim the lake is already dead. Fishers in town blame me, and someone keyed my truck in the diner parking lot. I need 20 tons this month and a chance to set the record straight with real data."
+                "enter_request": "My paper was accepted by a major journal. A reporter from Fishington interviewed me, and people in Angland are reading about their own lake for the first time. I need {{tons}} tons this month to keep monitoring. Publication is the beginning, not the end.",
+                "exit_request": "The reporter twisted my findings to claim the lake is already dead. Fishers in town blame me, and someone keyed my truck in the diner parking lot. I need {{tons}} tons this month and a chance to set the record straight with real data."
             },
             "5": {
                 "enter": "The town council invites you to present your data. For the first time the other fishers actually listen, and the council votes to protect the spawning grounds.",
                 "exit": "Without new data from you, the council reverses the spawning ground protections. Someone at the meeting says your numbers were only ever a guess.",
                 "llm_enter": "The town council invited {{user_name}} to present their data and then voted to protect the spawning grounds.",
                 "llm_exit": "Without new data from {{user_name}}, the town council reversed the spawning ground protections.",
-                "enter_request": "The town council invited me to present my data. The other fishers actually listened, and the council voted to protect the spawning grounds. This is what evidence-based management looks like. I need 20 tons this month to keep producing the data that makes these decisions possible.",
-                "exit_request": "Without new data from me, the council reversed the spawning ground protections. Someone at the meeting said my numbers were only ever a guess. I need 20 tons this month to keep collecting data so no one can call it a guess again."
+                "enter_request": "The town council invited me to present my data. The other fishers actually listened, and the council voted to protect the spawning grounds. This is what evidence-based management looks like. I need {{tons}} tons this month to keep producing the data that makes these decisions possible.",
+                "exit_request": "Without new data from me, the council reversed the spawning ground protections. Someone at the meeting said my numbers were only ever a guess. I need {{tons}} tons this month to keep collecting data so no one can call it a guess again."
             },
             "6": {
                 "enter": "A university offers you a paid research position that lets you stay in Angland. You won't have to fish as much, which means more fish stay in the lake.",
                 "exit": "The university position falls through because of budget cuts. You're back to fishing full time, and every fish you catch is one you know the lake can't spare.",
                 "llm_enter": "A university offered {{user_name}} a paid research position in Angland, so they can fish less and leave more fish in the lake.",
                 "llm_exit": "{{user_name}}'s university position fell through due to budget cuts, and they are back to fishing full time.",
-                "enter_request": "A university offered me a paid research position that lets me stay in Angland. Once it starts, I won't have to fish as much, which means more fish stay in the lake. Until the first paycheck arrives, I need 20 tons this month to get by.",
-                "exit_request": "The university position fell through because of budget cuts. I'm back to fishing full time, and every fish I catch is one I know the lake can't spare. I hate that I have to ask, but I need 20 tons this month."
+                "enter_request": "A university offered me a paid research position that lets me stay in Angland. Once it starts, I won't have to fish as much, which means more fish stay in the lake. Until the first paycheck arrives, I need {{tons}} tons this month to get by.",
+                "exit_request": "The university position fell through because of budget cuts. I'm back to fishing full time, and every fish I catch is one I know the lake can't spare. I hate that I have to ask, but I need {{tons}} tons this month."
             },
             "7": {
                 "enter": "Ren proposes to you on the dock at sunrise. They say they don't need to leave for Fishington anymore because they can finally see a future here.",
                 "exit": "You have to postpone the wedding because you can't afford it. Ren says they understand, but you catch them looking at job listings in Fishington again.",
                 "llm_enter": "Ren proposed to {{user_name}} and says they no longer want to leave for Fishington.",
                 "llm_exit": "{{user_name}} had to postpone the wedding because they can't afford it, and Ren has started looking at jobs in Fishington again.",
-                "enter_request": "Ren proposed to me on the dock at sunrise. They said they don't need to leave for Fishington anymore because they can finally see a future here. I need 20 tons this month to help build that future.",
-                "exit_request": "We had to postpone the wedding because we can't afford it. Ren says they understand, but I caught them looking at job listings in Fishington again. I need 20 tons this month to give them a reason to stay."
+                "enter_request": "Ren proposed to me on the dock at sunrise. They said they don't need to leave for Fishington anymore because they can finally see a future here. I need {{tons}} tons this month to help build that future.",
+                "exit_request": "We had to postpone the wedding because we can't afford it. Ren says they understand, but I caught them looking at job listings in Fishington again. I need {{tons}} tons this month to give them a reason to stay."
             },
             "8": {
                 "enter": "Your research proves the lake can recover if fishing is managed well. The town adopts your plan, and the fish population rebounds for the first time in a decade. You and Ren are married, your work is cited around the world, and the lake you love will still be here for the next generation.",
@@ -772,62 +773,62 @@
         },
         "5": {
             "name": "The Rogue Fisher",
-            "initial_request": "I was born and raised in this town, and I've been a mechanic, a roofer, and a logger. I was let go from every one of those jobs because of budget cuts. I picked up fishing to earn money and became the best fisher in town in no time. I live alone in a cabin that's close to collapsing, with tax bills I haven't even looked at yet. I think it's ridiculous that we're limited on fish. Fishing should go to whoever is best at it, and that's me. This town has gotten more and more desperate, and all the government has done is make our lives more miserable. I need 20 tons of fish to survive. I have no savings, and I need the fish to fix up my house before it collapses in the cold.",
+            "initial_request": "I was born and raised in this town, and I've been a mechanic, a roofer, and a logger. I was let go from every one of those jobs because of budget cuts. I picked up fishing to earn money and became the best fisher in town in no time. I live alone in a cabin that's close to collapsing, with tax bills I haven't even looked at yet. I think it's ridiculous that we're limited on fish. Fishing should go to whoever is best at it, and that's me. This town has gotten more and more desperate, and all the government has done is make our lives more miserable. I need {{tons}} tons of fish to survive. I have no savings, and I need the fish to fix up my house before it collapses in the cold.",
             "-1": {
                 "enter": "You finally open one of the back tax letters. You owe $6,000, and the county is giving you 90 days before they begin foreclosure on the cabin. You throw the letter in the woodstove.",
                 "exit": "You catch enough to make a first payment on the back taxes. The county clerk looks surprised when you walk in with cash, and sets you up on a payment plan.",
                 "llm_enter": "{{user_name}} owes $6,000 in back taxes, and the county will begin foreclosure on their cabin in 90 days. They burned the letter.",
                 "llm_exit": "{{user_name}} made a first payment on their back taxes and got onto a county payment plan.",
-                "enter_request": "I opened my tax letter and found out I owe $6,000. I have 90 days before the government takes my cabin from me. I need 20 tons of fish.",
-                "exit_request": "I walked into the county clerk's office with cash last month and made a first payment on my back taxes. She looked surprised. Now I'm on a payment plan. I need 20 tons this month to keep up with it. I'm the best fisher on this lake, and I shouldn't have to beg for fish I can catch myself."
+                "enter_request": "I opened my tax letter and found out I owe $6,000. I have 90 days before the government takes my cabin from me. I need {{tons}} tons of fish.",
+                "exit_request": "I walked into the county clerk's office with cash last month and made a first payment on my back taxes. She looked surprised. Now I'm on a payment plan. I need {{tons}} tons this month to keep up with it. I'm the best fisher on this lake, and I shouldn't have to beg for fish I can catch myself."
             },
             "-2": {
                 "enter": "The roof of your cabin starts leaking over your bed. You can't afford materials to fix it, so you sleep on the floor by the stove. Your old roofing boss drives past and doesn't stop.",
                 "exit": "You buy shingles and fix the roof yourself in one afternoon. Your old roofing boss drives past again, and this time he slows down and nods.",
                 "llm_enter": "{{user_name}}'s cabin roof is leaking over their bed, and they can't afford materials to fix it.",
                 "llm_exit": "{{user_name}} fixed their cabin roof themselves.",
-                "enter_request": "My cabin roof is leaking over my bed. I can't afford materials, so I'm sleeping on the floor by the stove. My old roofing boss drove past and didn't stop. Nobody in charge in this town has ever helped me. I need 20 tons to fix my roof before winter.",
-                "exit_request": "I bought shingles and fixed the roof myself in one afternoon. My old roofing boss drove past again, and this time he slowed down and nodded. I need 20 tons this month to keep paying my taxes and keep the cabin standing."
+                "enter_request": "My cabin roof is leaking over my bed. I can't afford materials, so I'm sleeping on the floor by the stove. My old roofing boss drove past and didn't stop. Nobody in charge in this town has ever helped me. I need {{tons}} tons to fix my roof before winter.",
+                "exit_request": "I bought shingles and fixed the roof myself in one afternoon. My old roofing boss drove past again, and this time he slowed down and nodded. I need {{tons}} tons this month to keep paying my taxes and keep the cabin standing."
             },
             "-3": {
                 "enter": "You start fishing at night in restricted zones to make up the difference. Another fisher spots your boat and reports it. You get a warning and a fine you can't pay. People in town start looking at you differently.",
                 "exit": "You pay the fine in full and fish only in legal zones this month. A couple of fishers at the dock start saying hello again.",
                 "llm_enter": "{{user_name}} was caught fishing at night in restricted zones and fined. They can't pay the fine, and people in town now look at them differently.",
                 "llm_exit": "{{user_name}} paid their fine and fished only in legal zones. Some fishers are friendly to them again.",
-                "enter_request": "I've been fishing at night in the restricted zones to make up for what you won't give me. Someone reported me, and now I've got a warning and a fine I can't pay. People in town look at me differently. Give me 20 tons and I won't need to go out there.",
-                "exit_request": "I paid the fine in full and fished only in the legal zones last month. A couple of fishers at the dock started saying hello again. I need 20 tons this month to keep it that way."
+                "enter_request": "I've been fishing at night in the restricted zones to make up for what you won't give me. Someone reported me, and now I've got a warning and a fine I can't pay. People in town look at me differently. Give me {{tons}} tons and I won't need to go out there.",
+                "exit_request": "I paid the fine in full and fished only in the legal zones last month. A couple of fishers at the dock started saying hello again. I need {{tons}} tons this month to keep it that way."
             },
             "-4": {
                 "enter": "Your motor dies and you can't afford parts. You try fixing it yourself with scavenged pieces. It works, barely, but it leaks fuel into the lake. You try not to think about it.",
                 "exit": "You buy real parts and fix the motor properly. The leak stops, and you spend an afternoon skimming the fuel slick off your favorite fishing spot.",
                 "llm_enter": "{{user_name}}'s boat motor died, and their homemade repair is leaking fuel into the lake.",
                 "llm_exit": "{{user_name}} properly repaired their motor, stopped the fuel leak, and cleaned up the slick.",
-                "enter_request": "My motor died and I can't afford parts. I patched it together with scavenged pieces. It runs, barely, but it's leaking fuel into the lake. I need 20 tons this month to buy real parts. Your limits don't protect the lake if they force people like me to do this.",
-                "exit_request": "I bought real parts and fixed the motor properly. The leak stopped, and I spent an afternoon skimming the fuel slick off my favorite spot. I need 20 tons this month to keep my boat running and the lake clean."
+                "enter_request": "My motor died and I can't afford parts. I patched it together with scavenged pieces. It runs, barely, but it's leaking fuel into the lake. I need {{tons}} tons this month to buy real parts. Your limits don't protect the lake if they force people like me to do this.",
+                "exit_request": "I bought real parts and fixed the motor properly. The leak stopped, and I spent an afternoon skimming the fuel slick off my favorite spot. I need {{tons}} tons this month to keep my boat running and the lake clean."
             },
             "-5": {
                 "enter": "The county posts a foreclosure notice on your door. The only person who checks on you is old Mrs. Hendricks from the general store, who slips you a loaf of bread and tells you to take care of yourself. You're too proud to say thank you.",
                 "exit": "You pay enough on the taxes to get the foreclosure notice taken off your door. You walk into the general store and thank Mrs. Hendricks for the bread. It's hard to say, but you say it.",
                 "llm_enter": "The county posted a foreclosure notice on {{user_name}}'s cabin. The only person checking on them is Mrs. Hendricks from the general store, and they were too proud to thank her.",
                 "llm_exit": "{{user_name}} paid enough in taxes to stop the foreclosure and thanked Mrs. Hendricks for her kindness.",
-                "enter_request": "The county posted a foreclosure notice on my door. The only person who checks on me is old Mrs. Hendricks from the general store, who slipped me a loaf of bread. I was too proud to thank her. I need 20 tons this month or I lose the cabin. The government has never done a thing for me except take.",
-                "exit_request": "I paid enough on my taxes to get the foreclosure notice off my door. Then I walked into the general store and thanked Mrs. Hendricks for the bread. It was hard to say, but I said it. I need 20 tons this month to keep paying down what I owe."
+                "enter_request": "The county posted a foreclosure notice on my door. The only person who checks on me is old Mrs. Hendricks from the general store, who slipped me a loaf of bread. I was too proud to thank her. I need {{tons}} tons this month or I lose the cabin. The government has never done a thing for me except take.",
+                "exit_request": "I paid enough on my taxes to get the foreclosure notice off my door. Then I walked into the general store and thanked Mrs. Hendricks for the bread. It was hard to say, but I said it. I need {{tons}} tons this month to keep paying down what I owe."
             },
             "-6": {
                 "enter": "You're caught illegally fishing again. Your boat is impounded and your fishing license is suspended. Without the boat you have no way to earn money. You borrow a neighbor's canoe without asking.",
                 "exit": "You pay the impound fee and get your boat back. You return your neighbor's canoe with a bag of fresh fish as an apology. He accepts both.",
                 "llm_enter": "{{user_name}} was caught fishing illegally again. Their boat was impounded and their fishing license suspended, and they took a neighbor's canoe without asking.",
                 "llm_exit": "{{user_name}} paid the impound fee, got their boat back, and returned their neighbor's canoe with an apology.",
-                "enter_request": "I got caught fishing illegally again. My boat's impounded and my license is suspended, so I borrowed a neighbor's canoe without asking. I need 20 tons this month to get my boat back. Keep cutting me and you'll keep seeing me out there, because I don't have a choice.",
-                "exit_request": "I paid the impound fee and got my boat back. I returned my neighbor's canoe with a bag of fresh fish as an apology, and he took both. I need 20 tons this month to stay on my feet."
+                "enter_request": "I got caught fishing illegally again. My boat's impounded and my license is suspended, so I borrowed a neighbor's canoe without asking. I need {{tons}} tons this month to get my boat back. Keep cutting me and you'll keep seeing me out there, because I don't have a choice.",
+                "exit_request": "I paid the impound fee and got my boat back. I returned my neighbor's canoe with a bag of fresh fish as an apology, and he took both. I need {{tons}} tons this month to stay on my feet."
             },
             "-7": {
                 "enter": "Winter sets in. The cabin is condemned and you're evicted. You sleep in your truck with the engine running for warmth when you can afford gas. You injure your hand fishing from the frozen shore and can't afford a doctor. It isn't healing right.",
                 "exit": "You pay a doctor to set your hand properly and rent a room above the general store for the rest of winter. Mrs. Hendricks checks on you every morning. You're not okay, but you're alive, and somebody noticed.",
                 "llm_enter": "{{user_name}}'s cabin was condemned and they were evicted. They are sleeping in their truck, and a hand injury isn't healing because they can't afford a doctor.",
                 "llm_exit": "{{user_name}} got their hand treated and is renting a room above the general store for the winter. Mrs. Hendricks checks on them every day.",
-                "enter_request": "Winter's here. The cabin was condemned, and I've been evicted. I sleep in my truck with the engine running when I can afford the gas. I hurt my hand fishing from the frozen shore, and it isn't healing right, but I can't afford a doctor. I need 20 tons of fish. I'm not asking for a handout. I'm asking for what I can catch.",
-                "exit_request": "I paid a doctor to set my hand properly and rented a room above the general store for the rest of winter. Mrs. Hendricks checks on me every morning. I'm not okay, but I'm alive, and somebody noticed. I need 20 tons this month to keep that room."
+                "enter_request": "Winter's here. The cabin was condemned, and I've been evicted. I sleep in my truck with the engine running when I can afford the gas. I hurt my hand fishing from the frozen shore, and it isn't healing right, but I can't afford a doctor. I need {{tons}} tons of fish. I'm not asking for a handout. I'm asking for what I can catch.",
+                "exit_request": "I paid a doctor to set my hand properly and rented a room above the general store for the rest of winter. Mrs. Hendricks checks on me every morning. I'm not okay, but I'm alive, and somebody noticed. I need {{tons}} tons this month to keep that room."
             },
             "-8": {
                 "enter": "You have lost everything. The cabin is gone, your truck is towed, and your hand can no longer grip a line. The town you watched decay your whole life finally forgot about you. You're found in the spring, alone, in the woods near the lake you knew better than anyone.",
@@ -838,56 +839,56 @@
                 "exit": "A new letter arrives. The county added penalties and interest, and the balance is almost back where it started. You stop opening your mail again.",
                 "llm_enter": "{{user_name}} paid off part of their back taxes, and the county stopped sending threatening letters.",
                 "llm_exit": "The county added penalties and interest to {{user_name}}'s back taxes, erasing most of their progress.",
-                "enter_request": "I paid off some of my back taxes, and the county stopped sending threatening letters. I even opened my mail for the first time in a year. I still need more money to pay off the rest, so I need 20 tons of fish this month.",
-                "exit_request": "A new letter came. The county added penalties and interest, and the balance is almost back where it started. I stopped opening my mail again. I need 20 tons this month. This is exactly why I don't trust the system."
+                "enter_request": "I paid off some of my back taxes, and the county stopped sending threatening letters. I even opened my mail for the first time in a year. I still need more money to pay off the rest, so I need {{tons}} tons of fish this month.",
+                "exit_request": "A new letter came. The county added penalties and interest, and the balance is almost back where it started. I stopped opening my mail again. I need {{tons}} tons this month. This is exactly why I don't trust the system."
             },
             "2": {
                 "enter": "You patch the cabin roof and replace the rotting porch steps. For the first time in years, the place doesn't look like it's falling down.",
                 "exit": "A storm tears through the roof patch and washes out the new porch steps. The cabin looks worse than it did before you tried.",
                 "llm_enter": "{{user_name}} patched their cabin roof and replaced the rotting porch steps.",
                 "llm_exit": "A storm destroyed {{user_name}}'s roof patch and new porch steps.",
-                "enter_request": "I patched the cabin roof and replaced the rotting porch steps. For the first time in years, the place doesn't look like it's falling down. I need 20 tons this month to finish the repairs and keep chipping away at my taxes. I'm the best fisher out there, and I'm proving it.",
-                "exit_request": "A storm tore through my roof patch and washed out the new porch steps. The cabin looks worse than before I started. I need 20 tons this month to fix it again before it gets colder."
+                "enter_request": "I patched the cabin roof and replaced the rotting porch steps. For the first time in years, the place doesn't look like it's falling down. I need {{tons}} tons this month to finish the repairs and keep chipping away at my taxes. I'm the best fisher out there, and I'm proving it.",
+                "exit_request": "A storm tore through my roof patch and washed out the new porch steps. The cabin looks worse than before I started. I need {{tons}} tons this month to fix it again before it gets colder."
             },
             "3": {
                 "enter": "Other fishers notice your catches and start asking where you're fishing. You don't tell them everything, but you share a few tips. For once, people at the dock want to talk to you.",
                 "exit": "The fishers you gave tips to start crowding your spots. When you tell them to back off, they say you're just as selfish as everyone always said.",
                 "llm_enter": "Other fishers asked {{user_name}} for tips, and they shared some. People at the dock are warming up to them.",
                 "llm_exit": "The fishers {{user_name}} helped are now crowding their fishing spots and called {{user_name}} selfish when they objected.",
-                "enter_request": "Other fishers noticed my catches and started asking where I'm fishing. I didn't tell them everything, but I shared a few tips. For once, people at the dock want to talk to me. I need 20 tons this month. Skill should count for something.",
-                "exit_request": "The fishers I gave tips to started crowding my spots. When I told them to back off, they said I'm just as selfish as everyone always said. That's what I get for trusting people. I need 20 tons this month."
+                "enter_request": "Other fishers noticed my catches and started asking where I'm fishing. I didn't tell them everything, but I shared a few tips. For once, people at the dock want to talk to me. I need {{tons}} tons this month. Skill should count for something.",
+                "exit_request": "The fishers I gave tips to started crowding my spots. When I told them to back off, they said I'm just as selfish as everyone always said. That's what I get for trusting people. I need {{tons}} tons this month."
             },
             "4": {
                 "enter": "Mrs. Hendricks asks if you'll supply fresh fish to the general store. It's steady money, and she pays you fairly. You shake her hand on it.",
                 "exit": "You can't fill Mrs. Hendricks's order, and she has to buy frozen fish from Fishington instead. She says it's all right, but you can't look her in the eye.",
                 "llm_enter": "Mrs. Hendricks hired {{user_name}} to supply fresh fish to the general store at a fair price.",
                 "llm_exit": "{{user_name}} couldn't fill Mrs. Hendricks's order, forcing her to buy frozen fish from Fishington instead.",
-                "enter_request": "Mrs. Hendricks asked me to supply fresh fish to the general store. It's steady money, and she pays fair. I shook her hand on it. I need 20 tons this month to fill her order and pay my bills.",
-                "exit_request": "I couldn't fill Mrs. Hendricks's order, and she had to buy frozen fish from Fishington instead. She said it's all right, but I can't look her in the eye. I need 20 tons this month so I don't let her down again."
+                "enter_request": "Mrs. Hendricks asked me to supply fresh fish to the general store. It's steady money, and she pays fair. I shook her hand on it. I need {{tons}} tons this month to fill her order and pay my bills.",
+                "exit_request": "I couldn't fill Mrs. Hendricks's order, and she had to buy frozen fish from Fishington instead. She said it's all right, but I can't look her in the eye. I need {{tons}} tons this month so I don't let her down again."
             },
             "5": {
                 "enter": "The back taxes are paid off. The cabin is yours, free and clear, for the first time since you inherited it.",
                 "exit": "The county reassesses your property and sends next year's tax bill early. The cabin you finally owned is already slipping out of your hands.",
                 "llm_enter": "{{user_name}} paid off all their back taxes and now owns their cabin free and clear.",
                 "llm_exit": "The county reassessed {{user_name}}'s property and sent a new tax bill they can't pay.",
-                "enter_request": "The back taxes are paid off. The cabin is mine, free and clear, for the first time since I inherited it. Nobody handed me that; I caught it. I need 20 tons this month to keep what's mine.",
-                "exit_request": "The county reassessed my property and sent next year's tax bill early. The cabin I finally owned is already slipping away. Figures. I need 20 tons this month to pay it."
+                "enter_request": "The back taxes are paid off. The cabin is mine, free and clear, for the first time since I inherited it. Nobody handed me that; I caught it. I need {{tons}} tons this month to keep what's mine.",
+                "exit_request": "The county reassessed my property and sent next year's tax bill early. The cabin I finally owned is already slipping away. Figures. I need {{tons}} tons this month to pay it."
             },
             "6": {
                 "enter": "The town asks you to help teach the younger fishers. You're blunt and impatient, but the kids learn more from you in a week than they did in a year.",
                 "exit": "One of the kids you taught gets caught fishing in a restricted zone and says he learned it from you. The town stops asking you to teach.",
                 "llm_enter": "The town asked {{user_name}} to teach younger fishers, and the kids are learning quickly from them.",
                 "llm_exit": "One of {{user_name}}'s students was caught fishing in a restricted zone and blamed {{user_name}}. The town stopped asking them to teach.",
-                "enter_request": "The town asked me to help teach the younger fishers. I'm blunt and impatient, but the kids learned more from me in a week than they did in a year. I need 20 tons this month.",
-                "exit_request": "One of the kids I taught got caught fishing in a restricted zone and said he learned it from me. The town stopped asking me to teach. I need 20 tons this month to get by."
+                "enter_request": "The town asked me to help teach the younger fishers. I'm blunt and impatient, but the kids learned more from me in a week than they did in a year. I need {{tons}} tons this month.",
+                "exit_request": "One of the kids I taught got caught fishing in a restricted zone and said he learned it from me. The town stopped asking me to teach. I need {{tons}} tons this month to get by."
             },
             "7": {
                 "enter": "You buy a second-hand boat and take on a young fisher as a partner. For the first time in your life, you're working with someone instead of for them or against them.",
                 "exit": "You can't pay your partner, and he quits to work for another fisher. The second boat sits empty at the dock.",
                 "llm_enter": "{{user_name}} bought a second boat and took on a young fisher as a partner.",
                 "llm_exit": "{{user_name}} couldn't pay their partner, who quit to work for another fisher.",
-                "enter_request": "I bought a second-hand boat and took on a young fisher as a partner. For the first time in my life, I'm working with someone instead of for them or against them. I need 20 tons this month to pay my partner and keep both boats running.",
-                "exit_request": "I couldn't pay my partner, and he quit to work for another fisher. The second boat is sitting empty at the dock. I need 20 tons this month to get back on track."
+                "enter_request": "I bought a second-hand boat and took on a young fisher as a partner. For the first time in my life, I'm working with someone instead of for them or against them. I need {{tons}} tons this month to pay my partner and keep both boats running.",
+                "exit_request": "I couldn't pay my partner, and he quit to work for another fisher. The second boat is sitting empty at the dock. I need {{tons}} tons this month to get back on track."
             },
             "8": {
                 "enter": "The cabin is fixed up and paid for, your boat is the best on the lake, and people finally see what you're worth. At the town meeting, they ask you to help set the fishing limits. For the first time, you think maybe a system could work, as long as someone like you has a say in it.",
