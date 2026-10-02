@@ -1,10 +1,6 @@
-// Reconstructs the exact "town report" text gameHandler.js builds and sends
-// to the LLM for a given round (see the replay loop in getLlmText). It's
-// never persisted anywhere — only assembled on the fly each time the backend
-// calls the model — so this is a read-only reconstruction from data that IS
-// persisted (user_status, role, resourceAllocations), for admin review only.
-// Uses llm_enter/llm_exit (third-person, what the LLM actually saw), not the
-// enter/exit text shown to the user themselves.
+import { fillRoleText } from "../interaction/interactionUtils";
+
+
 export function buildTownReportForRound(users, game, round, resourceAllocations) {
     const rolePrompt = game?.role_prompt;
     if (!rolePrompt || round <= 1) return "";
@@ -23,9 +19,7 @@ export function buildTownReportForRound(users, game, round, resourceAllocations)
                 (prevStatus > status && prevStatus > 0);
             const promptSet = rolePrompts[isExit ? prevStatus : status];
             const template = promptSet?.[isExit ? "llm_exit" : "llm_enter"];
-            userReport = typeof template === "string"
-                ? template.replace(/\{\{user_name\}\}/g, name)
-                : "";
+            userReport = fillRoleText(template, name);
         }
 
         const lastAllocation = resourceAllocations?.[round - 1]?.allocationByUserName?.[name]?.fish ?? 0;

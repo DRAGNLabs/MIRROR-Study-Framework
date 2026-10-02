@@ -218,7 +218,8 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
                 const user_allocation = allocationByUserName[name]?.fish ?? 0;
                 const prev_status = user.user_status?.[round] ?? 0;
                 let curr_user_status = prev_status;
-                const gotEnoughFish = user_allocation >= 20; // kind of hardcoded with 20 tons of fish, might want to rethink that
+                // tons_needed depends on how many players are in the room (set when they were seated)
+                const gotEnoughFish = user_allocation >= room.tons_needed;
                 curr_user_status = gotEnoughFish ? curr_user_status + 1 : curr_user_status - 1;
 
                 const user_status = user.user_status ?? {};

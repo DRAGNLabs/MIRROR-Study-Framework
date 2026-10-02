@@ -23,7 +23,7 @@ export async function loadRoomState(
         if (!isAdmin && user) {
             const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
-            setUserRole(gameData.roles[parseInt(role) - 1]);
+            setUserRole(fillRoleTons(gameData.roles[parseInt(role) - 1], room.tons_needed));
             setGame(gameData);
 
             if (setStatusHistory && gameData?.role_prompt) {
@@ -93,9 +93,15 @@ export async function loadRoomState(
     } 
 }
 
-function fillUserName(template, userName) {
+export function fillRoleText(template, userName, tons) {
     if (typeof template !== "string") return "";
-    return template.replace(/\{\{user_name\}\}/g, userName ?? "");
+    return template
+        .replace(/\{\{user_name\}\}/g, userName ?? "")
+        .replace(/\{\{tons\}\}/g, tons ?? "");
+}
+export function fillRoleTons(role, tons) {
+    if (!role) return role;
+    return { ...role, backstory: fillRoleText(role.backstory, "", tons) };
 }
 
 
@@ -123,7 +129,7 @@ export function buildStatusHistory(fullUser, game, currentRound) {
             status,
             kind,
             good: status > prev_status,
-            message: fillUserName(promptSet[kind], fullUser.userName)
+            message: fillRoleText(promptSet[kind], fullUser.userName)
         });
     }
     return history;

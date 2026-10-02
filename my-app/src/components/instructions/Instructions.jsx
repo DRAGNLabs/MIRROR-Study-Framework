@@ -5,6 +5,7 @@ import { getRoom } from "../../services/roomsService";
 import { useLocation } from "react-router-dom";
 import { getUserRole } from "../../services/usersService";
 import { socketListener } from "../common/socketListener";
+import { fillRoleTons } from "../interaction/interactionUtils";
 import './instructions.css';
 
 export default function Instructions() {
@@ -22,7 +23,7 @@ export default function Instructions() {
                 const roomData = await getRoom(roomCode);
                 const { role } = await getUserRole(user.userId);
                 const gameData = games.find(g => parseInt(g.id) === roomData.gameType);
-                setUserRole(gameData.roles[parseInt(role) -1]);
+                setUserRole(fillRoleTons(gameData.roles[parseInt(role) -1], roomData.tons_needed));
             } catch (err) {
                 console.error("Failed to fetch data:", err);
             } finally {
