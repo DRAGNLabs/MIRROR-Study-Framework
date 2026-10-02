@@ -105,16 +105,23 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
             town_report = reports.join("");
         }
 
+        // Messages in the order users submitted them (roundMessages is appended to
+        // as each one comes in), then anyone who didn't respond this round.
+        const respondedIds = roundMessages.map(([id]) => id);
+        const noResponseIds = allUserIds.filter((userId) => !respondedIds.includes(userId));
         const formattedUserMessages = (
-            await Promise.all(
-                allUserIds.map(async (userId) => {
+            await Promise.all([
+                ...roundMessages.map(async ([userId, text]) => {
                     const user = await getUser(userId);
                     const name = user?.userName || `User ${userId}`;
-                    const userResponse = roundMessages.find(([id]) => id === userId);
-                    const text = userResponse ? userResponse[1] : "[No response from this user]";
                     return `${name}: ${text}`;
-                })
-            )
+                }),
+                ...noResponseIds.map(async (userId) => {
+                    const user = await getUser(userId);
+                    const name = user?.userName || `User ${userId}`;
+                    return `${name}: [No response from this user]`;
+                }),
+            ])
         ).join("\n");
 
         // do we want to put in this user instructions everytime?
@@ -130,6 +137,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     // console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
     io.to(room.roomCode).emit("ai-start");
 
+    console.log("messages: ", messages);
     let buffer = "";
     await streamLLM(messages, token => {
         buffer += token;
