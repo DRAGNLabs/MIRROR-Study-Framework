@@ -84,6 +84,8 @@ async function init() {
  * I believe resoureAllocations is {"round_num": {"userName": "Allocation", "userName": "Allocation"}} -- Khaleel if you could update this
  * fish_amount: {round#1: <amount of fish>, round#2: <amount of fish>, ...}
  * folderId is the room_folders id this room is filed in (null = unfiled). Deleting a folder just un-files its rooms
+ * tons_needed is how many tons each player must be allocated in a round for something good to happen to them (otherwise something bad happens).
+ *   Set when players are seated (PATCH /rooms/:roomCode/userIds), see computeTonsNeeded() in routes/roomsRouter.js. Defaults to 20, what every room used before this existed
  */
   await db.query(`
     CREATE TABLE IF NOT EXISTS rooms (
@@ -104,7 +106,8 @@ async function init() {
       curr_round INTEGER NOT NULL DEFAULT 1,
       "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       "isTest" BOOLEAN NOT NULL DEFAULT FALSE,
-      "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL
+      "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL,
+      tons_needed INTEGER NOT NULL DEFAULT 20
     )
   `);
 
@@ -127,6 +130,11 @@ async function init() {
   await db.query(`
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL
+  `);
+  // Tons each player needs per round (see Rooms Table above).
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS tons_needed INTEGER NOT NULL DEFAULT 20
   `);
 
   // Rebuild every folder's list on startup in case anything drifted.

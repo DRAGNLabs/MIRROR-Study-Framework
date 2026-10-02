@@ -3,6 +3,15 @@ const router = express.Router();
 import db from "../db.js"; 
 import {getModelIds, updateModel} from "../llm.js"
 import { syncFolderRooms } from "./foldersRouter.js";
+import { loadGames } from "../services/gameLoader.js";
+
+const games = loadGames();
+
+function computeTonsNeeded(game, numPlayers) {
+  const total = game?.tons_needed_total;
+  if (!total || !numPlayers) return null;
+  return Math.ceil(total / numPlayers);
+}
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -58,13 +67,24 @@ router.patch("/:roomCode/userIds", async (req, res) => {
         return res.status(400).json({ error: "userIds is required"})
     }
     const result = await db.query(
-      'UPDATE rooms SET "userIds" = $1::jsonb WHERE "roomCode" = $2 RETURNING "roomCode", "userIds";', [JSON.stringify(userIds), roomCode]);
+      'UPDATE rooms SET "userIds" = $1::jsonb WHERE "roomCode" = $2 RETURNING "roomCode", "userIds", "gameType", tons_needed;', [JSON.stringify(userIds), roomCode]);
      if (result.rowCount === 0){
       return res.status(404).json({error: "Room not found"})
-     }  
+     }
+
+
+    let tonsNeeded = result.rows[0].tons_needed;
+    const game = games.find(g => parseInt(g.id) === result.rows[0].gameType);
+    const computed = computeTonsNeeded(game, userIds.length);
+    if (computed != null) {
+      await db.query('UPDATE rooms SET tons_needed = $1 WHERE "roomCode" = $2', [computed, roomCode]);
+      tonsNeeded = computed;
+    }
+
     return res.status(200).json({
         roomCode: result.rows[0].roomCode,
         userIds: result.rows[0].userIds,
+        tonsNeeded,
         message: "Room userIds successfully updated!"
       });
         
