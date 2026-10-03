@@ -2,7 +2,7 @@
 export const COMPENSATION_BY_PARTICIPANT_COUNT = {
     3: [3, 2, 1],
     4: [3, 2, 2, 1],
-    5: [3, 2, 2, 1, 1],
+    5: [3, 2, 2, 2, 1],
 };
 
 function nameKey(name) {
