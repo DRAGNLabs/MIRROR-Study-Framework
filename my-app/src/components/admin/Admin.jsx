@@ -9,6 +9,16 @@ import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
 import './admin.css';
 
+function defaultRoundsForGame(game) {
+  const rounds = Number(game?.rounds);
+  return Number.isInteger(rounds) && rounds >= 1 ? rounds : 8;
+}
+
+function isValidRoundCount(value) {
+  const rounds = Number(value);
+  return Number.isInteger(rounds) && rounds >= 1;
+}
+
 function formatRoomCreatedAt(value) {
   if (value == null || value === "") return "\u2014";
   const d = value instanceof Date ? value : new Date(value);
@@ -31,6 +41,7 @@ export function Admin() {
     const [selectedModel, setSelectedModel] = useState("openai/gpt-4.1-mini");
 
     const [selectedGame, setSelectedGame] = useState(null);
+    const [rounds, setRounds] = useState("");
     // const [selectedModel, setSelectedModel] = useState("gpt-4o");
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
@@ -134,10 +145,19 @@ export function Admin() {
     // }, []);
 
     
+    function selectGame(game) {
+        setSelectedGame(game.id);
+        setRounds(defaultRoundsForGame(game));
+    }
+
     async function createRoom() { //changes the page to customize the room
         setCompleted(false);
         const newRoomCode = await generateRoomCode();
         setNewRoomCode(newRoomCode);
+        if (selectedGame != null) {
+            const game = games.find((g) => g.id === selectedGame);
+            setRounds(defaultRoundsForGame(game));
+        }
         setStart(false);
         setRoomCreated(true);
     }
@@ -154,8 +174,8 @@ export function Admin() {
 
     async function buildRoom() { //sends the room into the backend
         try {
-            const gameData = games.find(g => g.id === selectedGame);
-            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count, selectedModel); 
+            if (!isValidRoundCount(rounds)) return;
+            const response = await sendRoom(newRoomCode, selectedGame, Number(rounds), count, selectedModel); 
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
@@ -284,6 +304,7 @@ return (
                     <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
                     <span className="meta-item">{room.modelType}</span>
                     <span className="meta-item">Min {room.usersNeeded} user(s)</span>
+                    <span className="meta-item">Rounds: {room.numRounds}</span>
                     <span className="meta-item">Started: {room.started ? "✅" : "❌"}</span>
                     {status && ( <span className={`meta-item`}>Status: {status}</span> )}
 
@@ -349,13 +370,29 @@ return (
                   name="game"
                   value={game.id}
                   checked={selectedGame === game.id}
-                  onChange={() => setSelectedGame(game.id)}
+                  onChange={() => selectGame(game)}
                 />
                 <span className="radio-mark" />
                 <span>{game.title}</span>
               </label>
             ))}
           </div>
+
+          {selectedGame != null && (
+            <div className="label-inline">
+              <label htmlFor="roomRounds">Rounds</label>
+              <input
+                id="roomRounds"
+                className="text-input small"
+                type="number"
+                min={1}
+                step={1}
+                value={rounds}
+                onChange={(e) => setRounds(e.target.value)}
+                required
+              />
+            </div>
+          )}
 
           <h3 className="room-info-section">Model</h3>
           <div className="model-select">
@@ -400,7 +437,7 @@ return (
           <button
             className="btn-primary-admin btn-full"
             onClick={buildRoom}
-            disabled={!selectedGame}
+            disabled={!selectedGame || !isValidRoundCount(rounds)}
           >
             Save room
           </button>
