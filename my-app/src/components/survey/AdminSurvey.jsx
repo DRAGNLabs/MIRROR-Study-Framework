@@ -120,7 +120,7 @@ export default function AdminSurvey() {
                                         <span className="compensation-fish">{user.fish} fish</span>
                                         {user.tiedWith.length > 0 && (
                                             <span className="compensation-tie">
-                                                Same fish total as {user.tiedWith.join(", ")}. Listed alphabetically.
+                                                Tied with {user.tiedWith.join(", ")}, so they each get the same amount.
                                             </span>
                                         )}
                                     </span>

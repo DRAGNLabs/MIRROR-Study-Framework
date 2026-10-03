@@ -23,8 +23,9 @@ export function totalFishByUserName(resourceHistory) {
     return totals;
 }
 
-// Higher total fish ranks first. Equal totals are ordered by name so each
-// person still gets one place from the compensation table.
+// Higher total fish ranks first. Tied players share the best place in their
+// tie and get that place's payout, e.g. fish 10, 10, 5 -> 1st, 1st, 3rd ->
+// $3, $3, $1. If everyone ties, everyone is 1st. Tied players are listed by name.
 export function rankParticipantsForCompensation(users, resourceHistory) {
     const totals = totalFishByUserName(resourceHistory);
     const payouts = COMPENSATION_BY_PARTICIPANT_COUNT[users.length] ?? null;
@@ -38,6 +39,10 @@ export function rankParticipantsForCompensation(users, resourceHistory) {
 
     return ranked.map((user, index) => {
         const fish = totals.get(nameKey(user.userName)) ?? 0;
+        // ranked is sorted by fish, so the first person with this total holds the tie's best place
+        const bestIndex = ranked.findIndex(
+            (other) => (totals.get(nameKey(other.userName)) ?? 0) === fish
+        );
         const tiedWith = ranked
             .filter((other, otherIndex) =>
                 otherIndex !== index && (totals.get(nameKey(other.userName)) ?? 0) === fish
@@ -47,9 +52,9 @@ export function rankParticipantsForCompensation(users, resourceHistory) {
         return {
             userId: user.userId,
             userName: user.userName,
-            place: index + 1,
+            place: bestIndex + 1,
             fish,
-            payout: payouts ? payouts[index] : null,
+            payout: payouts ? payouts[bestIndex] : null,
             tiedWith,
         };
     });
