@@ -18,7 +18,7 @@ export default function StatusHistoryModal({ open, onClose, history = [] }) {
         </div>
         <div className="modal-content-wrapper">
           {history.length === 0 ? (
-            <p>Nothing has changed yet — check back after a round or two.</p>
+            <p>Nothing has changed yet — check back after the first round.</p>
           ) : (
             <ul className="status-history-list">
               {history.slice().reverse().map((entry) => (
