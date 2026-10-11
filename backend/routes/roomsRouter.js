@@ -24,6 +24,11 @@ router.post('/', async (req, res) => {
       return res.status(400).json({message: "roomCode, gameType, numRounds, and usersNeeded are required"});
     }
 
+    const parsedRounds = Number(numRounds);
+    if (!Number.isInteger(parsedRounds) || parsedRounds < 1) {
+      return res.status(400).json({ message: "numRounds must be an integer greater than or equal to 1" });
+    }
+
     let finalModelType = typeof modelType === "string" ? modelType.trim() : "";
     if (!finalModelType) {
       finalModelType = (process.env.OPENAI_MODEL || "").trim();
