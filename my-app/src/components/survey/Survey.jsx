@@ -4,10 +4,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { sendSurvey } from "../../services/surveyService";
 import { getRoom } from "../../services/roomsService";
+import { getUser } from "../../services/usersService";
 import { socket } from '../../socket'
 import games from "../../gameLoader";
 import ConversationModal from "./ConversationModal";
 import ResourceHistoryModal from "./ResourceHistoryModal";
+import StatusHistoryModal from "../interaction/StatusHistoryModal";
+import { buildStatusHistory } from "../interaction/interactionUtils";
 import ConversationReflectionStep from "./ConversationReflectionStep";
 import { SortRankList } from "./SortRankList";
 import { buildConversation, buildResourceHistory, buildDisplaySteps, displayStepHasUnanswered, formatAnswer, isRequiredQuestionUnanswered } from "./surveyUtils";
@@ -37,6 +40,8 @@ export function Survey() {
     const [showResources, setShowResources] = useState(false);
     const [conversationMessages, setConversationMessages] = useState([]);
     const [resourceHistory, setResourceHistory] = useState([]);
+    const [showStatusHistory, setShowStatusHistory] = useState(false);
+    const [statusHistory, setStatusHistory] = useState([]);
     const [conversationMarks, setConversationMarks] = useState(() => {
         const saved = localStorage.getItem(`${storageKey}_marks`);
         return saved ? JSON.parse(saved) : [];
@@ -115,6 +120,13 @@ export function Survey() {
             const msgs = await buildConversation(room);
             setConversationMessages(msgs);
             setResourceHistory(buildResourceHistory(room));
+
+            // same round-by-round status changes as the "My Status" popup on the interaction page
+            const gameData = games.find(g => parseInt(g.id) === room.gameType);
+            if (gameData?.role_prompt) {
+                const fullUser = await getUser(userId);
+                setStatusHistory(buildStatusHistory(fullUser, gameData, room.numRounds ?? room.curr_round ?? 1));
+            }
         }
 
         loadData();
@@ -276,6 +288,16 @@ export function Survey() {
                 >
                     Resource History
                 </button>
+
+                {survey.role_prompt && (
+                    <button
+                        className="conversation-history-btn resource-history-btn"
+                        title="See what happened to your status each round"
+                        onClick={() => setShowStatusHistory(true)}
+                    >
+                        My Status
+                    </button>
+                )}
             </div>
 
             <div className="survey-card">
@@ -529,6 +551,12 @@ export function Survey() {
                 onClose={() => setShowResources(false)}
                 resourceHistory={resourceHistory}
                 currentUserName={user?.userName}
+            />
+
+            <StatusHistoryModal
+                open={showStatusHistory}
+                onClose={() => setShowStatusHistory(false)}
+                history={statusHistory}
             />
         </div>
     );

@@ -20,7 +20,9 @@ export function useInteractionSocket(
     setCanSend = null,
     setHasSentThisRound = null,
     setGame=null,
-    setUserRole=null
+    setUserRole=null,
+    setStatusUpdate = null,
+    setStatusHistory = null
 ) {
 
 
@@ -29,20 +31,21 @@ export function useInteractionSocket(
 
     const refreshRoomState = useCallback(() => {
         loadRoomState(
-            isAdmin, 
-            roomCode, 
-            user, 
-            isStreamingRef, 
+            isAdmin,
+            roomCode,
+            user,
+            isStreamingRef,
             loadCurrUserMessages,
-            setMessages, 
-            setResourceHistory, 
+            setMessages,
+            setResourceHistory,
             setSentMessages,
-            setCanSend, 
-            setHasSentThisRound, 
-            setGame, 
-            setUserRole
+            setCanSend,
+            setHasSentThisRound,
+            setGame,
+            setUserRole,
+            setStatusHistory
         );
-    }, [isAdmin, roomCode, user, isStreamingRef, loadCurrUserMessages, setMessages, setResourceHistory, setCanSend, setHasSentThisRound, setGame, setUserRole]);
+    }, [isAdmin, roomCode, user, isStreamingRef, loadCurrUserMessages, setMessages, setResourceHistory, setCanSend, setHasSentThisRound, setGame, setUserRole, setStatusHistory]);
 
     useEffect(() => {
         refreshRoomState();
@@ -156,6 +159,12 @@ export function useInteractionSocket(
             setSentMessages(newSentMessages);
         });
 
+        if (!isAdmin && setStatusUpdate) {
+            socket.on("status-update", (update) => {
+                setStatusUpdate(update);
+            });
+        }
+
         return () => {
             socket.off("receive-message");
             socket.off("all-user-messages");
@@ -170,10 +179,13 @@ export function useInteractionSocket(
             socket.off("timer-start");
             socket.off("timer-expired");
             socket.off("change-users-messaged")
+            if (!isAdmin && setStatusUpdate) {
+                socket.off("status-update");
+            }
             if (timerIntervalRef.current) {
                 clearInterval(timerIntervalRef.current);
             }
         }
-    }, [isAdmin, refreshRoomState, isStreamingRef, timerIntervalRef, loadCurrUserMessages, setMessages, setTimeRemaining, setStreamingText, setCurrentStreamingId, setCanSend, setHasSentThisRound]);
+    }, [isAdmin, refreshRoomState, isStreamingRef, timerIntervalRef, loadCurrUserMessages, setMessages, setTimeRemaining, setStreamingText, setCurrentStreamingId, setCanSend, setHasSentThisRound, setStatusUpdate]);
 
 }

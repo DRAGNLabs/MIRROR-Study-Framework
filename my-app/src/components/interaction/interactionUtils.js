@@ -4,26 +4,32 @@ import { getRoom } from "../../services/roomsService";
 import games from "../../gameLoader"; 
     
 export async function loadRoomState(
-    isAdmin, 
-    roomCode, 
-    user=null, 
-    isStreamingRef, 
-    loadCurrUserMessages, 
+    isAdmin,
+    roomCode,
+    user=null,
+    isStreamingRef,
+    loadCurrUserMessages,
     setMessages,
     setResourceHistory,
     setSentMessages,
-    setCanSend=null, 
-    setHasSentThisRound=null, 
-    setGame=null, 
+    setCanSend=null,
+    setHasSentThisRound=null,
+    setGame=null,
     setUserRole=null,
+    setStatusHistory=null,
 ) {
     try {
         const room = await getRoom(roomCode);
         if (!isAdmin && user) {
             const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
-            setUserRole(gameData.roles[parseInt(role) - 1]);
+            setUserRole(fillRoleTons(gameData.roles[parseInt(role) - 1], room.tons_needed));
             setGame(gameData);
+
+            if (setStatusHistory && gameData?.role_prompt) {
+                const fullUser = await getUser(user.userId);
+                setStatusHistory(buildStatusHistory(fullUser, gameData, room.curr_round));
+            }
         }
 
         const llmInstructions = room.llmInstructions ?? {};
@@ -85,6 +91,48 @@ export async function loadRoomState(
     } catch (err) {
         console.error("Failed to load room state:", err);
     } 
+}
+
+export function fillRoleText(template, userName, tons) {
+    if (typeof template !== "string") return "";
+    return template
+        .replace(/\{\{user_name\}\}/g, userName ?? "")
+        .replace(/\{\{tons\}\}/g, tons ?? "");
+}
+export function fillRoleTons(role, tons) {
+    if (!role) return role;
+    return { ...role, backstory: fillRoleText(role.backstory, "", tons) };
+}
+
+
+export function buildStatusHistory(fullUser, game, currentRound) {
+    const rolePrompts = game?.role_prompt?.[fullUser?.role];
+    const userStatus = fullUser?.user_status;
+    if (!rolePrompts || !userStatus) return [];
+
+    const history = [];
+    for (let i = 2; i <= currentRound; i++) {
+        if (userStatus[i] == null || userStatus[i - 1] == null) continue;
+        const status = userStatus[i];
+        const prev_status = userStatus[i - 1];
+        if (status === prev_status) continue;
+
+        const isExit =
+            (prev_status < status && prev_status < 0) ||
+            (prev_status > status && prev_status > 0);
+        const promptSet = rolePrompts[isExit ? prev_status : status];
+        if (!promptSet) continue;
+
+        const kind = isExit ? "exit" : "enter";
+        history.push({
+            round: i,
+            status,
+            kind,
+            good: status > prev_status,
+            message: fillRoleText(promptSet[kind], fullUser.userName)
+        });
+    }
+    return history;
 }
 
 async function getUserName(id) {
