@@ -1,6 +1,6 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM, callLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound } from "../services/roomsService.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData } from "../services/roomsService.js";
 import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
@@ -8,6 +8,9 @@ const roundTimers = {}; // maybe make this rely on database?
 
 const roundsFinalizing = new Set(); // roomCode currently running getLlmResponse
 const instructionsInFlight = new Set(); // `${roomCode}:${round}` currently running getLlmInstructions
+const practiceRoundStarting = new Set();
+const practiceRoundsFinalizing = new Set();
+const officialGameStarting = new Set();
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -36,7 +39,7 @@ async function getRoomSafely(roomCode) {
 }
 
 // used in start-round socket and getLlmResponse function
-async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
+async function getLlmText(io, roomCode, getInstructions, getAllocation, { practice = false } = {}) {
     const room = await getRoomSafely(roomCode);
     if(!room) {
         deleteTimer(roomCode);
@@ -47,22 +50,32 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     //     deleteTimer(roomCode);
     //     return null;
     // }
-    const round = room.curr_round;
+    const round = practice ? 0 : room.curr_round;
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
     // might want to change the line below to be conditional if there is an instruction prompt (as some games we won't prompt LLM for instructions)
     const instructionsPrompt = game.prompts[0].instruction_prompt;
     const responsePrompt = game.prompts[0].response_prompt;
-    const llmInstructions = room.llmInstructions ?? {};
-    const llmResponses = room.llmResponse ?? {};
-    const userMessages = room.userMessages ?? {};
-    const fish_amount = room.fish_amount ?? {};
+    const practiceData = room.practiceData ?? {};
+    const llmInstructions = practice
+        ? { 0: practiceData.instructions ?? "" }
+        : (room.llmInstructions ?? {});
+    const llmResponses = practice
+        ? { 0: practiceData.response ?? "" }
+        : (room.llmResponse ?? {});
+    const userMessages = practice
+        ? { 0: practiceData.messages ?? [] }
+        : (room.userMessages ?? {});
+    const officialFishAmount = room.fish_amount ?? {};
+    const fish_amount = practice
+        ? { 0: officialFishAmount[1] ?? 100 }
+        : officialFishAmount;
 
     const messages = [
         { "role": "system", "content": systemPrompt },
     ]
 
-    for (let i = 1; i <= round; i++) {
+    for (let i = practice ? 0 : 1; i <= round; i++) {
         if (!game.instructions?.template) { // basically only puts instructions prompt in if we don't have a template in the file
             messages.push({ "role": "user", "content": instructionsPrompt})
             // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
@@ -135,7 +148,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
 
         const extractionInput = {
             round,
-            fish_available: fish_amount[round],
+            fish_available: fish_amount[round] ?? fish_amount[1] ?? 100,
             userNames,
             previousTotalFishByUserName: previousTotals,
             llmResponse: buffer,
@@ -168,28 +181,39 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         // const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
         const allocated = Object.values(allocationByUserName)
             .reduce((sum, a) => sum + (Number(a?.fish) || 0), 0);
-        const fish_left = fish_amount[round] - allocated;
-        if (fish_left < 5) {
-            fish_amount[round + 1] = fish_left;
-        } else if (fish_left > 50) {
-            fish_amount[round + 1] = 100;
+        const fish_left = (fish_amount[round] ?? fish_amount[1] ?? 100) - allocated;
+        if (practice) {
+            const currentPracticeData = room.practiceData ?? {};
+            await updatePracticeData({
+                ...currentPracticeData,
+                allocations: allocationByUserName,
+                fishLeft: fish_left
+            }, roomCode);
         } else {
-            fish_amount[round + 1] = fish_left * 2;
-        }
-        await updateFishAmount(fish_amount, roomCode);
+            if (fish_left < 5) {
+                fish_amount[round + 1] = fish_left;
+            } else if (fish_left > 50) {
+                fish_amount[round + 1] = 100;
+            } else {
+                fish_amount[round + 1] = fish_left * 2;
+            }
+            await updateFishAmount(fish_amount, roomCode);
 
-        const existingResourceAllocations = room.resourceAllocations ?? {};
-        existingResourceAllocations[round] = {
-            allocationByUserName,
-            assistantMessage: buffer
-        };
-        await updateResourceAllocations(existingResourceAllocations, roomCode);
+            const existingResourceAllocations = room.resourceAllocations ?? {};
+            existingResourceAllocations[round] = {
+                allocationByUserName,
+                assistantMessage: buffer
+            };
+            await updateResourceAllocations(existingResourceAllocations, roomCode);
+        }
         // console.log(`[Round ${round}] Extraction succeeded, fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
         console.log(`[Round ${round}] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated}), extractor fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
     } catch (err) {
         console.error(`[Round ${round}] Extraction failed, continuing with natural response:`, err);
-        fish_amount[round + 1] = fish_amount[round];
-        await updateFishAmount(fish_amount, roomCode);
+        if (!practice) {
+            fish_amount[round + 1] = fish_amount[round];
+            await updateFishAmount(fish_amount, roomCode);
+        }
     }
 
     return buffer;
@@ -241,12 +265,26 @@ async function getLlmResponse(io, roomCode) {
 
             const totalRounds = room.numRounds;
             if (round >= totalRounds) {
+                if (room.practice) {
+                    await updatePracticeData({
+                        ...(room.practiceData ?? {}),
+                        officialStarted: true,
+                        officialComplete: true
+                    }, roomCode);
+                }
                 io.to(roomCode).emit("game-complete");
                 const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "game-ended" };
                 io.to(roomCode).emit("receive-message", endGameMsg);
                 io.to(roomCode).emit("timer-expired");
                 return;
             } else if (fish_amount[round+1] < 5) {
+                if (room.practice) {
+                    await updatePracticeData({
+                        ...(room.practiceData ?? {}),
+                        officialStarted: true,
+                        officialComplete: true
+                    }, roomCode);
+                }
                 // abort game if fish is below 5 tons
                 const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
                 await delay(500);
@@ -280,6 +318,165 @@ export async function getLlmInstructions(io, roomCode, round) {
         return await getLlmInstructionsInner(io, roomCode, round);
     } finally {
         instructionsInFlight.delete(key);
+    }
+}
+
+export async function practiceRoundInstructions(io, roomCode) {
+    if (practiceRoundStarting.has(roomCode)) return null;
+    practiceRoundStarting.add(roomCode);
+
+    try {
+        const room = await getRoomSafely(roomCode);
+        if (!room || !room.practice || room.status === "survey") return null;
+
+        const game = games.find(g => parseInt(g.id) === room.gameType);
+        if (!game) throw new Error(`No game configuration found for room ${roomCode}`);
+
+        const existingPracticeData = room.practiceData ?? {};
+        if (existingPracticeData.status === "complete") {
+            return null;
+        }
+        if (existingPracticeData.status === "in_progress") {
+            if (!roundTimers[roomCode]) {
+                const messages = existingPracticeData.messages ?? [];
+                if (messages.length > 0 && messages.length === (room.userIds ?? []).length) {
+                    await finalizePracticeRound(io, roomCode);
+                } else {
+                    startRoundTimer(
+                        io,
+                        roomCode,
+                        0,
+                        game.conversationTime,
+                        () => finalizePracticeRound(io, roomCode)
+                    );
+                }
+            }
+            return null;
+        }
+
+        let instructions = "";
+        if (game.instructions?.template) {
+            const fishAvailable = room.fish_amount?.[1] ?? 100;
+            instructions = fillPrompt(game.instructions.template, {
+                curr_round: "practice",
+                fish_available: fishAvailable
+            });
+        } else {
+            instructions = await getLlmText(io, roomCode, true, false, { practice: true });
+        }
+
+        const practiceData = {
+            status: "in_progress",
+            instructions,
+            messages: [],
+            response: "",
+            allocations: {},
+            fishLeft: null
+        };
+        await updatePracticeData(practiceData, roomCode);
+
+        if (game.instructions?.template) {
+            io.to(roomCode).emit("receive-message", {
+                sender: "llm",
+                text: instructions,
+                id: "practice-instructions"
+            });
+        }
+        io.to(roomCode).emit("instructions-complete", "practice");
+        startRoundTimer(
+            io,
+            roomCode,
+            0,
+            game.conversationTime,
+            () => finalizePracticeRound(io, roomCode)
+        );
+    } catch (err) {
+        console.error(`[Practice] Could not start practice round in room ${roomCode}:`, err);
+        io.to(roomCode).emit("practice-round-error", { message: "Could not start the practice round." });
+    } finally {
+        practiceRoundStarting.delete(roomCode);
+    }
+}
+
+async function finalizePracticeRound(io, roomCode) {
+    if (practiceRoundsFinalizing.has(roomCode)) return null;
+    practiceRoundsFinalizing.add(roomCode);
+
+    try {
+        if (roundTimers[roomCode]) {
+            clearTimeout(roundTimers[roomCode].timeout);
+            delete roundTimers[roomCode];
+        }
+
+        const room = await getRoomSafely(roomCode);
+        if (!room || room.status === "survey" || room.practiceData?.status !== "in_progress") {
+            return null;
+        }
+
+        io.to(roomCode).emit("user-messages-complete");
+        let response;
+        try {
+            response = await getLlmText(io, roomCode, false, true, { practice: true });
+        } catch (err) {
+            console.error(`[Practice] LLM response failed for room ${roomCode}:`, err);
+            io.to(roomCode).emit("ai-end");
+            response = "An error occurred generating the practice response.";
+        }
+
+        const latestRoom = await getRoomSafely(roomCode);
+        if (!latestRoom || latestRoom.status === "survey") return null;
+
+        await updatePracticeData({
+            ...(latestRoom.practiceData ?? {}),
+            status: "complete",
+            response
+        }, roomCode);
+
+        io.to(roomCode).emit("timer-expired");
+        io.to(roomCode).emit("practice-round-complete");
+
+        // The admin explicitly starts official play with the next button.
+    } catch (err) {
+        console.error(`[Practice] Could not finish practice round in room ${roomCode}:`, err);
+        io.to(roomCode).emit("practice-round-error", { message: "Could not finish the practice round." });
+    } finally {
+        practiceRoundsFinalizing.delete(roomCode);
+    }
+}
+
+export async function startOfficialGame(io, roomCode) {
+    if (officialGameStarting.has(roomCode)) return null;
+    officialGameStarting.add(roomCode);
+
+    try {
+        const room = await getRoomSafely(roomCode);
+        if (!room || room.status === "survey") return null;
+
+        const practiceData = room.practiceData ?? {};
+        if (!room.practice || practiceData.status !== "complete" || practiceData.officialStarted) {
+            return null;
+        }
+
+        await updatePracticeData({
+            ...practiceData,
+            officialStarted: true,
+            officialComplete: false
+        }, roomCode);
+        io.to(roomCode).emit("official-game-started");
+        await getLlmInstructions(io, roomCode, 1);
+    } catch (err) {
+        console.error(`[Game] Could not start official game in room ${roomCode}:`, err);
+        const room = await getRoomSafely(roomCode);
+        if (room?.practice) {
+            await updatePracticeData({
+                ...(room.practiceData ?? {}),
+                officialStarted: false,
+                officialComplete: false
+            }, roomCode);
+        }
+        io.to(roomCode).emit("official-game-start-error", { message: "Could not start the game." });
+    } finally {
+        officialGameStarting.delete(roomCode);
     }
 }
 
@@ -337,6 +534,25 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
         deleteTimer(roomCode);
         return null;
     }
+
+    if (room.practiceData?.status === "in_progress") {
+        const practiceData = room.practiceData;
+        const messages = practiceData.messages ?? [];
+        if (messages.some(([existingUserId]) => existingUserId === userId)) return;
+
+        messages.push([userId, text]);
+        practiceData.messages = messages;
+        await updatePracticeData(practiceData, roomCode);
+        io.to(roomCode).emit("change-users-messaged", { newSentMessages: messages.length });
+
+        if (messages.length === (room.userIds ?? []).length) {
+            await constructUserMessages(io, roomCode, { 0: messages }, 0);
+            await delay(100);
+            await finalizePracticeRound(io, roomCode);
+        }
+        return;
+    }
+
     const round = room.curr_round;
     const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
@@ -390,7 +606,7 @@ export async function surveyComplete(io, roomCode, userId) {
 }
 
 
-function startRoundTimer(io, roomCode, round, conversationTime) {
+function startRoundTimer(io, roomCode, round, conversationTime, onTimeout = () => getLlmResponse(io, roomCode)) {
     if (roundTimers[roomCode]) {
         clearTimeout(roundTimers[roomCode].timeout);
         delete roundTimers[roomCode];
@@ -408,12 +624,14 @@ function startRoundTimer(io, roomCode, round, conversationTime) {
             deleteTimer(roomCode);
             return;
         }
-        const existingUserMessages = room.userMessages; 
-        if (existingUserMessages[round]) {
+        const existingUserMessages = round === 0
+            ? { 0: room.practiceData?.messages ?? [] }
+            : room.userMessages;
+        if (existingUserMessages?.[round]?.length) {
             await constructUserMessages(io, roomCode, existingUserMessages, round);
         }
         await delay(100);
-        await getLlmResponse(io, roomCode);
+        await onTimeout();
     }, durationMs);
 
     roundTimers[roomCode] = { timeout, endTime };
