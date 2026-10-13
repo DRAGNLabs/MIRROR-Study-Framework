@@ -216,6 +216,7 @@ export function Admin() {
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?
             setIsTestMode(false);
+            setPractice(false);
             // sendModel(selectedModel);
         } catch (error){
             console.error("Error:", error);
@@ -293,15 +294,6 @@ export function Admin() {
 
     }
 
-    async function practiceRound() {
-      console.log("practice round hit")
-      if (practice == true){
-        setPractice(false);
-
-      } else {
-        setPractice(true)
-      }
-    }
 
 
 
@@ -413,37 +405,16 @@ return (
             />
           </div>
 
-          <h3 className="room-info-section">Automated Test</h3>
+          <h3 className="room-info-section">Practice Round</h3>
           <label className="custom-checkbox">
             <input
               type="checkbox"
-              checked={isTestMode}
-              onChange={(e) => setIsTestMode(e.target.checked)}
+              checked={practice}
+              onChange={(e) => setPractice(e.target.checked)}
             />
             <span className="checkbox-mark" />
-            <span>🤖 Run as automated test</span>
+            <span>Add practice round</span>
           </label>
-          {isTestMode && (
-            <p className="rooms-section-subtitle">
-              Seats {count} simulated bot users and runs to completion on its own. 
-            </p>
-          )}
-          {isTestMode && (
-            <div className="label-inline">
-              <label htmlFor="testFolder">Save results to folder</label>
-              <select
-                id="testFolder"
-                className="model-select-input folder-inline-select"
-                value={testFolderId}
-                onChange={(e) => setTestFolderId(e.target.value)}
-              >
-                <option value="">No folder</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <h3 className="room-info-section">Game</h3>
           <div className="games-options">
@@ -475,6 +446,38 @@ return (
                 onChange={(e) => setRounds(e.target.value)}
                 required
               />
+            </div>
+          )}
+
+          <h3 className="room-info-section">Automated Test</h3>
+          <label className="custom-checkbox">
+            <input
+              type="checkbox"
+              checked={isTestMode}
+              onChange={(e) => setIsTestMode(e.target.checked)}
+            />
+            <span className="checkbox-mark" />
+            <span>🤖 Run as automated test</span>
+          </label>
+          {isTestMode && (
+            <p className="rooms-section-subtitle">
+              Seats {count} simulated bot users and runs to completion on its own. 
+            </p>
+          )}
+          {isTestMode && (
+            <div className="label-inline">
+              <label htmlFor="testFolder">Save results to folder</label>
+              <select
+                id="testFolder"
+                className="model-select-input folder-inline-select"
+                value={testFolderId}
+                onChange={(e) => setTestFolderId(e.target.value)}
+              >
+                <option value="">No folder</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
             </div>
           )}
 
@@ -523,12 +526,6 @@ return (
                 ))} */}
               </select>
             </div>
-          </div>
-          <div className="label-inline">
-          <h3 className="room-info-section">Add Practice Round</h3>
-          <label>
-            <input type="checkbox" name="agree" onClick={()=> practiceRound()}/>
-          </label>
           </div>
 
           <button
