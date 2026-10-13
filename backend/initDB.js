@@ -65,7 +65,9 @@ async function init() {
       "resourceAllocations" jsonb NOT NULL DEFAULT '{}'::jsonb,
       fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb,
       curr_round INTEGER NOT NULL DEFAULT 1,
-      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      practice BOOLEAN NOT NULL DEFAULT FALSE,
+      "practiceData" JSONB NOT NULL DEFAULT '{}'::jsonb
     )
   `);
 
@@ -76,6 +78,23 @@ async function init() {
   await db.query(`
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  `);
+
+  // New columns for rooms to keep track of the practice round and default to false
+  // and add pacticeData to keep track of data from the practice round
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS practice BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+
+  await db.query(`
+    ALTER TABLE rooms
+    ALTER COLUMN practice SET DEFAULT FALSE
+  `);
+
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "practiceData" JSONB NOT NULL DEFAULT '{}'::jsonb
   `);
 
   console.log("✅ Tables checked/created");

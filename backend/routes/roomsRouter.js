@@ -400,6 +400,81 @@ router.delete("/delete/:roomCode", async (req,res) => {
 
 });
 
+// gets the practice flag for a room
+router.get("/:roomCode/practice", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+
+    const result = await db.query(
+      'SELECT "roomCode", practice FROM rooms WHERE "roomCode" = $1;',
+      [roomCode]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// updates the practice flag for a room
+router.patch("/:roomCode/practice", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { practice } = req.body;
+
+    if (typeof practice !== "boolean") {
+      return res.status(400).json({ error: "practice must be a boolean" });
+    }
+
+    const result = await db.query(
+      'UPDATE rooms SET practice = $1 WHERE "roomCode" = $2 RETURNING "roomCode", practice;',
+      [practice, roomCode]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return res.status(200).json({
+      ...result.rows[0],
+      message: "Practice setting successfully updated!"
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch("/:roomCode/practiceData", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { practiceData } = req.body;
+
+    if (!practiceData || typeof practiceData !== "object" || Array.isArray(practiceData)) {
+      return res.status(400).json({ error: "practiceData must be an object" });
+    }
+
+    const result = await db.query(
+      'UPDATE rooms SET "practiceData" = $1::jsonb WHERE "roomCode" = $2 RETURNING "roomCode", "practiceData";',
+      [JSON.stringify(practiceData), roomCode]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // gets room
 router.get("/:roomCode", async (req, res) => {
   try {
