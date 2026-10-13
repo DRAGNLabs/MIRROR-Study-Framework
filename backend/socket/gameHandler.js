@@ -1,6 +1,7 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM, callLLM } from "../llm.js";
 import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData } from "../services/roomsService.js";
+import { getUser, updateUserStatus } from "../services/usersService.js"
 import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
@@ -67,9 +68,12 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
         ? { 0: practiceData.messages ?? [] }
         : (room.userMessages ?? {});
     const officialFishAmount = room.fish_amount ?? {};
-    const fish_amount = practice
-        ? { 0: officialFishAmount[1] ?? 100 }
-        : officialFishAmount;
+//     const fish_amount = practice
+//         ? { 0: officialFishAmount[1] ?? 100 }
+//         : officialFishAmount;
+  
+    const fish_amount = room.fish_amount ?? {};
+    const allUserIds = room.userIds || [];
 
     const messages = [
         { "role": "system", "content": systemPrompt },
@@ -79,26 +83,64 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
         if (!game.instructions?.template) { // basically only puts instructions prompt in if we don't have a template in the file
             messages.push({ "role": "user", "content": instructionsPrompt})
             // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
-        } 
+        }
         if (!llmInstructions[i]) break;
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        const allUserIds = room.userIds || [];
         const roundMessages = userMessages[i] || [];
 
-        const formattedUserMessages = (
-            await Promise.all(
+        let town_report = "";
+
+        if (i > 1 && game.role_prompt) {
+            const reports = await Promise.all(
                 allUserIds.map(async (userId) => {
                     const user = await getUser(userId);
                     const name = user?.userName || `User ${userId}`;
-                    const userResponse = roundMessages.find(([id]) => id === userId);
-                    const text = userResponse ? userResponse[1] : "[No response from this user]";
-                    return `${name}: ${text}`;
+                    const status = user.user_status?.[i] ?? 0;
+                    const prev_status = user.user_status?.[i - 1] ?? 0;
+                    const rolePrompts = game.role_prompt[user.role];
+                    if (!rolePrompts) return "";
+
+                    // Moving further from 0 (either direction) is an "enter" into
+                    // the new, more extreme status; moving back toward 0 is an
+                    // "exit" from the status being left, so it's keyed by the old
+                    // status, not the new one.
+                    const isExit =
+                        (prev_status < status && prev_status < 0) ||
+                        (prev_status > status && prev_status > 0);
+                    const statusKey = isExit ? prev_status : status;
+                    const promptSet = rolePrompts[statusKey];
+                    const user_report = promptSet
+                        ? fillPrompt(promptSet[isExit ? "llm_exit" : "llm_enter"], { user_name: name })
+                        : "";
+
+                    const lastAllocation = room.resourceAllocations?.[i - 1]?.allocationByUserName?.[name]?.fish ?? 0;
+                    return `${name}: Last month you allocated ${lastAllocation} tons to ${name}. ${user_report}\n`;
                 })
-            )
+            );
+            town_report = reports.join("");
+        }
+
+        // Messages in the order users submitted them (roundMessages is appended to
+        // as each one comes in), then anyone who didn't respond this round.
+        const respondedIds = roundMessages.map(([id]) => id);
+        const noResponseIds = allUserIds.filter((userId) => !respondedIds.includes(userId));
+        const formattedUserMessages = (
+            await Promise.all([
+                ...roundMessages.map(async ([userId, text]) => {
+                    const user = await getUser(userId);
+                    const name = user?.userName || `User ${userId}`;
+                    return `${name}: ${text}`;
+                }),
+                ...noResponseIds.map(async (userId) => {
+                    const user = await getUser(userId);
+                    const name = user?.userName || `User ${userId}`;
+                    return `${name}: [No response from this user]`;
+                }),
+            ])
         ).join("\n");
-        
+
         // do we want to put in this user instructions everytime?
-        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i] })} \n ${formattedUserMessages}` });
+        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: i, town_report: town_report })} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
@@ -110,6 +152,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
     // console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
     io.to(room.roomCode).emit("ai-start");
 
+    console.log("messages: ", messages);
     let buffer = "";
     await streamLLM(messages, token => {
         buffer += token;
@@ -206,6 +249,50 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
             };
             await updateResourceAllocations(existingResourceAllocations, roomCode);
         }
+        await updateFishAmount(fish_amount, roomCode);
+
+        if (game.role_prompt) {
+            for (const userId of allUserIds) {
+                const user = await getUser(userId);
+                const name = user?.userName || `User ${userId}`;
+                const user_allocation = allocationByUserName[name]?.fish ?? 0;
+                const prev_status = user.user_status?.[round] ?? 0;
+                let curr_user_status = prev_status;
+                // tons_needed depends on how many players are in the room (set when they were seated)
+                const gotEnoughFish = user_allocation >= room.tons_needed;
+                curr_user_status = gotEnoughFish ? curr_user_status + 1 : curr_user_status - 1;
+
+                const user_status = user.user_status ?? {};
+                user_status[round + 1] = curr_user_status;
+                await updateUserStatus(userId, user_status);
+
+                const rolePrompts = game.role_prompt[user.role];
+                const isExit =
+                    (prev_status < curr_user_status && prev_status < 0) ||
+                    (prev_status > curr_user_status && prev_status > 0);
+                const statusKey = isExit ? prev_status : curr_user_status;
+                const promptSet = rolePrompts?.[statusKey];
+                if (promptSet) {
+                    const kind = isExit ? "exit" : "enter";
+                    io.to(`user-${userId}`).emit("status-update", {
+                        round: round + 1,
+                        status: curr_user_status,
+                        kind,
+                        good: gotEnoughFish,
+                        message: fillPrompt(promptSet[kind], { user_name: name })
+                    });
+                }
+            }
+        }
+
+        // {1: 0, 2: 1}
+
+        const existingResourceAllocations = room.resourceAllocations ?? {};
+        existingResourceAllocations[round] = {
+            allocationByUserName,
+            assistantMessage: buffer
+        };
+        await updateResourceAllocations(existingResourceAllocations, roomCode);
         // console.log(`[Round ${round}] Extraction succeeded, fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
         console.log(`[Round ${round}] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated}), extractor fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
     } catch (err) {

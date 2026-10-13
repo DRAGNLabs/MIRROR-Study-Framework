@@ -2,13 +2,23 @@ import express from "express";
 const router = express.Router();
 import db from "../db.js"; 
 import {getModelIds, updateModel} from "../llm.js"
+import { syncFolderRooms } from "./foldersRouter.js";
+import { loadGames } from "../services/gameLoader.js";
+
+const games = loadGames();
+
+function computeTonsNeeded(game, numPlayers) {
+  const total = game?.tons_needed_total;
+  if (!total || !numPlayers) return null;
+  return Math.ceil(total / numPlayers);
+}
 // import dotenv from "dotenv";
 // dotenv.config();
 
 // Creates room, puts roomCode, gameType, numRounds, usersNeeded, and modelType into table (rest of info will be updated later)
 router.post('/', async (req, res) => {
   try{
-    const { roomCode, gameType, numRounds, usersNeeded, modelType } = req.body;
+    const { roomCode, gameType, numRounds, usersNeeded, modelType, isTest, folderId } = req.body;
 
     if (roomCode === undefined || gameType === undefined || numRounds === undefined || usersNeeded === undefined) {
       return res.status(400).json({message: "roomCode, gameType, numRounds, and usersNeeded are required"});
@@ -28,13 +38,14 @@ router.post('/', async (req, res) => {
     }
 
     const sql = `
-      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType") 
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt";
+      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "isTest", "folderId")
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt", "isTest", "folderId";
     `;
 
-    const result = await db.query(sql, [roomCode, gameType, parsedRounds, usersNeeded, finalModelType]);
-    
+    const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType, !!isTest, folderId ?? null]);
+    await syncFolderRooms([result.rows[0].folderId]);
+
     return res.status(201).json(result.rows[0]);
 
   } catch (err) {
@@ -61,13 +72,24 @@ router.patch("/:roomCode/userIds", async (req, res) => {
         return res.status(400).json({ error: "userIds is required"})
     }
     const result = await db.query(
-      'UPDATE rooms SET "userIds" = $1::jsonb WHERE "roomCode" = $2 RETURNING "roomCode", "userIds";', [JSON.stringify(userIds), roomCode]);
+      'UPDATE rooms SET "userIds" = $1::jsonb WHERE "roomCode" = $2 RETURNING "roomCode", "userIds", "gameType", tons_needed;', [JSON.stringify(userIds), roomCode]);
      if (result.rowCount === 0){
       return res.status(404).json({error: "Room not found"})
-     }  
+     }
+
+
+    let tonsNeeded = result.rows[0].tons_needed;
+    const game = games.find(g => parseInt(g.id) === result.rows[0].gameType);
+    const computed = computeTonsNeeded(game, userIds.length);
+    if (computed != null) {
+      await db.query('UPDATE rooms SET tons_needed = $1 WHERE "roomCode" = $2', [computed, roomCode]);
+      tonsNeeded = computed;
+    }
+
     return res.status(200).json({
         roomCode: result.rows[0].roomCode,
         userIds: result.rows[0].userIds,
+        tonsNeeded,
         message: "Room userIds successfully updated!"
       });
         
@@ -75,6 +97,35 @@ router.patch("/:roomCode/userIds", async (req, res) => {
     console.log(err);
     return res.status(500).json({ error: err.message });
 
+  }
+});
+
+// moves a room into a folder (folderId null takes it out of any folder)
+router.patch("/:roomCode/folder", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { folderId } = req.body;
+    if (folderId === undefined) {
+      return res.status(400).json({ error: "folderId is required (null to remove from folder)" });
+    }
+
+    // need the old folder so its rooms list can drop this room
+    const before = await db.query('SELECT "folderId" FROM rooms WHERE "roomCode" = $1', [roomCode]);
+    if (before.rowCount === 0) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+    const oldFolderId = before.rows[0].folderId;
+
+    const result = await db.query(
+      'UPDATE rooms SET "folderId" = $1 WHERE "roomCode" = $2 RETURNING "roomCode", "folderId";',
+      [folderId, roomCode]
+    );
+    await syncFolderRooms([oldFolderId, folderId]);
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -387,8 +438,10 @@ router.delete("/delete/:roomCode", async (req,res) => {
   try {
    const roomCode = req.params.roomCode;
    const result = await db.query(
-    'DELETE FROM rooms WHERE "roomCode" = $1', [roomCode]
+    'DELETE FROM rooms WHERE "roomCode" = $1 RETURNING "folderId"', [roomCode]
    );
+   // take the deleted room out of its folder's rooms list
+   await syncFolderRooms(result.rows.map((r) => r.folderId));
    res.status(200).json({ 
     success: true, 
     deleted: result.rowCount }); // says how many rows were deleted

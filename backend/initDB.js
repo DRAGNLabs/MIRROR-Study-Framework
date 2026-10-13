@@ -7,9 +7,22 @@ async function init() {
       "userId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
       "userName" TEXT NOT NULL,
       "roomCode" INTEGER NOT NULL,
-      role INTEGER NOT NULL DEFAULT 0 
+      role INTEGER NOT NULL DEFAULT 0,
+      user_status jsonb NOT NULL DEFAULT '{"1": 0}'::jsonb
     )
   `); //make default of role 0
+
+  // Same issue as the rooms migration below: CREATE TABLE IF NOT EXISTS skips
+  // altering a users table that already existed before role/user_status were
+  // added to this definition.
+  await db.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS role INTEGER NOT NULL DEFAULT 0
+  `);
+  await db.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS user_status jsonb NOT NULL DEFAULT '{"1": 0}'::jsonb
+  `);
 
 /*
  * =====================================
@@ -26,6 +39,29 @@ async function init() {
       "userId" INTEGER NOT NULL,
       data JSONB NOT NULL DEFAULT '{}'::jsonb,
       PRIMARY KEY ("roomCode", "userId")
+    )
+  `);
+
+/*
+ * =====================================
+ *  Room Folders Table
+ * =====================================
+ * Folders for grouping completed rooms (e.g. "Version 1" of an automated
+ * test batch). Created before rooms because rooms."folderId" references it.
+ *
+ * description is free text the researcher writes about what changed before the batch was run
+ * rooms: [roomCode, roomCode, ...] in the folder, oldest first. Redundant with
+ *   rooms."folderId" (which stays the source of truth) but handy when looking at
+ *   the table directly. The routes keep it up to date by calling syncFolderRooms()
+ *   in routes/foldersRouter.js whenever a room changes folders.
+ */
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS room_folders (
+      id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      rooms jsonb NOT NULL DEFAULT '[]'::jsonb
     )
   `);
 
@@ -47,6 +83,9 @@ async function init() {
  * completed is boolean value (0 or 1) used to know what rooms to show on admin page
  * I believe resoureAllocations is {"round_num": {"userName": "Allocation", "userName": "Allocation"}} -- Khaleel if you could update this
  * fish_amount: {round#1: <amount of fish>, round#2: <amount of fish>, ...}
+ * folderId is the room_folders id this room is filed in (null = unfiled). Deleting a folder just un-files its rooms
+ * tons_needed is how many tons each player must be allocated in a round for something good to happen to them (otherwise something bad happens).
+ *   Set when players are seated (PATCH /rooms/:roomCode/userIds), see computeTonsNeeded() in routes/roomsRouter.js. Defaults to 20, what every room used before this existed
  */
   await db.query(`
     CREATE TABLE IF NOT EXISTS rooms (
@@ -68,6 +107,9 @@ async function init() {
       "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       practice BOOLEAN NOT NULL DEFAULT FALSE,
       "practiceData" JSONB NOT NULL DEFAULT '{}'::jsonb
+      "isTest" BOOLEAN NOT NULL DEFAULT FALSE,
+      "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL,
+      tons_needed INTEGER NOT NULL DEFAULT 20
     )
   `);
 
@@ -78,6 +120,33 @@ async function init() {
   await db.query(`
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  `);
+  // Flags a room as an automated/simulated run (predetermined bot messages,
+  // no real participants) so it's obvious on the admin pages and never gets
+  // confused with a real study session.
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "isTest" BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+  // Which room_folders folder the room is filed in (see Room Folders Table above).
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL
+  `);
+  // Tons each player needs per round (see Rooms Table above).
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS tons_needed INTEGER NOT NULL DEFAULT 20
+  `);
+
+  // Rebuild every folder's list on startup in case anything drifted.
+  await db.query(`
+    UPDATE room_folders f
+    SET rooms = COALESCE(
+      (SELECT jsonb_agg(r."roomCode" ORDER BY r."createdAt")
+       FROM rooms r WHERE r."folderId" = f.id),
+      '[]'::jsonb
+    )
   `);
 
   // New columns for rooms to keep track of the practice round and default to false
