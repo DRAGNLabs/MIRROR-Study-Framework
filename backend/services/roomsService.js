@@ -20,6 +20,35 @@ export async function getRoom(roomCode) {
   return response.json();
 }
 
+export async function getRoomPractice(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practice`);
+  if (!response.ok) throw new Error(`Can't get practice setting for room ${roomCode}.`);
+
+  return response.json();
+}
+
+export async function updateRoomPractice(practice, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practice`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ practice })
+  });
+  if (!response.ok) throw new Error(`Can't update practice setting for room ${roomCode}.`);
+
+  return response.json();
+}
+
+export async function updatePracticeData(practiceData, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practiceData`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ practiceData })
+  });
+  if (!response.ok) throw new Error(`Can't update practice data for room ${roomCode}.`);
+
+  return response.json();
+}
+
 export async function updateLlmInstructions(llmInstructions, roomCode) {
     const response = await fetch(`${API_BASE}/rooms/${roomCode}/llmInstructions`, {
         method: 'PATCH',

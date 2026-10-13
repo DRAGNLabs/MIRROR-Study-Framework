@@ -29,6 +29,30 @@ export async function getRoom(roomCode) {
   return response.json();
 }
 
+// gets the practice setting for a room
+export async function getRoomPractice(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practice`);
+  if (!response.ok) {
+    throw new Error(`Can't get practice setting for room ${roomCode}.`);
+  }
+
+  return response.json();
+}
+
+// updates the practice setting for a room
+export async function updateRoomPractice(practice, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practice`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ practice })
+  });
+  if (!response.ok) {
+    throw new Error(`Can't update practice setting for room ${roomCode}.`);
+  }
+
+  return response.json();
+}
+
 // updates started when admin clicks start room
 export async function roomStarted(roomCode) {
     const response = await fetch(`${API_BASE}/rooms/${roomCode}/started`, {
