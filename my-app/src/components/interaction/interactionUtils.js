@@ -31,9 +31,13 @@ export async function loadRoomState(
         const llmResponse = room.llmResponse ?? {};
         const numRounds = room.numRounds ?? 1;
         const fish_amount = room.fish_amount ?? {};
+        const practiceData = room.practiceData ?? {};
+        const practiceInProgress = practiceData.status === "in_progress";
 
         const currentRound = room.curr_round;
-        const currentRoundMessages = userMessages[currentRound] || [];
+        const currentRoundMessages = practiceInProgress
+            ? (practiceData.messages ?? [])
+            : (userMessages[currentRound] || []);
         setSentMessages(currentRoundMessages.length);
 
 
@@ -65,6 +69,13 @@ export async function loadRoomState(
                             allocations: allocationByUserName
                         };
                     });
+                if (practiceData.allocations && Object.keys(practiceData.allocations).length > 0) {
+                    history.unshift({
+                        round: 0,
+                        isPractice: true,
+                        allocations: practiceData.allocations
+                    });
+                }
                 setResourceHistory(history);
             } catch (err) {
                 console.error("Error parsing resourceAllocations:", err);
@@ -77,10 +88,42 @@ export async function loadRoomState(
         if (isStreamingRef.current) {
             return;
         }
-        setMessages(messages);
+        const practiceMessages = [];
+        if (practiceData.instructions && !practiceData.officialStarted) {
+            practiceMessages.push({
+                sender: "llm",
+                id: "practice-instructions",
+                text: practiceData.instructions
+            });
+            for (const [messageUserId, text] of practiceData.messages ?? []) {
+                const messageUser = await getUserName(messageUserId);
+                practiceMessages.push({
+                    sender: "user",
+                    id: `${messageUserId}-0`,
+                    userName: messageUser.userName,
+                    text
+                });
+            }
+            if (practiceData.response) {
+                practiceMessages.push({
+                    sender: "llm",
+                    id: "practice-response",
+                    text: practiceData.response
+                });
+            }
+        }
+
+        setMessages([...practiceMessages, ...messages]);
         if(!isAdmin) {
-            setCanSend(canSend);
-            setHasSentThisRound(hasSentThisRound);
+            if (practiceInProgress) {
+                const sentPracticeMessage = (practiceData.messages ?? [])
+                    .some(([messageUserId]) => messageUserId === user.userId);
+                setCanSend(!!practiceData.instructions && !sentPracticeMessage);
+                setHasSentThisRound(sentPracticeMessage);
+            } else {
+                setCanSend(canSend);
+                setHasSentThisRound(hasSentThisRound);
+            }
         }
     } catch (err) {
         console.error("Failed to load room state:", err);

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../../socket.js';
 import { formatTime } from "./interactionUtils.js";
-import { updateStatus } from '../../services/roomsService.js'
+import { getRoom, updateStatus } from '../../services/roomsService.js'
 import ChatBox from "./ChatMessages.jsx";
 import ResourcesPanel from "./ResourcePanel.jsx";
 import './interaction.css'
@@ -24,6 +24,11 @@ export default function AdminInteraction(){
     const [resourceHistory, setResourceHistory] = useState([]);
     const [timeRemaining, setTimeRemaining] = useState(null);
     const [showResources, setShowResources] = useState(false);
+    const [practiceEnabled, setPracticeEnabled] = useState(false);
+    const [practiceComplete, setPracticeComplete] = useState(false);
+    const [officialStarted, setOfficialStarted] = useState(false);
+    const [officialComplete, setOfficialComplete] = useState(false);
+    const [startingOfficialGame, setStartingOfficialGame] = useState(false);
 
     // const [error, setError] = useState("");
     const chatBoxRef = useRef(null);
@@ -47,6 +52,57 @@ export default function AdminInteraction(){
     )
 
     useEffect(() => {
+        socket.emit("practice-round", { roomCode });
+    }, [roomCode]);
+
+    useEffect(() => {
+        let mounted = true;
+        const loadGamePhase = async () => {
+            try {
+                const room = await getRoom(roomCode);
+                if (!mounted) return;
+                const practiceData = room.practiceData ?? {};
+                setPracticeEnabled(!!room.practice);
+                setPracticeComplete(practiceData.status === "complete");
+                setOfficialStarted(!!practiceData.officialStarted);
+                setOfficialComplete(!!practiceData.officialComplete);
+                setStartingOfficialGame(false);
+            } catch (error) {
+                console.error("Failed to load game phase:", error);
+            }
+        };
+
+        const handleOfficialStarted = () => {
+            setStartingOfficialGame(false);
+            setOfficialStarted(true);
+        };
+        const handlePracticeComplete = () => {
+            setPracticeComplete(true);
+            loadGamePhase();
+        };
+        const handleGameComplete = () => {
+            setOfficialComplete(true);
+            loadGamePhase();
+        };
+        const handleStartError = () => setStartingOfficialGame(false);
+
+        loadGamePhase();
+        socket.on("official-game-started", handleOfficialStarted);
+        socket.on("practice-round-complete", handlePracticeComplete);
+        socket.on("game-complete", handleGameComplete);
+        socket.on("official-game-start-error", handleStartError);
+        socket.on("connect", loadGamePhase);
+        return () => {
+            mounted = false;
+            socket.off("official-game-started", handleOfficialStarted);
+            socket.off("practice-round-complete", handlePracticeComplete);
+            socket.off("game-complete", handleGameComplete);
+            socket.off("official-game-start-error", handleStartError);
+            socket.off("connect", loadGamePhase);
+        };
+    }, [roomCode]);
+
+    useEffect(() => {
         if (!streamingText) return;
 
         setMessages((prev) =>
@@ -62,7 +118,15 @@ export default function AdminInteraction(){
         }
     }, [messages]);
 
-    async function toSurvey() {
+    async function nextFromInteraction() {
+        if (practiceEnabled && !officialStarted) {
+            if (!practiceComplete || startingOfficialGame) return;
+            setStartingOfficialGame(true);
+            socket.emit("start-official-game", { roomCode });
+            return;
+        }
+        if (practiceEnabled && !officialComplete) return;
+
         socket.emit("navigate-users", { roomCode, status: "survey" });
         await updateStatus(roomCode, "survey");
         navigate("/admin/survey", { state: { roomCode } });
@@ -95,7 +159,9 @@ export default function AdminInteraction(){
                 >
                     Resources
                 </button>
-                <h1 className="admin-interaction-header-title">Admin</h1>
+                <h1 className="admin-interaction-header-title">
+                    {practiceEnabled ? (officialStarted ? "Game Room" : "Practice Room") : "Admin"}
+                </h1>
                 <span className="admin-interaction-room-badge">Room {roomCode}</span>
                 <div className="admin-header-mobile-nav">
                     <button onClick={handleHomeClick} className="admin-mobile-home-btn">Home</button>
@@ -128,9 +194,14 @@ export default function AdminInteraction(){
                 <button
                     type="button"
                     className="admin-interaction-next-btn"
-                    onClick={toSurvey}
+                    onClick={nextFromInteraction}
+                    disabled={practiceEnabled && (!practiceComplete || startingOfficialGame || (officialStarted && !officialComplete))}
                 >
-                    Next → Survey
+                    {practiceEnabled && !officialStarted
+                        ? (practiceComplete ? "Next → Game" : "Practice in progress")
+                        : practiceEnabled && !officialComplete
+                            ? "Game in progress"
+                            : "Next → Survey"}
                 </button>
             </footer>
         </div>
