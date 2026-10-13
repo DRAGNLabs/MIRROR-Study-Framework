@@ -15,7 +15,7 @@ export default function ResourcesPanel({
     
     const renderTotalAllocations = () => {
         const totals = {};
-        resourceHistory.forEach(({ allocations }) => {
+        resourceHistory.filter((entry) => !entry.isPractice).forEach(({ allocations }) => {
             Object.entries(allocations).forEach(([identifier, details]) => {
                 totals[identifier] = (totals[identifier] ?? 0) + (details?.fish ?? 0);
             });
@@ -52,7 +52,9 @@ export default function ResourcesPanel({
             <ul className="resources-history-list">
                 {resourceHistory.map((entry) => (
                     <li key={entry.round} className="resources-history-item">
-                        <span className="resources-history-round">Round {entry.round}</span>
+                        <span className="resources-history-round">
+                            {entry.isPractice ? "Practice" : `Round ${entry.round}`}
+                        </span>
                         <span className="resources-history-summary">
                             {Object.entries(entry.allocations)
                                 .map(([identifier, details]) => {
@@ -64,7 +66,11 @@ export default function ResourcesPanel({
                     </li>
                 ))}
             </ul>
-            <FishPerRoundChart resourceHistory={resourceHistory} playerKey="userName" dark={false} />
+            <FishPerRoundChart
+                resourceHistory={resourceHistory.filter((entry) => !entry.isPractice)}
+                playerKey="userName"
+                dark={false}
+            />
         </div>
     );
 
