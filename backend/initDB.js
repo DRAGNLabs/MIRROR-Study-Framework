@@ -106,7 +106,7 @@ async function init() {
       curr_round INTEGER NOT NULL DEFAULT 1,
       "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       practice BOOLEAN NOT NULL DEFAULT FALSE,
-      "practiceData" JSONB NOT NULL DEFAULT '{}'::jsonb
+      "practiceData" JSONB NOT NULL DEFAULT '{}'::jsonb,
       "isTest" BOOLEAN NOT NULL DEFAULT FALSE,
       "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL,
       tons_needed INTEGER NOT NULL DEFAULT 20

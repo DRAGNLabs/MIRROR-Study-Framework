@@ -1,6 +1,6 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM, callLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData } from "../services/roomsService.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData } from "../services/roomsService.js";
 import { getUser, updateUserStatus } from "../services/usersService.js"
 import { jsonrepair } from "jsonrepair";
 
