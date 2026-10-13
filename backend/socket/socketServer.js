@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import { handleCloseRoom, handleDisconnect, handleJoinRoom } from './socketHandlers.js';
-import { surveyComplete, getLlmInstructions, submitUserMessages, deleteTimer } from './gameHandler.js';
+import { surveyComplete, getLlmInstructions, practiceRoundInstructions, startOfficialGame, submitUserMessages, deleteTimer } from './gameHandler.js';
 
 export function initializeSocketServer(httpServer, corsOrigin) {
     const io = new Server(httpServer, {
@@ -48,6 +48,12 @@ io.on("connection", (socket) => {
     // when admin clicks start on roomManagment page it triggers the round to start and generate the instructions from the LLM
     socket.on("start-round", async ({ roomCode, round }) => {
         await getLlmInstructions(io, roomCode, round);
+    });
+    socket.on("practice-round", async ({ roomCode }) => {
+        await practiceRoundInstructions(io, roomCode);
+    });
+    socket.on("start-official-game", async ({ roomCode }) => {
+        await startOfficialGame(io, roomCode);
     });
 
     socket.on('startTimer', () => {

@@ -54,8 +54,10 @@ export function useInteractionSocket(
     // instructions-complete) is otherwise lost until a manual refresh.
     useEffect(() => {
         socket.on("connect", refreshRoomState);
+        socket.on("official-game-started", refreshRoomState);
         return () => {
             socket.off("connect", refreshRoomState);
+            socket.off("official-game-started", refreshRoomState);
         };
     }, [refreshRoomState]);
 
@@ -117,6 +119,17 @@ export function useInteractionSocket(
         });
 
         if (!isAdmin) {
+            socket.on("practice-round-complete", () => {
+                setCanSend(false);
+                setHasSentThisRound(true);
+                loadCurrUserMessages.current = false;
+                setTimeRemaining(null);
+                if (timerIntervalRef.current) {
+                    clearInterval(timerIntervalRef.current);
+                }
+                refreshRoomState();
+            });
+
             socket.on("game-complete", ()=> {
                 setCanSend(false);
                 setHasSentThisRound(true);
@@ -164,6 +177,7 @@ export function useInteractionSocket(
             socket.off("ai-end");
             socket.off("round-complete");
             if (!isAdmin) {
+                socket.off("practice-round-complete");
                 socket.off("game-complete"); // in users
                 socket.off("instructions-complete");
             }
