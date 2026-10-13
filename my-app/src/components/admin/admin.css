@@ -1129,3 +1129,13 @@
 .message--bot .message-survey-annotation-note {
   color: #334155;
 }
+
+.practice-round {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.practice-round h3 {
+  margin: 0;
+}

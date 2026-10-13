@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel, updateRoomPractice } from "../../services/roomsService";
 import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
@@ -45,6 +45,7 @@ export function Admin() {
     // const [selectedModel, setSelectedModel] = useState("gpt-4o");
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
+    const [practice, setPractice] = useState(false);
     // Stores the list of completed rooms from the db
     const [completedRoomList, setCompletedRoomList] = useState([]);
     // const [ error, setError] = useState("");
@@ -176,6 +177,7 @@ export function Admin() {
         try {
             if (!isValidRoundCount(rounds)) return;
             const response = await sendRoom(newRoomCode, selectedGame, Number(rounds), count, selectedModel); 
+            const practice_response = await updateRoomPractice(practice, newRoomCode);
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
@@ -255,6 +257,16 @@ export function Admin() {
             }
         }
 
+    }
+
+    async function practiceRound() {
+      console.log("practice round hit")
+      if (practice == true){
+        setPractice(false);
+
+      } else {
+        setPractice(true)
+      }
     }
 
 
@@ -421,7 +433,7 @@ return (
                 <option value="anthropic/claude-opus-5">Claude Opus 5</option>
                 <option value="google/gemini-3.8-flash">Gemini 3.8 Flash</option>
                 <option value="google/gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                {/* <option value="qwen/qwen3.5-397b-a17b">Qwen 3.5 397b</option> */}
+                {/* <option value="qwen/qwen3.5-397b-a17b">Qwen                                                                                                                                                                      3.5 397b</option> */}
                 <option value="moonshotai/kimi-k3">Kimi K3</option>
                 {/* <option value="openai/gpt-4.1-mini">gpt-4.1-mini (for testing)</option> */}
                 
@@ -432,6 +444,12 @@ return (
                 ))} */}
               </select>
             </div>
+          </div>
+          <div className="label-inline">
+          <h3 className="room-info-section">Add Practice Round</h3>
+          <label>
+            <input type="checkbox" name="agree" onClick={()=> practiceRound()}/>
+          </label>
           </div>
 
           <button
