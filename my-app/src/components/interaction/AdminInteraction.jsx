@@ -27,7 +27,6 @@ export default function AdminInteraction(){
     const [practiceEnabled, setPracticeEnabled] = useState(false);
     const [practiceComplete, setPracticeComplete] = useState(false);
     const [officialStarted, setOfficialStarted] = useState(false);
-    const [officialComplete, setOfficialComplete] = useState(false);
     const [startingOfficialGame, setStartingOfficialGame] = useState(false);
 
     // const [error, setError] = useState("");
@@ -65,7 +64,6 @@ export default function AdminInteraction(){
                 setPracticeEnabled(!!room.practice);
                 setPracticeComplete(practiceData.status === "complete");
                 setOfficialStarted(!!practiceData.officialStarted);
-                setOfficialComplete(!!practiceData.officialComplete);
                 setStartingOfficialGame(false);
             } catch (error) {
                 console.error("Failed to load game phase:", error);
@@ -80,23 +78,17 @@ export default function AdminInteraction(){
             setPracticeComplete(true);
             loadGamePhase();
         };
-        const handleGameComplete = () => {
-            setOfficialComplete(true);
-            loadGamePhase();
-        };
         const handleStartError = () => setStartingOfficialGame(false);
 
         loadGamePhase();
         socket.on("official-game-started", handleOfficialStarted);
         socket.on("practice-round-complete", handlePracticeComplete);
-        socket.on("game-complete", handleGameComplete);
         socket.on("official-game-start-error", handleStartError);
         socket.on("connect", loadGamePhase);
         return () => {
             mounted = false;
             socket.off("official-game-started", handleOfficialStarted);
             socket.off("practice-round-complete", handlePracticeComplete);
-            socket.off("game-complete", handleGameComplete);
             socket.off("official-game-start-error", handleStartError);
             socket.off("connect", loadGamePhase);
         };
@@ -125,7 +117,6 @@ export default function AdminInteraction(){
             socket.emit("start-official-game", { roomCode });
             return;
         }
-        if (practiceEnabled && !officialComplete) return;
 
         socket.emit("navigate-users", { roomCode, status: "survey" });
         await updateStatus(roomCode, "survey");
@@ -195,13 +186,11 @@ export default function AdminInteraction(){
                     type="button"
                     className="admin-interaction-next-btn"
                     onClick={nextFromInteraction}
-                    disabled={practiceEnabled && (!practiceComplete || startingOfficialGame || (officialStarted && !officialComplete))}
+                    disabled={practiceEnabled && !officialStarted && (!practiceComplete || startingOfficialGame)}
                 >
                     {practiceEnabled && !officialStarted
                         ? (practiceComplete ? "Next → Game" : "Practice in progress")
-                        : practiceEnabled && !officialComplete
-                            ? "Game in progress"
-                            : "Next → Survey"}
+                        : "Next → Survey"}
                 </button>
             </footer>
         </div>

@@ -121,17 +121,35 @@ export function useInteractionSocket(
             
         });
 
-        if (!isAdmin) {
-            socket.on("practice-round-complete", () => {
+        // both: pulls in the practice response, allocations, and status
+        const handlePracticeRoundComplete = () => {
+            if (!isAdmin) {
                 setCanSend(false);
                 setHasSentThisRound(true);
-                loadCurrUserMessages.current = false;
-                setTimeRemaining(null);
-                if (timerIntervalRef.current) {
-                    clearInterval(timerIntervalRef.current);
-                }
+            }
+            loadCurrUserMessages.current = false;
+            setTimeRemaining(null);
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+            refreshRoomState();
+        };
+        socket.on("practice-round-complete", handlePracticeRoundComplete);
+
+        // both: the practice instructions can be broadcast while this page is still
+        // mounting, so re-sync from the DB in case the receive-message was missed
+        const handleInstructionsComplete = (round) => {
+            if (!isAdmin) {
+                setCanSend(true);
+                setHasSentThisRound(false);
+            }
+            if (round === "practice") {
                 refreshRoomState();
-            });
+            }
+        };
+        socket.on("instructions-complete", handleInstructionsComplete);
+
+        if (!isAdmin) {
 
             socket.on("game-complete", ()=> {
                 setCanSend(false);
@@ -141,12 +159,6 @@ export function useInteractionSocket(
                 // Final refresh so last-round allocations are visible.
                 refreshRoomState();
             });
-
-            socket.on("instructions-complete", (round) => {
-                setCanSend(true);
-                setHasSentThisRound(false);
-                // refreshRoomState();
-            })
         }
 
         socket.on("timer-start", ({ duration, endTime }) => {
@@ -185,10 +197,11 @@ export function useInteractionSocket(
             socket.off("ai-start");
             socket.off("ai-end");
             socket.off("round-complete");
+            // with the handler, so AdminInteraction's own practice-round-complete listener stays
+            socket.off("practice-round-complete", handlePracticeRoundComplete);
+            socket.off("instructions-complete", handleInstructionsComplete);
             if (!isAdmin) {
-                socket.off("practice-round-complete");
                 socket.off("game-complete"); // in users
-                socket.off("instructions-complete");
             }
             socket.off("timer-start");
             socket.off("timer-expired");

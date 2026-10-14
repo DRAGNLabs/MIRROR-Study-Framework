@@ -49,6 +49,19 @@ export async function updatePracticeData(practiceData, roomCode) {
   return response.json();
 }
 
+// returns { appended, practiceData } — appended is false if the practice round isn't
+// in progress or this user already sent their practice message
+export async function appendPracticeMessage(roomCode, userId, text) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practiceData/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, text })
+  });
+  if (!response.ok) throw new Error(`Can't add practice message for room ${roomCode}.`);
+
+  return response.json();
+}
+
 export async function updateLlmInstructions(llmInstructions, roomCode) {
     const response = await fetch(`${API_BASE}/rooms/${roomCode}/llmInstructions`, {
         method: 'PATCH',
