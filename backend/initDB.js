@@ -105,6 +105,8 @@ async function init() {
       fish_amount jsonb NOT NULL DEFAULT '{"1": 100}'::jsonb,
       curr_round INTEGER NOT NULL DEFAULT 1,
       "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      practice BOOLEAN NOT NULL DEFAULT FALSE,
+      "practiceData" JSONB NOT NULL DEFAULT '{}'::jsonb,
       "isTest" BOOLEAN NOT NULL DEFAULT FALSE,
       "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL,
       tons_needed INTEGER NOT NULL DEFAULT 20
@@ -145,6 +147,23 @@ async function init() {
        FROM rooms r WHERE r."folderId" = f.id),
       '[]'::jsonb
     )
+  `);
+
+  // New columns for rooms to keep track of the practice round and default to false
+  // and add pacticeData to keep track of data from the practice round
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS practice BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+
+  await db.query(`
+    ALTER TABLE rooms
+    ALTER COLUMN practice SET DEFAULT FALSE
+  `);
+
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "practiceData" JSONB NOT NULL DEFAULT '{}'::jsonb
   `);
 
   console.log("✅ Tables checked/created");

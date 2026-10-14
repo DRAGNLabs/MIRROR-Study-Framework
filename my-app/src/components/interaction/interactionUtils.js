@@ -20,6 +20,10 @@ export async function loadRoomState(
 ) {
     try {
         const room = await getRoom(roomCode);
+        const practiceData = room.practiceData ?? {};
+        // Practice results (allocations, status) only show until the real game
+        // starts — none of it carries over into the real game.
+        const inPracticePhase = !!room.practice && !practiceData.officialStarted;
         if (!isAdmin && user) {
             const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
@@ -28,7 +32,12 @@ export async function loadRoomState(
 
             if (setStatusHistory && gameData?.role_prompt) {
                 const fullUser = await getUser(user.userId);
-                setStatusHistory(buildStatusHistory(fullUser, gameData, room.curr_round));
+                const history = buildStatusHistory(fullUser, gameData, room.curr_round);
+                const practiceStatus = practiceData.statusByUserId?.[user.userId];
+                if (inPracticePhase && practiceStatus?.message) {
+                    history.unshift({ round: 0, isPractice: true, ...practiceStatus });
+                }
+                setStatusHistory(history);
             }
         }
 
@@ -37,9 +46,12 @@ export async function loadRoomState(
         const llmResponse = room.llmResponse ?? {};
         const numRounds = room.numRounds ?? 1;
         const fish_amount = room.fish_amount ?? {};
+        const practiceInProgress = practiceData.status === "in_progress";
 
         const currentRound = room.curr_round;
-        const currentRoundMessages = userMessages[currentRound] || [];
+        const currentRoundMessages = practiceInProgress
+            ? (practiceData.messages ?? [])
+            : (userMessages[currentRound] || []);
         setSentMessages(currentRoundMessages.length);
 
 
@@ -71,6 +83,13 @@ export async function loadRoomState(
                             allocations: allocationByUserName
                         };
                     });
+                if (inPracticePhase && practiceData.allocations && Object.keys(practiceData.allocations).length > 0) {
+                    history.unshift({
+                        round: 0,
+                        isPractice: true,
+                        allocations: practiceData.allocations
+                    });
+                }
                 setResourceHistory(history);
             } catch (err) {
                 console.error("Error parsing resourceAllocations:", err);
@@ -83,10 +102,51 @@ export async function loadRoomState(
         if (isStreamingRef.current) {
             return;
         }
-        setMessages(messages);
+        const practiceMessages = [];
+        if (practiceData.instructions && !practiceData.officialStarted) {
+            practiceMessages.push({
+                sender: "llm",
+                id: "practice-instructions",
+                text: practiceData.instructions
+            });
+            for (const [messageUserId, text] of practiceData.messages ?? []) {
+                const messageUser = await getUserName(messageUserId);
+                practiceMessages.push({
+                    sender: "user",
+                    id: `${messageUserId}-0`,
+                    userName: messageUser.userName,
+                    text
+                });
+            }
+            if (practiceData.response) {
+                practiceMessages.push({
+                    sender: "llm",
+                    id: "practice-response",
+                    text: practiceData.response
+                });
+            }
+            // matches PRACTICE_FINISHED_MESSAGE in backend/socket/gameHandler.js
+            if (practiceData.status === "complete") {
+                practiceMessages.push({
+                    sender: "user",
+                    userName: "Admin",
+                    id: "practice-finished",
+                    text: "Practice round finished. The real game will start shortly."
+                });
+            }
+        }
+
+        setMessages([...practiceMessages, ...messages]);
         if(!isAdmin) {
-            setCanSend(canSend);
-            setHasSentThisRound(hasSentThisRound);
+            if (practiceInProgress) {
+                const sentPracticeMessage = (practiceData.messages ?? [])
+                    .some(([messageUserId]) => messageUserId === user.userId);
+                setCanSend(!!practiceData.instructions && !sentPracticeMessage);
+                setHasSentThisRound(sentPracticeMessage);
+            } else {
+                setCanSend(canSend);
+                setHasSentThisRound(hasSentThisRound);
+            }
         }
     } catch (err) {
         console.error("Failed to load room state:", err);

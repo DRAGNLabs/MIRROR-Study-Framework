@@ -1,6 +1,6 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM, callLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound } from "../services/roomsService.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData, appendPracticeMessage } from "../services/roomsService.js";
 import { getUser, updateUserStatus } from "../services/usersService.js"
 import { jsonrepair } from "jsonrepair";
 
@@ -9,6 +9,16 @@ const roundTimers = {}; // maybe make this rely on database?
 
 const roundsFinalizing = new Set(); // roomCode currently running getLlmResponse
 const instructionsInFlight = new Set(); // `${roomCode}:${round}` currently running getLlmInstructions
+const practiceRoundStarting = new Set();
+const practiceRoundsFinalizing = new Set();
+const officialGameStarting = new Set();
+
+const PRACTICE_FINISHED_MESSAGE = {
+    sender: "user",
+    userName: "Admin",
+    text: "Practice round finished. The real game will start shortly.",
+    id: "practice-finished"
+};
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -21,6 +31,26 @@ function stripFences(text) {
 
 function fillPrompt(template, values) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => values[key]);
+}
+
+// A user's status goes up one if they got at least tons_needed, otherwise down one.
+// Moving further from 0 (either direction) is an "enter" into the new status;
+// moving back toward 0 is an "exit" from the status being left, so its message is
+// keyed by the old status. message is null if the game has no text for that status.
+function getStatusChange(game, user, name, allocation, tonsNeeded, prev_status) {
+    const good = allocation >= tonsNeeded;
+    const status = good ? prev_status + 1 : prev_status - 1;
+    const isExit =
+        (prev_status < status && prev_status < 0) ||
+        (prev_status > status && prev_status > 0);
+    const kind = isExit ? "exit" : "enter";
+    const promptSet = game.role_prompt?.[user?.role]?.[isExit ? prev_status : status];
+    return {
+        status,
+        kind,
+        good,
+        message: promptSet ? fillPrompt(promptSet[kind], { user_name: name }) : null
+    };
 }
 
 // Add this near the top of gameHandler.js
@@ -37,7 +67,7 @@ async function getRoomSafely(roomCode) {
 }
 
 // used in start-round socket and getLlmResponse function
-async function getLlmText(io, roomCode, getInstructions, getAllocation) { 
+async function getLlmText(io, roomCode, getInstructions, getAllocation, { practice = false } = {}) {
     const room = await getRoomSafely(roomCode);
     if(!room) {
         deleteTimer(roomCode);
@@ -48,23 +78,33 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
     //     deleteTimer(roomCode);
     //     return null;
     // }
-    const round = room.curr_round;
+    const round = practice ? 0 : room.curr_round;
     const game = games.find(g=> parseInt(g.id) === room.gameType);
     const systemPrompt = game.prompts[0].system_prompt;
     // might want to change the line below to be conditional if there is an instruction prompt (as some games we won't prompt LLM for instructions)
     const instructionsPrompt = game.prompts[0].instruction_prompt;
     const responsePrompt = game.prompts[0].response_prompt;
-    const llmInstructions = room.llmInstructions ?? {};
-    const llmResponses = room.llmResponse ?? {};
-    const userMessages = room.userMessages ?? {};
-    const fish_amount = room.fish_amount ?? {};
+    const practiceData = room.practiceData ?? {};
+    const llmInstructions = practice
+        ? { 0: practiceData.instructions ?? "" }
+        : (room.llmInstructions ?? {});
+    const llmResponses = practice
+        ? { 0: practiceData.response ?? "" }
+        : (room.llmResponse ?? {});
+    const userMessages = practice
+        ? { 0: practiceData.messages ?? [] }
+        : (room.userMessages ?? {});
+    // the practice round plays with round 1's starting fish but never writes to fish_amount
+    const fish_amount = practice
+        ? { 0: room.fish_amount?.[1] ?? 100 }
+        : (room.fish_amount ?? {});
     const allUserIds = room.userIds || [];
 
     const messages = [
         { "role": "system", "content": systemPrompt },
     ]
 
-    for (let i = 1; i <= round; i++) {
+    for (let i = practice ? 0 : 1; i <= round; i++) {
         if (!game.instructions?.template) { // basically only puts instructions prompt in if we don't have a template in the file
             messages.push({ "role": "user", "content": instructionsPrompt})
             // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
@@ -125,7 +165,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         ).join("\n");
 
         // do we want to put in this user instructions everytime?
-        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: i, town_report: town_report })} \n ${formattedUserMessages}` });
+        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: practice ? "0 (practice round)" : i, town_report: town_report })} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
@@ -210,6 +250,32 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         const allocated = Object.values(allocationByUserName)
             .reduce((sum, a) => sum + (Number(a?.fish) || 0), 0);
         const fish_left = fish_amount[round] - allocated;
+
+        // The practice round only ever writes to practiceData — never to fish_amount,
+        // resourceAllocations, or users.user_status — so nothing from it carries
+        // over into the real game. Everyone starts the practice round at status 0.
+        if (practice) {
+            const statusByUserId = {};
+            if (game.role_prompt) {
+                for (const userId of allUserIds) {
+                    const user = await getUser(userId);
+                    const name = user?.userName || `User ${userId}`;
+                    const change = getStatusChange(game, user, name, allocationByUserName[name]?.fish ?? 0, room.tons_needed, 0);
+                    statusByUserId[userId] = change;
+                    if (change.message) {
+                        io.to(`user-${userId}`).emit("status-update", { round: 0, isPractice: true, ...change });
+                    }
+                }
+            }
+            await updatePracticeData({
+                allocations: allocationByUserName,
+                fishLeft: fish_left,
+                statusByUserId
+            }, roomCode);
+            console.log(`[Practice] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated})`);
+            return buffer;
+        }
+
         if (fish_left < 5) {
             fish_amount[round + 1] = fish_left;
         } else if (fish_left > 50) {
@@ -223,32 +289,16 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
             for (const userId of allUserIds) {
                 const user = await getUser(userId);
                 const name = user?.userName || `User ${userId}`;
-                const user_allocation = allocationByUserName[name]?.fish ?? 0;
                 const prev_status = user.user_status?.[round] ?? 0;
-                let curr_user_status = prev_status;
                 // tons_needed depends on how many players are in the room (set when they were seated)
-                const gotEnoughFish = user_allocation >= room.tons_needed;
-                curr_user_status = gotEnoughFish ? curr_user_status + 1 : curr_user_status - 1;
+                const change = getStatusChange(game, user, name, allocationByUserName[name]?.fish ?? 0, room.tons_needed, prev_status);
 
                 const user_status = user.user_status ?? {};
-                user_status[round + 1] = curr_user_status;
+                user_status[round + 1] = change.status;
                 await updateUserStatus(userId, user_status);
 
-                const rolePrompts = game.role_prompt[user.role];
-                const isExit =
-                    (prev_status < curr_user_status && prev_status < 0) ||
-                    (prev_status > curr_user_status && prev_status > 0);
-                const statusKey = isExit ? prev_status : curr_user_status;
-                const promptSet = rolePrompts?.[statusKey];
-                if (promptSet) {
-                    const kind = isExit ? "exit" : "enter";
-                    io.to(`user-${userId}`).emit("status-update", {
-                        round: round + 1,
-                        status: curr_user_status,
-                        kind,
-                        good: gotEnoughFish,
-                        message: fillPrompt(promptSet[kind], { user_name: name })
-                    });
+                if (change.message) {
+                    io.to(`user-${userId}`).emit("status-update", { round: round + 1, ...change });
                 }
             }
         }
@@ -265,8 +315,10 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation) {
         console.log(`[Round ${round}] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated}), extractor fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
     } catch (err) {
         console.error(`[Round ${round}] Extraction failed, continuing with natural response:`, err);
-        fish_amount[round + 1] = fish_amount[round];
-        await updateFishAmount(fish_amount, roomCode);
+        if (!practice) {
+            fish_amount[round + 1] = fish_amount[round];
+            await updateFishAmount(fish_amount, roomCode);
+        }
     }
 
     return buffer;
@@ -318,12 +370,18 @@ async function getLlmResponse(io, roomCode) {
 
             const totalRounds = room.numRounds;
             if (round >= totalRounds) {
+                if (room.practice) {
+                    await updatePracticeData({ officialStarted: true, officialComplete: true }, roomCode);
+                }
                 io.to(roomCode).emit("game-complete");
                 const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "game-ended" };
                 io.to(roomCode).emit("receive-message", endGameMsg);
                 io.to(roomCode).emit("timer-expired");
                 return;
             } else if (fish_amount[round+1] < 5) {
+                if (room.practice) {
+                    await updatePracticeData({ officialStarted: true, officialComplete: true }, roomCode);
+                }
                 // abort game if fish is below 5 tons
                 const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
                 await delay(500);
@@ -357,6 +415,160 @@ export async function getLlmInstructions(io, roomCode, round) {
         return await getLlmInstructionsInner(io, roomCode, round);
     } finally {
         instructionsInFlight.delete(key);
+    }
+}
+
+export async function practiceRoundInstructions(io, roomCode) {
+    if (practiceRoundStarting.has(roomCode)) return null;
+    practiceRoundStarting.add(roomCode);
+
+    try {
+        const room = await getRoomSafely(roomCode);
+        if (!room || !room.practice || room.status === "survey") return null;
+
+        const game = games.find(g => parseInt(g.id) === room.gameType);
+        if (!game) throw new Error(`No game configuration found for room ${roomCode}`);
+
+        const existingPracticeData = room.practiceData ?? {};
+        if (existingPracticeData.status === "complete") {
+            return null;
+        }
+        if (existingPracticeData.status === "in_progress") {
+            if (!roundTimers[roomCode]) {
+                const messages = existingPracticeData.messages ?? [];
+                if (messages.length > 0 && messages.length === (room.userIds ?? []).length) {
+                    await finalizePracticeRound(io, roomCode);
+                } else {
+                    startRoundTimer(
+                        io,
+                        roomCode,
+                        0,
+                        game.conversationTime,
+                        () => finalizePracticeRound(io, roomCode)
+                    );
+                }
+            }
+            return null;
+        }
+
+        let instructions = "";
+        if (game.instructions?.template) {
+            const fishAvailable = room.fish_amount?.[1] ?? 100;
+            instructions = fillPrompt(game.instructions.template, {
+                curr_round: "practice",
+                fish_available: fishAvailable
+            });
+        } else {
+            instructions = await getLlmText(io, roomCode, true, false, { practice: true });
+        }
+
+        const practiceData = {
+            status: "in_progress",
+            instructions,
+            messages: [],
+            response: "",
+            allocations: {},
+            fishLeft: null,
+            statusByUserId: {}
+        };
+        await updatePracticeData(practiceData, roomCode);
+
+        if (game.instructions?.template) {
+            // Same as getLlmInstructionsInner: users are navigating to the interaction
+            // page right now, so give their listeners a moment to attach before
+            // broadcasting (they also refresh on instructions-complete as a fallback).
+            await delay(500);
+            io.to(roomCode).emit("receive-message", {
+                sender: "llm",
+                text: instructions,
+                id: "practice-instructions"
+            });
+        }
+        io.to(roomCode).emit("instructions-complete", "practice");
+        startRoundTimer(
+            io,
+            roomCode,
+            0,
+            game.conversationTime,
+            () => finalizePracticeRound(io, roomCode)
+        );
+    } catch (err) {
+        console.error(`[Practice] Could not start practice round in room ${roomCode}:`, err);
+        io.to(roomCode).emit("practice-round-error", { message: "Could not start the practice round." });
+    } finally {
+        practiceRoundStarting.delete(roomCode);
+    }
+}
+
+async function finalizePracticeRound(io, roomCode) {
+    if (practiceRoundsFinalizing.has(roomCode)) return null;
+    practiceRoundsFinalizing.add(roomCode);
+
+    try {
+        if (roundTimers[roomCode]) {
+            clearTimeout(roundTimers[roomCode].timeout);
+            delete roundTimers[roomCode];
+        }
+
+        const room = await getRoomSafely(roomCode);
+        if (!room || room.status === "survey" || room.practiceData?.status !== "in_progress") {
+            return null;
+        }
+
+        io.to(roomCode).emit("user-messages-complete");
+        let response;
+        try {
+            response = await getLlmText(io, roomCode, false, true, { practice: true });
+        } catch (err) {
+            console.error(`[Practice] LLM response failed for room ${roomCode}:`, err);
+            io.to(roomCode).emit("ai-end");
+            response = "An error occurred generating the practice response.";
+        }
+
+        const latestRoom = await getRoomSafely(roomCode);
+        if (!latestRoom || latestRoom.status === "survey") return null;
+
+        await updatePracticeData({ status: "complete", response }, roomCode);
+
+        io.to(roomCode).emit("timer-expired");
+        // also rebuilt from practiceData on refresh (see loadRoomState), so it survives reloads
+        io.to(roomCode).emit("receive-message", PRACTICE_FINISHED_MESSAGE);
+        io.to(roomCode).emit("practice-round-complete");
+
+        // The admin explicitly starts official play with the next button.
+    } catch (err) {
+        console.error(`[Practice] Could not finish practice round in room ${roomCode}:`, err);
+        io.to(roomCode).emit("practice-round-error", { message: "Could not finish the practice round." });
+    } finally {
+        practiceRoundsFinalizing.delete(roomCode);
+    }
+}
+
+export async function startOfficialGame(io, roomCode) {
+    if (officialGameStarting.has(roomCode)) return null;
+    officialGameStarting.add(roomCode);
+
+    try {
+        const room = await getRoomSafely(roomCode);
+        if (!room || room.status === "survey") return null;
+
+        const practiceData = room.practiceData ?? {};
+        if (!room.practice || practiceData.status !== "complete" || practiceData.officialStarted) {
+            return null;
+        }
+
+        await updatePracticeData({ officialStarted: true, officialComplete: false }, roomCode);
+        io.to(roomCode).emit("official-game-started");
+        await getLlmInstructions(io, roomCode, 1);
+    } catch (err) {
+        console.error(`[Game] Could not start official game in room ${roomCode}:`, err);
+        const room = await getRoomSafely(roomCode);
+        if (room?.practice) {
+            await updatePracticeData({ officialStarted: false, officialComplete: false }, roomCode);
+        }
+        io.to(roomCode).emit("official-game-start-error", { message: "Could not start the game." });
+    } finally {
+        officialGameStarting.delete(roomCode);
     }
 }
 
@@ -414,6 +626,29 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
         deleteTimer(roomCode);
         return null;
     }
+
+    // Once a practice round has started, nothing sent before the official game
+    // starts may land in the official round 1 userMessages. (Rooms that never
+    // start a practice round, like automated tests, have no practice status and
+    // go straight to the official path.)
+    const practiceData = room.practiceData ?? {};
+    if (room.practice && practiceData.status && !practiceData.officialStarted) {
+        // a message arriving after the practice timer ran out wouldn't be in the LLM's prompt
+        if (practiceData.status !== "in_progress" || practiceRoundsFinalizing.has(roomCode)) return;
+
+        const { appended, practiceData: updated } = await appendPracticeMessage(roomCode, userId, text);
+        if (!appended) return;
+        const messages = updated.messages ?? [];
+        io.to(roomCode).emit("change-users-messaged", { newSentMessages: messages.length });
+
+        if (messages.length === (room.userIds ?? []).length) {
+            await constructUserMessages(io, roomCode, { 0: messages }, 0);
+            await delay(100);
+            await finalizePracticeRound(io, roomCode);
+        }
+        return;
+    }
+
     const round = room.curr_round;
     const existingUserMessages = room.userMessages;
     const roundMessages = existingUserMessages[round] ?? [];
@@ -467,7 +702,7 @@ export async function surveyComplete(io, roomCode, userId) {
 }
 
 
-function startRoundTimer(io, roomCode, round, conversationTime) {
+function startRoundTimer(io, roomCode, round, conversationTime, onTimeout = () => getLlmResponse(io, roomCode)) {
     if (roundTimers[roomCode]) {
         clearTimeout(roundTimers[roomCode].timeout);
         delete roundTimers[roomCode];
@@ -485,12 +720,14 @@ function startRoundTimer(io, roomCode, round, conversationTime) {
             deleteTimer(roomCode);
             return;
         }
-        const existingUserMessages = room.userMessages; 
-        if (existingUserMessages[round]) {
+        const existingUserMessages = round === 0
+            ? { 0: room.practiceData?.messages ?? [] }
+            : room.userMessages;
+        if (existingUserMessages?.[round]?.length) {
             await constructUserMessages(io, roomCode, existingUserMessages, round);
         }
         await delay(100);
-        await getLlmResponse(io, roomCode);
+        await onTimeout();
     }, durationMs);
 
     roundTimers[roomCode] = { timeout, endTime };

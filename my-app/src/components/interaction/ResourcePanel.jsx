@@ -52,7 +52,9 @@ export default function ResourcesPanel({
             <ul className="resources-history-list">
                 {resourceHistory.map((entry) => (
                     <li key={entry.round} className="resources-history-item">
-                        <span className="resources-history-round">Round {entry.round}</span>
+                        <span className="resources-history-round">
+                            {entry.isPractice ? "Practice" : `Round ${entry.round}`}
+                        </span>
                         <span className="resources-history-summary">
                             {Object.entries(entry.allocations)
                                 .map(([identifier, details]) => {

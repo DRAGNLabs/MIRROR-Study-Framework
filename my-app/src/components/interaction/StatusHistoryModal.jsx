@@ -27,7 +27,7 @@ export default function StatusHistoryModal({ open, onClose, history = [] }) {
                   className={`status-history-item ${entry.good ? 'status-history-item--good' : 'status-history-item--bad'}`}
                 >
                   <div className="status-history-item-header">
-                    <span className="status-history-round">Round {entry.round}</span>
+                    <span className="status-history-round">{entry.isPractice ? "Practice round" : `Round ${entry.round}`}</span>
                     <span className="status-history-badge">{entry.good ? 'Good news' : 'Bad news'}</span>
                   </div>
                   <p className="status-history-message">{entry.message}</p>

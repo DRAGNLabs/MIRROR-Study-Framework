@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from '../../socket';
-import { getRoom, updateStatus } from "../../services/roomsService";
+import { getRoom, updateStatus, getRoomPractice } from "../../services/roomsService";
 import games from "../../gameLoader"
 import { socketListener } from "../common/socketListener";
 import './instructions.css';
@@ -12,6 +12,7 @@ export default function AdminInstructions() {
     const { roomCode } = location.state;
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [practice, setPractice] = useState(false);
     const isAdmin = true;
 
     useEffect(() => {
@@ -20,6 +21,8 @@ export default function AdminInstructions() {
             try {
                 const roomData = await getRoom(roomCode);
                 setGame(games.find(g => parseInt(g.id) === roomData.gameType));
+                const practiceData = await getRoomPractice(roomCode);
+                setPractice(practiceData.practice);
             } catch (err) {
                 console.error("Failed to fetch rom:", err);
             } finally {
@@ -37,10 +40,14 @@ export default function AdminInstructions() {
     async function toInteractions() {
         // socket.emit("start-game", { roomCode });
         socket.emit("navigate-users", { roomCode, status: "interaction" });
-        socket.emit('start-round', {
-            roomCode,
-            round: 1
-        });
+        if (practice) {
+            socket.emit("practice-round", { roomCode });
+        } else{
+            socket.emit('start-round', {
+                roomCode,
+                round: 1
+            });
+        }
         await updateStatus(roomCode, "interaction");
         navigate("/admin/interaction", { state: { roomCode } }); // will need to update this once next merge pull request happens (I changed endpoint to /admin/interactions or something like that)
     }

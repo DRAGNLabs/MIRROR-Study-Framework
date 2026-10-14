@@ -453,6 +453,124 @@ router.delete("/delete/:roomCode", async (req,res) => {
 
 });
 
+// gets the practice flag for a room
+router.get("/:roomCode/practice", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+
+    const result = await db.query(
+      'SELECT "roomCode", practice FROM rooms WHERE "roomCode" = $1;',
+      [roomCode]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// updates the practice flag for a room
+router.patch("/:roomCode/practice", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { practice } = req.body;
+
+    if (typeof practice !== "boolean") {
+      return res.status(400).json({ error: "practice must be a boolean" });
+    }
+
+    const result = await db.query(
+      'UPDATE rooms SET practice = $1 WHERE "roomCode" = $2 RETURNING "roomCode", practice;',
+      [practice, roomCode]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return res.status(200).json({
+      ...result.rows[0],
+      message: "Practice setting successfully updated!"
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// merges the given keys into practiceData (keys not sent are kept), so two
+// updates landing close together can't wipe out each other's fields
+router.patch("/:roomCode/practiceData", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { practiceData } = req.body;
+
+    if (!practiceData || typeof practiceData !== "object" || Array.isArray(practiceData)) {
+      return res.status(400).json({ error: "practiceData must be an object" });
+    }
+
+    const result = await db.query(
+      `UPDATE rooms SET "practiceData" = COALESCE("practiceData", '{}'::jsonb) || $1::jsonb
+       WHERE "roomCode" = $2 RETURNING "roomCode", "practiceData";`,
+      [JSON.stringify(practiceData), roomCode]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// appends one user's practice message in a single statement, so users submitting
+// at the same time can't overwrite each other. Only appends while the practice
+// round is in progress and the user hasn't already sent one.
+router.post("/:roomCode/practiceData/messages", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { userId, text } = req.body;
+
+    if (userId === undefined || typeof text !== "string") {
+      return res.status(400).json({ error: "userId and text are required" });
+    }
+
+    const result = await db.query(
+      `UPDATE rooms
+       SET "practiceData" = jsonb_set(
+         "practiceData",
+         '{messages}',
+         COALESCE("practiceData"->'messages', '[]'::jsonb) || jsonb_build_array(jsonb_build_array($1::jsonb, $2::text))
+       )
+       WHERE "roomCode" = $3
+         AND "practiceData"->>'status' = 'in_progress'
+         AND NOT EXISTS (
+           SELECT 1 FROM jsonb_array_elements(COALESCE("practiceData"->'messages', '[]'::jsonb)) AS m
+           WHERE m->>0 = $1::jsonb#>>'{}'
+         )
+       RETURNING "practiceData";`,
+      [JSON.stringify(userId), text, roomCode]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(200).json({ appended: false });
+    }
+
+    return res.status(200).json({ appended: true, practiceData: result.rows[0].practiceData });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // gets room
 router.get("/:roomCode", async (req, res) => {
   try {

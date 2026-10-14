@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel, updateRoomPractice } from "../../services/roomsService";
 import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
@@ -49,6 +49,7 @@ export function Admin() {
     // const [selectedModel, setSelectedModel] = useState("gpt-4o");
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
+    const [practice, setPractice] = useState(false);
     // Stores the list of completed rooms from the db
     const [completedRoomList, setCompletedRoomList] = useState([]);
     // const [ error, setError] = useState("");
@@ -197,7 +198,8 @@ export function Admin() {
             const folderId = isTestMode && testFolderId !== "" ? Number(testFolderId) : null;
             if (!isValidRoundCount(rounds)) return;
             const response = await sendRoom(newRoomCode, selectedGame, Number(rounds), count, selectedModel, isTestMode, folderId);
-
+            const practice_response = await updateRoomPractice(practice, newRoomCode);
+           
             if (isTestMode) {
   
                 socket.emit("run-automated-test", { roomCode: Number(newRoomCode), testUserCount: Number(count) });
@@ -214,6 +216,7 @@ export function Admin() {
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?
             setIsTestMode(false);
+            setPractice(false);
             // sendModel(selectedModel);
         } catch (error){
             console.error("Error:", error);
@@ -290,6 +293,7 @@ export function Admin() {
         }
 
     }
+
 
 
 
@@ -401,37 +405,16 @@ return (
             />
           </div>
 
-          <h3 className="room-info-section">Automated Test</h3>
+          <h3 className="room-info-section">Practice Round</h3>
           <label className="custom-checkbox">
             <input
               type="checkbox"
-              checked={isTestMode}
-              onChange={(e) => setIsTestMode(e.target.checked)}
+              checked={practice}
+              onChange={(e) => setPractice(e.target.checked)}
             />
             <span className="checkbox-mark" />
-            <span>🤖 Run as automated test</span>
+            <span>Add practice round</span>
           </label>
-          {isTestMode && (
-            <p className="rooms-section-subtitle">
-              Seats {count} simulated bot users and runs to completion on its own. 
-            </p>
-          )}
-          {isTestMode && (
-            <div className="label-inline">
-              <label htmlFor="testFolder">Save results to folder</label>
-              <select
-                id="testFolder"
-                className="model-select-input folder-inline-select"
-                value={testFolderId}
-                onChange={(e) => setTestFolderId(e.target.value)}
-              >
-                <option value="">No folder</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <h3 className="room-info-section">Game</h3>
           <div className="games-options">
@@ -466,6 +449,38 @@ return (
             </div>
           )}
 
+          <h3 className="room-info-section">Automated Test</h3>
+          <label className="custom-checkbox">
+            <input
+              type="checkbox"
+              checked={isTestMode}
+              onChange={(e) => setIsTestMode(e.target.checked)}
+            />
+            <span className="checkbox-mark" />
+            <span>🤖 Run as automated test</span>
+          </label>
+          {isTestMode && (
+            <p className="rooms-section-subtitle">
+              Seats {count} simulated bot users and runs to completion on its own. 
+            </p>
+          )}
+          {isTestMode && (
+            <div className="label-inline">
+              <label htmlFor="testFolder">Save results to folder</label>
+              <select
+                id="testFolder"
+                className="model-select-input folder-inline-select"
+                value={testFolderId}
+                onChange={(e) => setTestFolderId(e.target.value)}
+              >
+                <option value="">No folder</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <h3 className="room-info-section">Model</h3>
           <div className="model-select">
             <div className="model-select-header">
@@ -489,6 +504,8 @@ return (
                 <option value="openai/gpt-6-astra">GPT 6 Astra</option>
                 <option value="anthropic/claude-sonnet-5.5">Claude Sonnet 5.5</option>
                 <option value="google/gemini-3.8-flash">Gemini 3.8 Flash</option>
+                <option value="google/gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                {/* <option value="qwen/qwen3.5-397b-a17b">Qwen                                                                                                                                                                      3.5 397b</option> */}
                 <option value="moonshotai/kimi-k3">Kimi K3</option>
 
 
