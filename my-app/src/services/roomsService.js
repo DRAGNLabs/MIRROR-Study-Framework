@@ -231,6 +231,41 @@ export async function exportCompletedRoom(roomCode) {
   URL.revokeObjectURL(url);
 }
 
+async function readErrorMessage(response, fallback) {
+  try {
+    const body = await response.json();
+    return body?.error || body?.message || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export async function getDeidentificationPreview(roomCode) {
+  const response = await fetch(
+    `${API_BASE}/rooms/${roomCode}/deidentification-preview`
+  );
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Can't create deidentification preview.")
+    );
+  }
+  return response.json();
+}
+
+export async function deidentifyCompletedRoom(roomCode, password, confirmationToken) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/deidentify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password, confirmationToken }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Can't deidentify completed room.")
+    );
+  }
+  return response.json();
+}
+
 export async function sendModel(model, roomCode) {
   const response = await fetch(`${API_BASE}/rooms/${roomCode}/updateModel`, {
     method: 'PUT',
@@ -244,4 +279,3 @@ export async function sendModel(model, roomCode) {
 
   return response.json();
 }
-

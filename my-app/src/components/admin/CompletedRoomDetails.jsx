@@ -1,6 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getRoom, exportCompletedRoom } from "../../services/roomsService";
+import {
+  deidentifyCompletedRoom,
+  exportCompletedRoom,
+  getDeidentificationPreview,
+  getRoom,
+} from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
 import { buildConversation } from "../survey/surveyUtils";
@@ -60,6 +65,13 @@ export function CompletedRoomPage() {
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exportError, setExportError] = useState("");
+  const [deidentificationPreview, setDeidentificationPreview] = useState(null);
+  const [deidentificationModalOpen, setDeidentificationModalOpen] = useState(false);
+  const [deidentificationLoading, setDeidentificationLoading] = useState(false);
+  const [deidentificationSubmitting, setDeidentificationSubmitting] = useState(false);
+  const [deidentificationPassword, setDeidentificationPassword] = useState("");
+  const [deidentificationError, setDeidentificationError] = useState("");
+  const [deidentificationMessage, setDeidentificationMessage] = useState("");
 
   async function exportRoom() {
     setExportError("");
@@ -70,44 +82,102 @@ export function CompletedRoomPage() {
     }
   }
 
+  const loadRoomData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const roomData = await getRoom(roomCode);
+      setRoom(roomData);
+
+      const userIds = roomData?.userIds ?? [];
+      if (userIds.length > 0) {
+        const loadedUsers = await Promise.all(userIds.map((id) => getUser(id)));
+        setUsers(loadedUsers);
+        setUsernames(
+          loadedUsers.map((user) => user.userName || user.username || "Unknown User")
+        );
+
+        const surveys = await Promise.all(
+          userIds.map(async (id) => {
+            try {
+              return [id, await getUsersSurvey(id)];
+            } catch {
+              return [id, null];
+            }
+          })
+        );
+        setUserSurveys(Object.fromEntries(surveys));
+      } else {
+        setUsers([]);
+        setUsernames([]);
+        setUserSurveys({});
+      }
+      setConversation(await buildConversation(roomData));
+    } catch (error) {
+      console.error("Failed to load completed room:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [roomCode]);
+
   useEffect(() => {
-    async function loadRoom() {
-      try {
-        const roomData = await getRoom(roomCode);
-        setRoom(roomData);
+    loadRoomData();
+  }, [loadRoomData]);
 
-        const userIds = roomData?.userIds ?? [];
-
-        if (userIds.length > 0) {
-          const users = await Promise.all(userIds.map((id) => getUser(id)));
-          setUsers(users);
-          setUsernames(
-            users.map((u) => u.userName || u.username || "Unknown User")
-          );
-
-          const surveys = await Promise.all(
-            userIds.map(async (id) => {
-              try {
-                const survey = await getUsersSurvey(id);
-                return [id, survey];
-              } catch {
-                return [id, null];
-              }
-            })
-          );
-          setUserSurveys(Object.fromEntries(surveys));
-        }
-        const msgs = await buildConversation(roomData);
-        setConversation(msgs);
-      } catch (error) {
-        console.error("Failed to load completed room:", error);
-      } finally {
-        setLoading(false);
+  useEffect(() => {
+    if (!deidentificationModalOpen) return undefined;
+    function handleEscape(event) {
+      if (event.key === "Escape" && !deidentificationSubmitting) {
+        setDeidentificationModalOpen(false);
+        setDeidentificationPassword("");
       }
     }
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [deidentificationModalOpen, deidentificationSubmitting]);
 
-    loadRoom();
-  }, [roomCode]);
+  async function openDeidentificationPreview() {
+    setDeidentificationModalOpen(true);
+    setDeidentificationLoading(true);
+    setDeidentificationPreview(null);
+    setDeidentificationError("");
+    setDeidentificationPassword("");
+    try {
+      setDeidentificationPreview(await getDeidentificationPreview(roomCode));
+    } catch (error) {
+      setDeidentificationError(error.message || "Can't create preview.");
+    } finally {
+      setDeidentificationLoading(false);
+    }
+  }
+
+  async function confirmDeidentification(event) {
+    event.preventDefault();
+    setDeidentificationError("");
+    setDeidentificationSubmitting(true);
+    try {
+      const result = await deidentifyCompletedRoom(
+        roomCode,
+        deidentificationPassword,
+        deidentificationPreview.confirmationToken
+      );
+      setDeidentificationModalOpen(false);
+      setDeidentificationPassword("");
+      setDeidentificationMessage(
+        `${result.message} Replaced ${result.summary.participantNames} participant-name occurrences, ${result.summary.emails} email addresses, ${result.summary.phoneNumbers} phone numbers, and ${result.summary.locations} location patterns.`
+      );
+      await loadRoomData();
+    } catch (error) {
+      setDeidentificationError(error.message || "Can't deidentify completed room.");
+    } finally {
+      setDeidentificationSubmitting(false);
+    }
+  }
+
+  function closeDeidentificationModal() {
+    if (deidentificationSubmitting) return;
+    setDeidentificationModalOpen(false);
+    setDeidentificationPassword("");
+  }
 
   const messageAnnotations = useMemo(
     () => annotationsByMessageIndex(users, userSurveys),
@@ -165,8 +235,19 @@ export function CompletedRoomPage() {
           <button className="btn-secondary-admin" onClick={exportRoom}>
             Export
           </button>
+          <button
+            className="btn-secondary-admin"
+            onClick={openDeidentificationPreview}
+          >
+            Deidentify room
+          </button>
         </div>
         {exportError && <p role="alert">{exportError}</p>}
+        {deidentificationMessage && (
+          <p className="deidentify-success" role="status">
+            {deidentificationMessage}
+          </p>
+        )}
 
         <div className="room-display">
           <h2 className="room-section-title">
@@ -334,6 +415,129 @@ export function CompletedRoomPage() {
   </div>
 </div>
     </div>
+    {deidentificationModalOpen && (
+<div
+  className="modal-backdrop"
+  onMouseDown={(event) => {
+    if (event.target === event.currentTarget) closeDeidentificationModal();
+  }}
+>
+  <section
+    className="confirm-modal-card deidentify-modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="deidentify-modal-title"
+    aria-describedby="deidentify-modal-notice"
+  >
+    <button
+      className="deidentify-modal-close"
+      type="button"
+      onClick={closeDeidentificationModal}
+      disabled={deidentificationSubmitting}
+      aria-label="Close preview"
+    >
+      &times;
+    </button>
+    <h2 className="confirm-modal-title" id="deidentify-modal-title">
+      Review deidentification preview
+    </h2>
+    <p id="deidentify-modal-notice" className="deidentify-warning">
+      This will permanently update the database for this completed room,
+      its users, and surveys. No original-name mapping or automatic undo
+      is kept. Participant IDs remain, so this is pseudonymization, not a
+      guarantee of anonymity.
+    </p>
+    <p className="confirm-modal-text">
+      The automatic scan targets participant names, email addresses,
+      formatted phone numbers, and recognizable street-address/location
+      patterns. It can miss other identifying details and may replace
+      ordinary text that resembles these patterns. Review the preview
+      before continuing.
+    </p>
+
+    {deidentificationLoading && <p role="status">Preparing preview...</p>}
+    {deidentificationError && (
+      <p className="deidentify-error" role="alert">
+        {deidentificationError}
+      </p>
+    )}
+    {deidentificationPreview && (
+      <>
+        <ul className="deidentify-summary">
+          <li>Participants: {deidentificationPreview.summary.participants}</li>
+          <li>Participant-name occurrences: {deidentificationPreview.summary.participantNames}</li>
+          <li>Email addresses: {deidentificationPreview.summary.emails}</li>
+          <li>Phone numbers: {deidentificationPreview.summary.phoneNumbers}</li>
+          <li>Location patterns: {deidentificationPreview.summary.locations}</li>
+        </ul>
+        <details className="deidentify-preview-details">
+          <summary>Review transformed room, users, and survey data</summary>
+          <pre>{JSON.stringify({
+            room: deidentificationPreview.room,
+            users: deidentificationPreview.users,
+            surveys: deidentificationPreview.surveys,
+          }, null, 2)}</pre>
+        </details>
+        <form onSubmit={confirmDeidentification}>
+          <label className="deidentify-password-label" htmlFor="deidentify-admin-password">
+            Re-enter admin password to make this change
+          </label>
+          <input
+            id="deidentify-admin-password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={deidentificationPassword}
+            onChange={(event) => setDeidentificationPassword(event.target.value)}
+            disabled={deidentificationSubmitting}
+          />
+          <div className="confirm-modal-actions">
+            <button
+              className="btn-secondary-admin"
+              type="button"
+              onClick={closeDeidentificationModal}
+              disabled={deidentificationSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              className="deidentify-confirm-button"
+              type="submit"
+              disabled={
+                deidentificationSubmitting ||
+                !deidentificationPassword ||
+                deidentificationLoading
+              }
+            >
+              {deidentificationSubmitting
+                ? "Updating database..."
+                : "Looks good — permanently deidentify"}
+            </button>
+          </div>
+        </form>
+      </>
+    )}
+    {!deidentificationPreview && !deidentificationLoading && (
+      <div className="confirm-modal-actions">
+        <button
+          className="btn-secondary-admin"
+          type="button"
+          onClick={closeDeidentificationModal}
+        >
+          Close
+        </button>
+        <button
+          className="btn-secondary-admin"
+          type="button"
+          onClick={openDeidentificationPreview}
+        >
+          Retry preview
+        </button>
+      </div>
+    )}
+  </section>
+</div>
+    )}
   </div>
   );
 }
