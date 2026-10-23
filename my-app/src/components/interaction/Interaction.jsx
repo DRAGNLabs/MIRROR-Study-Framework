@@ -4,6 +4,8 @@ import { useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { formatTime } from "./interactionUtils";
 import InstructionsModal from "./InstructionsModal"
+import StatusUpdateModal from "./StatusUpdateModal"
+import StatusHistoryModal from "./StatusHistoryModal"
 import ChatBox from "./ChatMessages";
 import ResourcesPanel from "./ResourcePanel";
 import './interaction.css'
@@ -34,6 +36,9 @@ export function Interaction(){
     // const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
+    const [statusUpdate, setStatusUpdate] = useState(null);
+    const [statusHistory, setStatusHistory] = useState([]);
+    const [showStatusHistory, setShowStatusHistory] = useState(false);
 
     const isStreamingRef = useRef(false);
     const timerIntervalRef = useRef(null);
@@ -56,10 +61,12 @@ export function Interaction(){
         setStreamingText, 
         setCurrentStreamingId, 
         setSentMessages,
-        setCanSend, 
-        setHasSentThisRound, 
-        setGame, 
+        setCanSend,
+        setHasSentThisRound,
+        setGame,
         setUserRole,
+        setStatusUpdate,
+        setStatusHistory,
     );
 
     useEffect(() => {
@@ -122,6 +129,17 @@ export function Interaction(){
             >
                 Instructions
             </button>
+
+            {game?.role_prompt && (
+                <button
+                    type="button"
+                    className="info-button"
+                    title="See what's happened to your status each round"
+                    onClick={() => setShowStatusHistory(true)}
+                >
+                    My Status
+                </button>
+            )}
 
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
@@ -202,6 +220,16 @@ export function Interaction(){
             role={userRole}
             timeRemaining={timeRemaining}
             formatTime={formatTime}
+        />
+        <StatusUpdateModal
+            open={!!statusUpdate}
+            onClose={() => setStatusUpdate(null)}
+            update={statusUpdate}
+        />
+        <StatusHistoryModal
+            open={showStatusHistory}
+            onClose={() => setShowStatusHistory(false)}
+            history={statusHistory}
         />
         </>
     )

@@ -1,6 +1,7 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM, callLLM } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getUser, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData } from "../services/roomsService.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData, appendPracticeMessage } from "../services/roomsService.js";
+import { getUser, updateUserStatus } from "../services/usersService.js"
 import { jsonrepair } from "jsonrepair";
 
 const games = loadGames();
@@ -11,6 +12,13 @@ const instructionsInFlight = new Set(); // `${roomCode}:${round}` currently runn
 const practiceRoundStarting = new Set();
 const practiceRoundsFinalizing = new Set();
 const officialGameStarting = new Set();
+
+const PRACTICE_FINISHED_MESSAGE = {
+    sender: "user",
+    userName: "Admin",
+    text: "Practice round finished. The real game will start shortly.",
+    id: "practice-finished"
+};
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -23,6 +31,26 @@ function stripFences(text) {
 
 function fillPrompt(template, values) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => values[key]);
+}
+
+// A user's status goes up one if they got at least tons_needed, otherwise down one.
+// Moving further from 0 (either direction) is an "enter" into the new status;
+// moving back toward 0 is an "exit" from the status being left, so its message is
+// keyed by the old status. message is null if the game has no text for that status.
+function getStatusChange(game, user, name, allocation, tonsNeeded, prev_status) {
+    const good = allocation >= tonsNeeded;
+    const status = good ? prev_status + 1 : prev_status - 1;
+    const isExit =
+        (prev_status < status && prev_status < 0) ||
+        (prev_status > status && prev_status > 0);
+    const kind = isExit ? "exit" : "enter";
+    const promptSet = game.role_prompt?.[user?.role]?.[isExit ? prev_status : status];
+    return {
+        status,
+        kind,
+        good,
+        message: promptSet ? fillPrompt(promptSet[kind], { user_name: name }) : null
+    };
 }
 
 // Add this near the top of gameHandler.js
@@ -66,10 +94,11 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
     const userMessages = practice
         ? { 0: practiceData.messages ?? [] }
         : (room.userMessages ?? {});
-    const officialFishAmount = room.fish_amount ?? {};
+    // the practice round plays with round 1's starting fish but never writes to fish_amount
     const fish_amount = practice
-        ? { 0: officialFishAmount[1] ?? 100 }
-        : officialFishAmount;
+        ? { 0: room.fish_amount?.[1] ?? 100 }
+        : (room.fish_amount ?? {});
+    const allUserIds = room.userIds || [];
 
     const messages = [
         { "role": "system", "content": systemPrompt },
@@ -79,26 +108,64 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
         if (!game.instructions?.template) { // basically only puts instructions prompt in if we don't have a template in the file
             messages.push({ "role": "user", "content": instructionsPrompt})
             // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
-        } 
+        }
         if (!llmInstructions[i]) break;
         messages.push({ "role": "assistant", "content": llmInstructions[i] });
-        const allUserIds = room.userIds || [];
         const roundMessages = userMessages[i] || [];
 
-        const formattedUserMessages = (
-            await Promise.all(
+        let town_report = "";
+
+        if (i > 1 && game.role_prompt) {
+            const reports = await Promise.all(
                 allUserIds.map(async (userId) => {
                     const user = await getUser(userId);
                     const name = user?.userName || `User ${userId}`;
-                    const userResponse = roundMessages.find(([id]) => id === userId);
-                    const text = userResponse ? userResponse[1] : "[No response from this user]";
-                    return `${name}: ${text}`;
+                    const status = user.user_status?.[i] ?? 0;
+                    const prev_status = user.user_status?.[i - 1] ?? 0;
+                    const rolePrompts = game.role_prompt[user.role];
+                    if (!rolePrompts) return "";
+
+                    // Moving further from 0 (either direction) is an "enter" into
+                    // the new, more extreme status; moving back toward 0 is an
+                    // "exit" from the status being left, so it's keyed by the old
+                    // status, not the new one.
+                    const isExit =
+                        (prev_status < status && prev_status < 0) ||
+                        (prev_status > status && prev_status > 0);
+                    const statusKey = isExit ? prev_status : status;
+                    const promptSet = rolePrompts[statusKey];
+                    const user_report = promptSet
+                        ? fillPrompt(promptSet[isExit ? "llm_exit" : "llm_enter"], { user_name: name })
+                        : "";
+
+                    const lastAllocation = room.resourceAllocations?.[i - 1]?.allocationByUserName?.[name]?.fish ?? 0;
+                    return `${name}: Last month you allocated ${lastAllocation} tons to ${name}. ${user_report}\n`;
                 })
-            )
+            );
+            town_report = reports.join("");
+        }
+
+        // Messages in the order users submitted them (roundMessages is appended to
+        // as each one comes in), then anyone who didn't respond this round.
+        const respondedIds = roundMessages.map(([id]) => id);
+        const noResponseIds = allUserIds.filter((userId) => !respondedIds.includes(userId));
+        const formattedUserMessages = (
+            await Promise.all([
+                ...roundMessages.map(async ([userId, text]) => {
+                    const user = await getUser(userId);
+                    const name = user?.userName || `User ${userId}`;
+                    return `${name}: ${text}`;
+                }),
+                ...noResponseIds.map(async (userId) => {
+                    const user = await getUser(userId);
+                    const name = user?.userName || `User ${userId}`;
+                    return `${name}: [No response from this user]`;
+                }),
+            ])
         ).join("\n");
-        
+
         // do we want to put in this user instructions everytime?
-        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i] })} \n ${formattedUserMessages}` });
+        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: practice ? "0 (practice round)" : i, town_report: town_report })} \n ${formattedUserMessages}` });
         if(!llmResponses[i]) break;
         messages.push({ "role": "assistant", "content": llmResponses[i] })
     }
@@ -110,6 +177,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
     // console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
     io.to(room.roomCode).emit("ai-start");
 
+    console.log("messages: ", messages);
     let buffer = "";
     await streamLLM(messages, token => {
         buffer += token;
@@ -148,7 +216,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
 
         const extractionInput = {
             round,
-            fish_available: fish_amount[round] ?? fish_amount[1] ?? 100,
+            fish_available: fish_amount[round],
             userNames,
             previousTotalFishByUserName: previousTotals,
             llmResponse: buffer,
@@ -181,31 +249,68 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
         // const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
         const allocated = Object.values(allocationByUserName)
             .reduce((sum, a) => sum + (Number(a?.fish) || 0), 0);
-        const fish_left = (fish_amount[round] ?? fish_amount[1] ?? 100) - allocated;
-        if (practice) {
-            const currentPracticeData = room.practiceData ?? {};
-            await updatePracticeData({
-                ...currentPracticeData,
-                allocations: allocationByUserName,
-                fishLeft: fish_left
-            }, roomCode);
-        } else {
-            if (fish_left < 5) {
-                fish_amount[round + 1] = fish_left;
-            } else if (fish_left > 50) {
-                fish_amount[round + 1] = 100;
-            } else {
-                fish_amount[round + 1] = fish_left * 2;
-            }
-            await updateFishAmount(fish_amount, roomCode);
+        const fish_left = fish_amount[round] - allocated;
 
-            const existingResourceAllocations = room.resourceAllocations ?? {};
-            existingResourceAllocations[round] = {
-                allocationByUserName,
-                assistantMessage: buffer
-            };
-            await updateResourceAllocations(existingResourceAllocations, roomCode);
+        // The practice round only ever writes to practiceData — never to fish_amount,
+        // resourceAllocations, or users.user_status — so nothing from it carries
+        // over into the real game. Everyone starts the practice round at status 0.
+        if (practice) {
+            const statusByUserId = {};
+            if (game.role_prompt) {
+                for (const userId of allUserIds) {
+                    const user = await getUser(userId);
+                    const name = user?.userName || `User ${userId}`;
+                    const change = getStatusChange(game, user, name, allocationByUserName[name]?.fish ?? 0, room.tons_needed, 0);
+                    statusByUserId[userId] = change;
+                    if (change.message) {
+                        io.to(`user-${userId}`).emit("status-update", { round: 0, isPractice: true, ...change });
+                    }
+                }
+            }
+            await updatePracticeData({
+                allocations: allocationByUserName,
+                fishLeft: fish_left,
+                statusByUserId
+            }, roomCode);
+            console.log(`[Practice] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated})`);
+            return buffer;
         }
+
+        if (fish_left < 5) {
+            fish_amount[round + 1] = fish_left;
+        } else if (fish_left > 50) {
+            fish_amount[round + 1] = 100;
+        } else {
+            fish_amount[round + 1] = fish_left * 2;
+        }
+        await updateFishAmount(fish_amount, roomCode);
+
+        if (game.role_prompt) {
+            for (const userId of allUserIds) {
+                const user = await getUser(userId);
+                const name = user?.userName || `User ${userId}`;
+                const prev_status = user.user_status?.[round] ?? 0;
+                // tons_needed depends on how many players are in the room (set when they were seated)
+                const change = getStatusChange(game, user, name, allocationByUserName[name]?.fish ?? 0, room.tons_needed, prev_status);
+
+                const user_status = user.user_status ?? {};
+                user_status[round + 1] = change.status;
+                await updateUserStatus(userId, user_status);
+
+                if (change.message) {
+                    io.to(`user-${userId}`).emit("status-update", { round: round + 1, ...change });
+                }
+            }
+        }
+
+        // {1: 0, 2: 1}
+
+        const existingResourceAllocations = room.resourceAllocations ?? {};
+        existingResourceAllocations[round] = {
+            allocationByUserName,
+            assistantMessage: buffer
+        };
+        await updateResourceAllocations(existingResourceAllocations, roomCode);
         // console.log(`[Round ${round}] Extraction succeeded, fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
         console.log(`[Round ${round}] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated}), extractor fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
     } catch (err) {
@@ -266,11 +371,7 @@ async function getLlmResponse(io, roomCode) {
             const totalRounds = room.numRounds;
             if (round >= totalRounds) {
                 if (room.practice) {
-                    await updatePracticeData({
-                        ...(room.practiceData ?? {}),
-                        officialStarted: true,
-                        officialComplete: true
-                    }, roomCode);
+                    await updatePracticeData({ officialStarted: true, officialComplete: true }, roomCode);
                 }
                 io.to(roomCode).emit("game-complete");
                 const endGameMsg = { sender: "user", userName: "Admin", text: "All rounds are complete, game is ended.", id: "game-ended" };
@@ -279,11 +380,7 @@ async function getLlmResponse(io, roomCode) {
                 return;
             } else if (fish_amount[round+1] < 5) {
                 if (room.practice) {
-                    await updatePracticeData({
-                        ...(room.practiceData ?? {}),
-                        officialStarted: true,
-                        officialComplete: true
-                    }, roomCode);
+                    await updatePracticeData({ officialStarted: true, officialComplete: true }, roomCode);
                 }
                 // abort game if fish is below 5 tons
                 const endGameMsg = { sender: "user", userName: "Admin", text: "Fish got below 5 tons, no more fish left to allocate game is over", id: "no-fish-left" };
@@ -371,11 +468,16 @@ export async function practiceRoundInstructions(io, roomCode) {
             messages: [],
             response: "",
             allocations: {},
-            fishLeft: null
+            fishLeft: null,
+            statusByUserId: {}
         };
         await updatePracticeData(practiceData, roomCode);
 
         if (game.instructions?.template) {
+            // Same as getLlmInstructionsInner: users are navigating to the interaction
+            // page right now, so give their listeners a moment to attach before
+            // broadcasting (they also refresh on instructions-complete as a fallback).
+            await delay(500);
             io.to(roomCode).emit("receive-message", {
                 sender: "llm",
                 text: instructions,
@@ -426,13 +528,11 @@ async function finalizePracticeRound(io, roomCode) {
         const latestRoom = await getRoomSafely(roomCode);
         if (!latestRoom || latestRoom.status === "survey") return null;
 
-        await updatePracticeData({
-            ...(latestRoom.practiceData ?? {}),
-            status: "complete",
-            response
-        }, roomCode);
+        await updatePracticeData({ status: "complete", response }, roomCode);
 
         io.to(roomCode).emit("timer-expired");
+        // also rebuilt from practiceData on refresh (see loadRoomState), so it survives reloads
+        io.to(roomCode).emit("receive-message", PRACTICE_FINISHED_MESSAGE);
         io.to(roomCode).emit("practice-round-complete");
 
         // The admin explicitly starts official play with the next button.
@@ -457,22 +557,14 @@ export async function startOfficialGame(io, roomCode) {
             return null;
         }
 
-        await updatePracticeData({
-            ...practiceData,
-            officialStarted: true,
-            officialComplete: false
-        }, roomCode);
+        await updatePracticeData({ officialStarted: true, officialComplete: false }, roomCode);
         io.to(roomCode).emit("official-game-started");
         await getLlmInstructions(io, roomCode, 1);
     } catch (err) {
         console.error(`[Game] Could not start official game in room ${roomCode}:`, err);
         const room = await getRoomSafely(roomCode);
         if (room?.practice) {
-            await updatePracticeData({
-                ...(room.practiceData ?? {}),
-                officialStarted: false,
-                officialComplete: false
-            }, roomCode);
+            await updatePracticeData({ officialStarted: false, officialComplete: false }, roomCode);
         }
         io.to(roomCode).emit("official-game-start-error", { message: "Could not start the game." });
     } finally {
@@ -535,14 +627,18 @@ export async function submitUserMessages(io, roomCode, userId, userName, text) {
         return null;
     }
 
-    if (room.practiceData?.status === "in_progress") {
-        const practiceData = room.practiceData;
-        const messages = practiceData.messages ?? [];
-        if (messages.some(([existingUserId]) => existingUserId === userId)) return;
+    // Once a practice round has started, nothing sent before the official game
+    // starts may land in the official round 1 userMessages. (Rooms that never
+    // start a practice round, like automated tests, have no practice status and
+    // go straight to the official path.)
+    const practiceData = room.practiceData ?? {};
+    if (room.practice && practiceData.status && !practiceData.officialStarted) {
+        // a message arriving after the practice timer ran out wouldn't be in the LLM's prompt
+        if (practiceData.status !== "in_progress" || practiceRoundsFinalizing.has(roomCode)) return;
 
-        messages.push([userId, text]);
-        practiceData.messages = messages;
-        await updatePracticeData(practiceData, roomCode);
+        const { appended, practiceData: updated } = await appendPracticeMessage(roomCode, userId, text);
+        if (!appended) return;
+        const messages = updated.messages ?? [];
         io.to(roomCode).emit("change-users-messaged", { newSentMessages: messages.length });
 
         if (messages.length === (room.userIds ?? []).length) {

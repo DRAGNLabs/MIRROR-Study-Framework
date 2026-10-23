@@ -1,22 +1,25 @@
 import { API_BASE } from "../config.js";
 
 // creates new room in rooms table
-export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType){ 
+export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType, isTest=false, folderId=null){
   const res = await fetch(`${API_BASE}/rooms`, {
-    method: 'POST', 
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       roomCode: Number(roomCode),
       gameType: Number(gameType),
       numRounds: Number(numRounds),
       usersNeeded: Number(usersNeeded),
-      ...(modelType ? { modelType } : {})
+      ...(modelType ? { modelType } : {}),
+      isTest: !!isTest,
+      folderId: folderId ?? null
     }), //do we need the Number() function, idk
   })
   if(!res.ok) throw new Error("Error creating room.");
 
   return res.json();
 }
+
 
 // get room with specified roomCode
 export async function getRoom(roomCode) {
@@ -141,6 +144,17 @@ export async function closeARoom(roomCode){
     method: "DELETE"
   });
   if (!response.ok) throw new Error("Error fetching the surveys from the database.");
+  return response.json();
+}
+
+// moves a room into a folder (null removes it from its folder)
+export async function setRoomFolder(roomCode, folderId) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/folder`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ folderId: folderId ?? null })
+  });
+  if (!response.ok) throw new Error("Error moving room to folder");
   return response.json();
 }
 
