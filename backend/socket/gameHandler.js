@@ -110,7 +110,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
             // messages.push({ "role": "user", "content": fillPrompt(instructionsPrompt, { curr_round: round, fish_available: fish_amount[i] }) })
         }
         if (!llmInstructions[i]) break;
-        messages.push({ "role": "assistant", "content": llmInstructions[i] });
+        // messages.push({ "role": "assistant", "content": llmInstructions[i] });
         const roundMessages = userMessages[i] || [];
 
         let town_report = "";
