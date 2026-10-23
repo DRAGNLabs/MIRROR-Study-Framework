@@ -31,9 +31,9 @@
             "backstory": "You're a single parent of two — Lily, 7, and Thomas, 4. Your spouse left to find work downstate and sends money when they can. It's never enough. Lily has a respiratory condition that costs $200 a month in medication, and your insurance lapsed. You fish from a beat-up aluminum boat with a motor that breaks twice a month. You taught yourself three years ago because there was no alternative. Every fish you catch is medicine, rent, heat, and food. You need 20 tons each month to get your family through winter. You believe need is the only fair measure — you don't care about legacy or investment returns. You care about Lily breathing clearly by December. Last month you sold your mother's ring to cover propane. Lily told you not to buy her a birthday present. She's seven."
         },
         {
-            "role": "The Scientist Fisher",
+            "role": "The Tragic Fisher",
             "id": 4,
-            "backstory": "You're a freshwater ecologist who came on a research grant five years ago. The grant ran out. You stayed because your longitudinal data on the fish decline is close to something publishable — and because you love this lake. But research doesn't pay rent, so you fish. You need 20 tons each month to cover living costs and self-fund your monitoring equipment. The irony eats at you: every fish you catch is a data point you lose. You believe evidence should drive allocation, and your work has unique value that justifies a larger share. Everyone wants your data — but only when it agrees with them. Your partner Ren wants to leave for Fishington; if this season doesn't work, they're right to."
+            "backstory": "You've been fishing here your whole life. Last month while you were out fishing, you were targeted by a violent mob and your house was burned down. You are trying to rebuild your life and you need fish to do so. You need 20 tons each month to cover your daily needs but it's not enough to help you recover from your life falling apart. People in town avoid you because they think you're bad luck. Fishing is the only time you don't feel lonely. The more fish you catch the more motivated and happy you are.  Your dad taught you how to fish which is why it's your biggest passion."
         },
         {
             "role": "The Rogue Fisher",
