@@ -165,9 +165,10 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
         ).join("\n");
 
         // do we want to put in this user instructions everytime?
-        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: practice ? "0 (practice round)" : i, town_report: town_report })} \n ${formattedUserMessages}` });
+        // messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: practice ? "0 (practice round)" : i, town_report: town_report })} \n ${formattedUserMessages}` });
+        messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, {fish_available: fish_amount[i], month: practice ? "0 (practice round)": i})} \n ${formattedUserMessages}`});
         if(!llmResponses[i]) break;
-        messages.push({ "role": "assistant", "content": llmResponses[i] })
+        messages.push({ "role": "assistant", "content": llmResponses[i] });
     }
 
     if(getInstructions) {
