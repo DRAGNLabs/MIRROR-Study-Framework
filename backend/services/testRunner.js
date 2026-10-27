@@ -62,8 +62,18 @@ export async function runAutomatedTest(io, roomCode, testUserCount) {
             throw new Error(`Game "${game.title}" has no role_prompt data (initial/enter/exit request text), so it can't be auto-played.`);
         }
 
-        const gameRoles = game.roles ?? [];
+        let gameRoles = game.roles ?? [];
         if (gameRoles.length === 0) throw new Error(`Game "${game.title}" has no roles defined.`);
+
+        // Testing 3-player rooms without the Desperate Fisher (role 3), since the LLM
+        // tends to favor it: seat Legacy (1), Growth (2), and Rogue (5) instead.
+        if (testUserCount === 3) {
+            const threePlayerRoleIds = ["1", "2", "5"];
+            const picked = threePlayerRoleIds
+                .map(id => gameRoles.find(r => String(r?.id) === id))
+                .filter(Boolean);
+            if (picked.length === threePlayerRoleIds.length) gameRoles = picked;
+        }
 
         console.log(`[Automated test] Room ${roomCode}: seating ${testUserCount} bot users...`);
 
