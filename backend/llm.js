@@ -38,6 +38,23 @@ export async function callLLM(messages, modelOverride) {
   return response.output_text;
 }
 
+// Same as callLLM, but uses structured outputs so the reply is JSON that matches
+// `schema` (no stray text or malformed JSON from the model)
+export async function callLLMJson(messages, modelOverride, schemaName, schema) {
+  const model = resolveModel(modelOverride);
+  const extractionModel =
+    (process.env.OPENAI_EXTRACTION_MODEL || "").trim() || model;
+
+  const response = await client.responses.create({
+    model: extractionModel,
+    input: messages,
+    text: {
+      format: { type: "json_schema", name: schemaName, schema, strict: true },
+    },
+  });
+  return response.output_text;
+}
+
 export async function streamLLM(prompt, onToken, modelOverride) {
   const model = resolveModel(modelOverride);
 

@@ -1,5 +1,5 @@
 import { loadGames } from "../services/gameLoader.js"
-import { streamLLM, callLLM } from "../llm.js";
+import { streamLLM, callLLMJson } from "../llm.js";
 import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData, appendPracticeMessage } from "../services/roomsService.js";
 import { getUser, updateUserStatus } from "../services/usersService.js"
 import { jsonrepair } from "jsonrepair";
@@ -51,6 +51,75 @@ function getStatusChange(game, user, name, allocation, tonsNeeded, prev_status) 
         good,
         message: promptSet ? fillPrompt(promptSet[kind], { user_name: name }) : null
     };
+}
+
+const EXTRACTION_ATTEMPTS = 3;
+
+// { "<userName>": <tons> } with one required key per player, so the extractor can't
+// skip, rename, or invent a player, and has to give each of them a number
+function allocationSchema(userNames) {
+    return {
+        type: "object",
+        properties: Object.fromEntries(userNames.map((name) => [name, { type: "number" }])),
+        required: userNames,
+        additionalProperties: false
+    };
+}
+
+// Returns { [userName]: tons allocated this round }. Tries up to EXTRACTION_ATTEMPTS
+// times, logging the extractor's raw reply whenever it can't be used, and throws
+// if every attempt fails.
+async function extractAllocations(extractionMessages, userNames, modelType, round) {
+    const schema = allocationSchema(userNames);
+    let lastError;
+    for (let attempt = 1; attempt <= EXTRACTION_ATTEMPTS; attempt++) {
+        let raw = "";
+        try {
+            raw = await callLLMJson(extractionMessages, modelType, "round_allocations", schema);
+            const cleaned = stripFences(raw);
+            let parsed;
+            try {
+                parsed = JSON.parse(cleaned);
+            } catch {
+                parsed = JSON.parse(jsonrepair(cleaned));
+            }
+
+            const fishByName = {};
+            for (const name of userNames) {
+                const fish = Number(parsed?.[name]);
+                if (!Number.isFinite(fish) || fish < 0) {
+                    throw new Error(`missing or invalid fish for "${name}"`);
+                }
+                fishByName[name] = fish;
+            }
+            return fishByName;
+        } catch (err) {
+            lastError = err;
+            console.error(`[Round ${round}] Extraction attempt ${attempt}/${EXTRACTION_ATTEMPTS} failed: ${err.message}\nRaw extractor reply: ${raw}`);
+        }
+    }
+    throw lastError;
+}
+
+// When a round's allocations couldn't be extracted, keep each user's status the same
+// for round + 1. Leaving it unset made the next round read it as 0, which looked like
+// every player had suddenly improved (and sent the LLM and bots the "exit" text).
+async function carryStatusForward(userIds, round) {
+    for (const userId of userIds) {
+        try {
+            const user = await getUser(userId);
+            const user_status = user?.user_status ?? {};
+            if (user_status[round + 1] != null) continue;
+            const lastKnownRound = Object.keys(user_status)
+                .map(Number)
+                .filter((r) => r <= round)
+                .sort((a, b) => b - a)[0];
+            user_status[round + 1] = lastKnownRound != null ? user_status[lastKnownRound] : 0;
+            await updateUserStatus(userId, user_status);
+        } catch (err) {
+            console.error(`[Round ${round}] Could not carry status forward for user ${userId}:`, err);
+        }
+    }
 }
 
 // Add this near the top of gameHandler.js
@@ -178,7 +247,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
     // console.log(`[Round ${round}] Sending ${messages.length} messages to LLM (getAllocation=${getAllocation})`);
     io.to(room.roomCode).emit("ai-start");
 
-    console.log("messages: ", messages);
+    // console.log("messages: ", messages);
     let buffer = "";
     await streamLLM(messages, token => {
         buffer += token;
@@ -216,10 +285,7 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
         }
 
         const extractionInput = {
-            round,
-            fish_available: fish_amount[round],
             userNames,
-            previousTotalFishByUserName: previousTotals,
             llmResponse: buffer,
         };
 
@@ -228,23 +294,16 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
             { role: "user", content: JSON.stringify(extractionInput, null, 2) },
         ];
 
-        let parsed;
-        try {
-            // we techinically don't need to pass modelType to callLLM, I've made it so callLLM uses a cheaper model in .env
-            const raw = await callLLM(extractionMessages, room.modelType);
-            const cleaned = stripFences(raw);
-            parsed = JSON.parse(cleaned);
-        } catch (err) {
-            const raw = await callLLM(extractionMessages, room.modelType);
-            const cleaned = stripFences(raw);
-            const repaired = jsonrepair(cleaned);
-            parsed = JSON.parse(repaired);
-        }
+        // callLLMJson uses OPENAI_EXTRACTION_MODEL from .env if it's set, otherwise the room's model
+        const fishByName = await extractAllocations(extractionMessages, userNames, room.modelType, round);
 
-        const allocationByUserName =
-            parsed.allocationByUserName && typeof parsed.allocationByUserName === "object"
-                ? parsed.allocationByUserName
-                : {};
+        // round and totalFishSoFar are filled in here rather than by the extractor,
+        // which sometimes copied totals out of the memo instead of adding them up
+        const allocationByUserName = Object.fromEntries(userNames.map((name) => [name, {
+            fish: fishByName[name],
+            round,
+            totalFishSoFar: (previousTotals[name] || 0) + fishByName[name]
+        }]));
 
         // Previously fish_left came from the extractor's own fish_left field, which could disagree with allocationByUserName, I think this would've been the cause for 
         // const fish_left = typeof parsed.fish_left === "number" ? parsed.fish_left : fish_amount[round];
@@ -312,13 +371,15 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
             assistantMessage: buffer
         };
         await updateResourceAllocations(existingResourceAllocations, roomCode);
-        // console.log(`[Round ${round}] Extraction succeeded, fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
-        console.log(`[Round ${round}] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated}), extractor fish_left=${typeof parsed.fish_left === "number" ? parsed.fish_left : "missing"}`);
+        console.log(`[Round ${round}] Extraction succeeded, fish_left=${fish_left} (allocated=${allocated})`);
     } catch (err) {
         console.error(`[Round ${round}] Extraction failed, continuing with natural response:`, err);
         if (!practice) {
             fish_amount[round + 1] = fish_amount[round];
             await updateFishAmount(fish_amount, roomCode);
+            if (game.role_prompt) {
+                await carryStatusForward(allUserIds, round);
+            }
         }
     }
 
