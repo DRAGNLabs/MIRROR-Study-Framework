@@ -29,7 +29,6 @@ export function Interaction(){
             return "";
         }
     });
-
     const [sentMessages, setSentMessages] = useState(0);
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
@@ -115,6 +114,25 @@ export function Interaction(){
     }, [prompt]);
 
 
+
+    useEffect(() => {
+        try {
+            if (prompt) {
+                localStorage.setItem(draftStorageKey, prompt);
+            } else {
+                localStorage.removeItem(draftStorageKey);
+            }
+        } catch {
+            // Ignore storage quota / private-mode failures
+        }
+    }, [prompt, draftStorageKey]);
+
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+    }, [prompt]);
 
     const handleSubmit = async(e) => {
         e.preventDefault();
