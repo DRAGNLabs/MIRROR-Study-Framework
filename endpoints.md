@@ -36,11 +36,15 @@
 | GET | /api/rooms/:roomCode/login | I honestly don't know the point of this endpoint | None |
 | DELETE | /api/rooms/delete/:roomCode | Deletes a room based on roomCode | None |
 | GET | /api/rooms/:roomCode | Gets room with specific roomCode | None
+| GET | /api/rooms/:roomCode/deidentification-preview | Returns a proposed redaction of one completed room and its users/surveys without writing changes | None |
+| POST | /api/rooms/:roomCode/deidentify | Permanently pseudonymizes one completed room and its users/surveys in one transaction; requires server-verified admin password and the reviewed preview token | { password, confirmationToken } |
 | GET | /api/rooms/:roomCode/users | Gets all users that are in room (uses userIds in room table to query users table) | None |
 | PATCH | /api/rooms/:roomCode/status | Updates status for room whenever admin navigates to a new page (available values are waiting, instruction, interactions, and survey) | { status } |
 | PUT | /api/rooms/complete/:roomCode | Changes room state from incomplete to complete, honestly don't see the point of this endpoint | None |
 | PUT | /api/rooms/incomplete/:roomCode | Changes room state from incomplete to complete | None |
 | PATCH | /api/rooms/:roomCode/currRound | Updates current round whenever a round ends | { currRound } |
+
+The deidentification preview replaces rostered participant names with `Participant <userId>` and applies deterministic patterns for email addresses, formatted phone numbers, and recognizable street addresses/location labels. Pattern matching can miss PII or redact non-PII text. Stable participant IDs remain, so this is pseudonymization and does not guarantee anonymity. The confirmation endpoint rechecks the admin password and updates only the selected completed room, its users, and its surveys; it does not retain an automatic undo mapping.
 
 
 

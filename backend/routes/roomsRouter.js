@@ -1,7 +1,20 @@
 import express from "express";
 const router = express.Router();
 import db from "../db.js"; 
+import bcrypt from "bcrypt";
 import {getModelIds, updateModel} from "../llm.js"
+import {
+  CompletedRoomNotFoundError,
+  DeidentificationPreviewChangedError,
+  deidentificationPreviewToken,
+  persistRoomDeidentification,
+} from "../deidentify/deidentifyRoom.js";
+import {
+  buildDeidentificationData,
+  buildPreviewExport,
+  DuplicateParticipantNameError,
+  RedactionCollisionError,
+} from "../deidentify/pseudonymize.js";
 import { syncFolderRooms } from "./foldersRouter.js";
 import { loadGames } from "../services/gameLoader.js";
 
@@ -453,6 +466,192 @@ router.delete("/delete/:roomCode", async (req,res) => {
 
 });
 
+async function getCompletedRoomData(queryable, roomCode, lockRows = false) {
+  const lock = lockRows ? " FOR UPDATE" : "";
+  const roomResult = await queryable.query(
+    `SELECT * FROM rooms WHERE "roomCode" = $1${lock}`,
+    [roomCode]
+  );
+  const room = roomResult.rows[0];
+  if (!room || room.completed !== true) return null;
+
+  const usersResult = await queryable.query(
+    `SELECT "userId", "userName", "roomCode", role
+     FROM users
+     WHERE "roomCode" = $1
+     ORDER BY "userId"${lock}`,
+    [roomCode]
+  );
+  const surveysResult = await queryable.query(
+    `SELECT "roomCode", "userId", data
+     FROM survey
+     WHERE "roomCode" = $1
+     ORDER BY "userId"${lock}`,
+    [roomCode]
+  );
+
+  return {
+    room,
+    users: usersResult.rows,
+    surveys: surveysResult.rows,
+  };
+}
+
+function validRoomCode(value) {
+  if (!/^\d+$/.test(String(value))) return null;
+  const roomCode = Number(value);
+  return Number.isSafeInteger(roomCode) ? roomCode : null;
+}
+
+router.get("/:roomCode/deidentification-preview", async (req, res) => {
+  try {
+    const roomCode = validRoomCode(req.params.roomCode);
+    if (roomCode === null) {
+      return res.status(400).json({ error: "Invalid room code" });
+    }
+
+    const data = await getCompletedRoomData(db, roomCode);
+    if (!data) {
+      return res.status(404).json({ error: "Completed room not found" });
+    }
+
+    const preview = buildDeidentificationData(data);
+    return res.status(200).json({
+      ...preview,
+      confirmationToken: deidentificationPreviewToken(preview),
+      notice:
+        "Preview only. Automated matching can miss identifying details or redact non-identifying text. Review the output carefully; stable participant IDs remain.",
+    });
+  } catch (err) {
+    if (err instanceof DuplicateParticipantNameError) {
+      return res.status(409).json({ error: err.message });
+    }
+    if (err instanceof RedactionCollisionError) {
+      return res.status(409).json({
+        error: "The preview could not safely redact a conflicting data key.",
+      });
+    }
+    console.error("Error creating deidentification preview:", err);
+    return res.status(500).json({ error: "Unable to create deidentification preview" });
+  }
+});
+
+router.post("/:roomCode/deidentify", async (req, res) => {
+  const roomCode = validRoomCode(req.params.roomCode);
+  if (roomCode === null) {
+    return res.status(400).json({ error: "Invalid room code" });
+  }
+  if (typeof req.body?.password !== "string" || !req.body.password) {
+    return res.status(400).json({ error: "Admin password is required" });
+  }
+  if (
+    typeof req.body?.confirmationToken !== "string" ||
+    !/^[a-f\d]{64}$/i.test(req.body.confirmationToken)
+  ) {
+    return res.status(400).json({ error: "A valid preview confirmation token is required" });
+  }
+
+  const passwordHash = process.env.ADMIN_PASSWORD_HASH;
+  if (!passwordHash) {
+    console.error("ADMIN_PASSWORD_HASH is not configured");
+    return res.status(500).json({ error: "Admin password verification is unavailable" });
+  }
+
+  let isAdmin;
+  try {
+    isAdmin = await bcrypt.compare(req.body.password, passwordHash);
+  } catch (err) {
+    console.error("Unable to verify admin password:", err);
+    return res.status(500).json({ error: "Unable to verify admin password" });
+  }
+  if (!isAdmin) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  let client;
+  try {
+    client = await db.connect();
+    const summary = await persistRoomDeidentification(
+      client,
+      roomCode,
+      getCompletedRoomData,
+      req.body.confirmationToken
+    );
+    return res.status(200).json({
+      message: "Completed room data was pseudonymized using the selected rules.",
+      summary,
+    });
+  } catch (err) {
+    if (err instanceof CompletedRoomNotFoundError) {
+      return res.status(404).json({ error: err.message });
+    }
+    if (err instanceof DeidentificationPreviewChangedError) {
+      return res.status(409).json({ error: err.message });
+    }
+    if (err instanceof DuplicateParticipantNameError) {
+      return res.status(409).json({ error: err.message });
+    }
+    if (err instanceof RedactionCollisionError) {
+      return res.status(409).json({
+        error: "Data could not be safely redacted because transformed keys would collide.",
+      });
+    }
+    console.error("Error deidentifying completed room:", err);
+    return res.status(500).json({ error: "Unable to deidentify completed room" });
+  } finally {
+    client?.release();
+  }
+});
+
+// Downloads a labeled preview of a completed room without changing the database.
+router.get("/:roomCode/export", async (req, res) => {
+  try {
+    const roomCode = parseInt(req.params.roomCode, 10);
+    if (!Number.isInteger(roomCode)) {
+      return res.status(400).json({ message: "roomCode is required" });
+    }
+
+    const roomResult = await db.query(
+      'SELECT * FROM rooms WHERE "roomCode" = $1',
+      [roomCode]
+    );
+    const room = roomResult.rows[0];
+    if (!room || room.completed !== true) {
+      return res.status(404).json({ message: "Completed room not found" });
+    }
+
+    const usersResult = await db.query(
+      `SELECT "userId", "userName", "roomCode", role
+       FROM users
+       WHERE "roomCode" = $1
+       ORDER BY "userId"`,
+      [roomCode]
+    );
+    const surveysResult = await db.query(
+      `SELECT "roomCode", "userId", data
+       FROM survey
+       WHERE "roomCode" = $1
+       ORDER BY "userId"`,
+      [roomCode]
+    );
+
+    const body = buildPreviewExport({
+      room,
+      users: usersResult.rows,
+      surveys: surveysResult.rows,
+    });
+    const filename = `room-${roomCode}-preview.json`;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    return res.status(200).send(`${JSON.stringify(body, null, 2)}\n`);
+  } catch (err) {
+    if (err instanceof DuplicateParticipantNameError) {
+      return res.status(409).json({ error: err.message });
+    }
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 // gets the practice flag for a room
 router.get("/:roomCode/practice", async (req, res) => {
   try {
