@@ -1,22 +1,25 @@
 import { API_BASE } from "../config.js";
 
 // creates new room in rooms table
-export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType){ 
+export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType, isTest=false, folderId=null){
   const res = await fetch(`${API_BASE}/rooms`, {
-    method: 'POST', 
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       roomCode: Number(roomCode),
       gameType: Number(gameType),
       numRounds: Number(numRounds),
       usersNeeded: Number(usersNeeded),
-      ...(modelType ? { modelType } : {})
+      ...(modelType ? { modelType } : {}),
+      isTest: !!isTest,
+      folderId: folderId ?? null
     }), //do we need the Number() function, idk
   })
   if(!res.ok) throw new Error("Error creating room.");
 
   return res.json();
 }
+
 
 // get room with specified roomCode
 export async function getRoom(roomCode) {
@@ -26,6 +29,30 @@ export async function getRoom(roomCode) {
     throw new Error("Can't get room.");
   }
   
+  return response.json();
+}
+
+// gets the practice setting for a room
+export async function getRoomPractice(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practice`);
+  if (!response.ok) {
+    throw new Error(`Can't get practice setting for room ${roomCode}.`);
+  }
+
+  return response.json();
+}
+
+// updates the practice setting for a room
+export async function updateRoomPractice(practice, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practice`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ practice })
+  });
+  if (!response.ok) {
+    throw new Error(`Can't update practice setting for room ${roomCode}.`);
+  }
+
   return response.json();
 }
 
@@ -120,6 +147,17 @@ export async function closeARoom(roomCode){
   return response.json();
 }
 
+// moves a room into a folder (null removes it from its folder)
+export async function setRoomFolder(roomCode, folderId) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/folder`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ folderId: folderId ?? null })
+  });
+  if (!response.ok) throw new Error("Error moving room to folder");
+  return response.json();
+}
+
 //makes a room complete to move it from "rooms" tab to "completed"
 export async function markCompleted(roomCode) {
   const response = await fetch(`${API_BASE}/rooms/complete/${roomCode}`, {
@@ -192,3 +230,31 @@ export async function updateStatus(roomCode, status) {
   if(!response.ok) throw new Error("Error updating status");
   return response.json();
 }
+
+//gets the list of available models to populate scrollbar
+export async function getModels() {
+  const response = await fetch(`${API_BASE}/rooms/models`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if (!response.ok) throw new Error("Error getting models");
+  console.log("here")
+  // console.log(response)
+  return response.json();
+}
+
+export async function sendModel(model, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/updateModel`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({model: model})
+  });
+
+  if (!response.ok) {
+    throw new Error("Error updating model");
+  }
+
+  return response.json();
+}
+

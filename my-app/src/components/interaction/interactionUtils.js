@@ -1,28 +1,44 @@
 
-import { getUser, getUserRole } from "../../services/usersService";  
+import { getUser, getUserRole} from "../../services/usersService";  
 import { getRoom } from "../../services/roomsService"; 
 import games from "../../gameLoader"; 
     
 export async function loadRoomState(
-    isAdmin, 
-    roomCode, 
-    user=null, 
-    isStreamingRef, 
-    loadCurrUserMessages, 
+    isAdmin,
+    roomCode,
+    user=null,
+    isStreamingRef,
+    loadCurrUserMessages,
     setMessages,
     setResourceHistory,
-    setCanSend=null, 
-    setHasSentThisRound=null, 
-    setGame=null, 
-    setUserRole=null
+    setSentMessages,
+    setCanSend=null,
+    setHasSentThisRound=null,
+    setGame=null,
+    setUserRole=null,
+    setStatusHistory=null,
 ) {
     try {
         const room = await getRoom(roomCode);
+        const practiceData = room.practiceData ?? {};
+        // Practice results (allocations, status) only show until the real game
+        // starts — none of it carries over into the real game.
+        const inPracticePhase = !!room.practice && !practiceData.officialStarted;
         if (!isAdmin && user) {
             const gameData = games.find(g => parseInt(g.id) === room.gameType);
             const { role } = await getUserRole(user.userId);
-            setUserRole(gameData.roles[parseInt(role) - 1]);
+            setUserRole(fillRoleTons(gameData.roles[parseInt(role) - 1], room.tons_needed));
             setGame(gameData);
+
+            if (setStatusHistory && gameData?.role_prompt) {
+                const fullUser = await getUser(user.userId);
+                const history = buildStatusHistory(fullUser, gameData, room.curr_round);
+                const practiceStatus = practiceData.statusByUserId?.[user.userId];
+                if (inPracticePhase && practiceStatus?.message) {
+                    history.unshift({ round: 0, isPractice: true, ...practiceStatus });
+                }
+                setStatusHistory(history);
+            }
         }
 
         const llmInstructions = room.llmInstructions ?? {};
@@ -30,6 +46,16 @@ export async function loadRoomState(
         const llmResponse = room.llmResponse ?? {};
         const numRounds = room.numRounds ?? 1;
         const fish_amount = room.fish_amount ?? {};
+        const practiceInProgress = practiceData.status === "in_progress";
+
+        const currentRound = room.curr_round;
+        const currentRoundMessages = practiceInProgress
+            ? (practiceData.messages ?? [])
+            : (userMessages[currentRound] || []);
+        setSentMessages(currentRoundMessages.length);
+
+
+
 
         const { messages, canSend, hasSentThisRound } = await resetMessages(
             llmInstructions,
@@ -57,6 +83,13 @@ export async function loadRoomState(
                             allocations: allocationByUserName
                         };
                     });
+                if (inPracticePhase && practiceData.allocations && Object.keys(practiceData.allocations).length > 0) {
+                    history.unshift({
+                        round: 0,
+                        isPractice: true,
+                        allocations: practiceData.allocations
+                    });
+                }
                 setResourceHistory(history);
             } catch (err) {
                 console.error("Error parsing resourceAllocations:", err);
@@ -69,14 +102,97 @@ export async function loadRoomState(
         if (isStreamingRef.current) {
             return;
         }
-        setMessages(messages);
+        const practiceMessages = [];
+        if (practiceData.instructions && !practiceData.officialStarted) {
+            practiceMessages.push({
+                sender: "llm",
+                id: "practice-instructions",
+                text: practiceData.instructions
+            });
+            for (const [messageUserId, text] of practiceData.messages ?? []) {
+                const messageUser = await getUserName(messageUserId);
+                practiceMessages.push({
+                    sender: "user",
+                    id: `${messageUserId}-0`,
+                    userName: messageUser.userName,
+                    text
+                });
+            }
+            if (practiceData.response) {
+                practiceMessages.push({
+                    sender: "llm",
+                    id: "practice-response",
+                    text: practiceData.response
+                });
+            }
+            // matches PRACTICE_FINISHED_MESSAGE in backend/socket/gameHandler.js
+            if (practiceData.status === "complete") {
+                practiceMessages.push({
+                    sender: "user",
+                    userName: "Admin",
+                    id: "practice-finished",
+                    text: "Practice round finished. The real game will start shortly."
+                });
+            }
+        }
+
+        setMessages([...practiceMessages, ...messages]);
         if(!isAdmin) {
-            setCanSend(canSend);
-            setHasSentThisRound(hasSentThisRound);
+            if (practiceInProgress) {
+                const sentPracticeMessage = (practiceData.messages ?? [])
+                    .some(([messageUserId]) => messageUserId === user.userId);
+                setCanSend(!!practiceData.instructions && !sentPracticeMessage);
+                setHasSentThisRound(sentPracticeMessage);
+            } else {
+                setCanSend(canSend);
+                setHasSentThisRound(hasSentThisRound);
+            }
         }
     } catch (err) {
         console.error("Failed to load room state:", err);
     } 
+}
+
+export function fillRoleText(template, userName, tons) {
+    if (typeof template !== "string") return "";
+    return template
+        .replace(/\{\{user_name\}\}/g, userName ?? "")
+        .replace(/\{\{tons\}\}/g, tons ?? "");
+}
+export function fillRoleTons(role, tons) {
+    if (!role) return role;
+    return { ...role, backstory: fillRoleText(role.backstory, "", tons) };
+}
+
+
+export function buildStatusHistory(fullUser, game, currentRound) {
+    const rolePrompts = game?.role_prompt?.[fullUser?.role];
+    const userStatus = fullUser?.user_status;
+    if (!rolePrompts || !userStatus) return [];
+
+    const history = [];
+    for (let i = 2; i <= currentRound; i++) {
+        if (userStatus[i] == null || userStatus[i - 1] == null) continue;
+        const status = userStatus[i];
+        const prev_status = userStatus[i - 1];
+        if (status === prev_status) continue;
+
+        const isExit =
+            (prev_status < status && prev_status < 0) ||
+            (prev_status > status && prev_status > 0);
+        const promptSet = rolePrompts[isExit ? prev_status : status];
+        if (!promptSet) continue;
+
+        const kind = isExit ? "exit" : "enter";
+        history.push({
+            round: i,
+            status,
+            kind,
+            good: status > prev_status,
+            message: fillRoleText(promptSet[kind], fullUser.userName)
+        });
+    }
+    return history;
 }
 
 async function getUserName(id) {

@@ -13,10 +13,15 @@ export function socketListener(roomCode, isAdmin, user) {
             socket.emit("join-room", {roomCode, isAdmin, user});
         }
 
+        // `on` (not `once`): Socket.IO fires "connect" again after every
+        // automatic reconnect (dropped wifi, phone backgrounded, Railway
+        // proxy cycling the connection, etc.), and each time it does, the
+        // server has forgotten this socket was in the room. Re-emitting
+        // join-room here is what makes the client start receiving
+        // room-broadcast events again without a manual page refresh.
+        socket.on("connect", handleConnect);
         if (socket.connected) {
             handleConnect();
-        } else {
-            socket.once("connect", handleConnect);
         }
 
         socket.on("force-return-to-login", () => {
@@ -26,7 +31,7 @@ export function socketListener(roomCode, isAdmin, user) {
 
         socket.on("change-status", ({ status }) => {
             if (isAdmin) {
-                navigate(`admin/${status}`, { state: { roomCode }});
+                navigate(`/admin/${status}`, { state: { roomCode }});
             } else {
                 navigate(`/${status}`, { state: { user }})
             }

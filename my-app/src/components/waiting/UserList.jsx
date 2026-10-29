@@ -5,7 +5,7 @@ export function UserList({ users, usersNeeded, variant="user" }) {
     <div className={className}>
       <h3>{usersNeeded ? "Participants" : "Users in Room:"}</h3>
       {usersNeeded && (
-        <p className="users-progress">{users.length} / {usersNeeded} joined</p>
+        <p className="users-progress">{users.length} joined (min {usersNeeded})</p>
       )}
       <ul>
         {users.map((u, idx) => (

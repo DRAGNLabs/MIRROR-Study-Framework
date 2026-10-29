@@ -9,6 +9,7 @@ import userRouter from "./routes/userRouter.js";
 import surveyRouter from "./routes/surveyRouter.js";
 import adminRouter from "./routes/adminRouter.js";
 import roomsRouter from "./routes/roomsRouter.js"
+import foldersRouter from "./routes/foldersRouter.js";
 import "./initDB.js";
 import { createServer } from 'http';
 import { initializeSocketServer } from "./socket/socketServer.js";
@@ -28,6 +29,9 @@ const httpServer = createServer(app);
 // In production single-service mode, frontend is served from the same origin,
 // so CORS is not strictly needed. This is mainly for local dev where the
 // Vite dev server (port 5173) and backend (port 3001) run on different ports.
+// const corsOrigin = process.env.CORS_ORIGIN
+//     ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+//     : ['http://localhost:5173'] //'http://10.37.255.255:5173'];
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 initializeSocketServer(httpServer, corsOrigin);
 
@@ -37,6 +41,7 @@ app.use(express.json());
 app.use("/api/users", userRouter);
 app.use("/api/survey", surveyRouter);
 app.use("/api/rooms", roomsRouter);
+app.use("/api/folders", foldersRouter);
 app.use("/api/admin", adminRouter);
 
 // [Railway] Serve the React frontend's built static files from the backend.
@@ -55,6 +60,6 @@ app.get("/{*splat}", (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-httpServer.listen(PORT, () =>
+httpServer.listen(PORT, "0.0.0.0", () =>
     console.log(`Server running on port ${PORT}`)
 );

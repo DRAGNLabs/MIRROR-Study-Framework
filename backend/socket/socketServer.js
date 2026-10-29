@@ -1,12 +1,21 @@
 import { Server } from 'socket.io';
 import { handleCloseRoom, handleDisconnect, handleJoinRoom } from './socketHandlers.js';
-import { surveyComplete, getLlmInstructions, submitUserMessages, deleteTimer } from './gameHandler.js';
+import { surveyComplete, getLlmInstructions, practiceRoundInstructions, startOfficialGame, submitUserMessages, deleteTimer } from './gameHandler.js';
+import { runAutomatedTest } from '../services/testRunner.js';
 
 export function initializeSocketServer(httpServer, corsOrigin) {
     const io = new Server(httpServer, {
         cors: {
             origin: corsOrigin,
             methods: ['GET', 'POST']
+        },
+        // Bridges brief drops (mobile network handoffs, Railway's proxy
+        // cycling idle connections) by keeping the socket's room
+        // membership and replaying missed broadcasts for a short window
+        // after reconnect, instead of silently losing them.
+        connectionStateRecovery: {
+            maxDisconnectionDuration: 2 * 60 * 1000,
+            skipMiddlewares: true,
         }
     });
 
@@ -30,8 +39,7 @@ io.on("connection", (socket) => {
         io.to(roomCode).emit("change-status", { status });
     })
 
-
-    // this triggers when admin starts game in roomManagement
+// this triggers when admin starts game in roomManagement
     // socket.on("start-game", async ({roomCode}) => {
     //     if (!roomCode) return;
     //     // this one will send users from waitingRoom to interactions page
@@ -41,6 +49,21 @@ io.on("connection", (socket) => {
     // when admin clicks start on roomManagment page it triggers the round to start and generate the instructions from the LLM
     socket.on("start-round", async ({ roomCode, round }) => {
         await getLlmInstructions(io, roomCode, round);
+    });
+    socket.on("practice-round", async ({ roomCode }) => {
+        await practiceRoundInstructions(io, roomCode);
+    });
+    socket.on("start-official-game", async ({ roomCode }) => {
+        await startOfficialGame(io, roomCode);
+    });
+
+    // Kicks off a full automated playthrough with simulated bot users and
+    // predetermined per-role messages (see testRunner.js) — fire-and-forget
+    // since a full run can take minutes; it logs its own errors and marks
+    // the room completed itself when done.
+    socket.on("run-automated-test", ({ roomCode, testUserCount }) => {
+        if (!roomCode || !testUserCount) return;
+        runAutomatedTest(io, roomCode, testUserCount);
     });
 
     socket.on('startTimer', () => {

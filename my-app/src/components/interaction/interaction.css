@@ -2,7 +2,7 @@
 
 /* === User Interaction Screen (Light Mode) === */
 .interactions-container {
-  max-height: 100vh;
+  /* max-height: 100vh; */
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -10,11 +10,11 @@
   overflow: hidden;
 }
 
-@media (max-width: 960px) {
+/* @media (max-width: 960px) {
   .interactions-container.has-timer {
     padding-top: 50px;
   }
-}
+} */
 
 body:has(.interactions-container),
 body:has(.admin-interaction-page) {
@@ -25,7 +25,7 @@ body:has(.admin-interaction-page) {
 
 .interactions-container.has-timer {
   height: calc(100vh - 50px);
-  max-height: calc(100vh - 50px);
+  /* max-height: calc(100vh - 50px); */
 }
 
 .interaction-header {
@@ -52,6 +52,11 @@ body:has(.admin-interaction-page) {
 
 .interaction-header-title {
   margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 1.125rem;
   font-weight: 600;
   color: #1e293b;
@@ -112,6 +117,8 @@ body:has(.admin-interaction-page) {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @media (max-width: 960px) {
@@ -130,9 +137,22 @@ body:has(.admin-interaction-page) {
     max-width: none;
     border-radius: 0;
     overflow-y: auto;
-    padding-top: 56px;
+    padding-top: 58px;
   }
+
+    .resources-panel.mobile-visible .mobile-timer-bar.modal-timer {
+      position: fixed; /* Fixed to viewport, not container */
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1002; /* Above panel content */
+      margin: 0;
+      border-radius: 0;
+  }
+   
 }
+
+
 
 .resources-toggle-btn {
   display: none;
@@ -150,8 +170,6 @@ body:has(.admin-interaction-page) {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* width: 40px;
-    height: 40px; */
     background: #2563eb;
     color: white;
     border: none;
@@ -191,12 +209,11 @@ body:has(.admin-interaction-page) {
 /* === Chat Container (light mode for users) === */
 .chat-container {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   max-width: 52rem;
   width: 100%;
-  /* margin: 1.5rem auto; */
-  /* padding: 0 1rem; */
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
@@ -216,10 +233,7 @@ body:has(.admin-interaction-page) {
 .chat-box {
   flex: 1;
   min-height: 12rem;
-  /* max-height: 60vh; */
-  min-height: 12rem;
-  /* max-height: calc(100vh - 14rem); */
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem 1.25rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -324,6 +338,12 @@ body:has(.admin-interaction-page) {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+@media (max-width: 960px) {
+  .chat-input {
+    font-size: 16px !important; /* Prevents iOS zoom */
+  }
+}
+
 .chat-input::placeholder {
   color: #94a3b8;
 }
@@ -386,14 +406,16 @@ body:has(.admin-interaction-page) {
 .modal-card {
   background: #ffffff;
   color: #1e293b;
-  padding: 24px;
+  padding: 0;
   max-width: 600px;
   width: 90%;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow-y: hidden;
   border-radius: 12px;
   position: relative;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
 }
 
 .instructions-close {
@@ -403,59 +425,103 @@ body:has(.admin-interaction-page) {
   background: #2563eb; 
 }
 
-/* .instructions-close {
-  float: right;
-  border: none;
-  background: #2563eb;
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 20px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-  margin: 0 0 8px 8px;
-} */
-/* .instructions-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  border: none;
-  background: #2563eb;
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  font-size: 20px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-  z-index: 10;
-} */
  
 .modal-close {
-  /* position: sticky; */
-  /* z-index: 1000; */
-  /* top: 12px; */
-  /* float: right; */
-  /* right: 12px;
-  border: none; */
   background: #2563eb;
-  /* background: #7abed4; */
-  /* font-size: 10px;
-  cursor: pointer; */
 }
 
 
 .modal-card h2 {
   text-align: center;
+}
+
+/* Status update popup (private per-user "something happened" notice) */
+.status-update-card {
+  max-width: 480px;
+  border-top: 6px solid #94a3b8;
+}
+
+.status-update-card--good {
+  border-top-color: #16a34a;
+}
+
+.status-update-card--good .instruction-modal-header h2 {
+  color: #15803d;
+}
+
+.status-update-card--bad {
+  border-top-color: #dc2626;
+}
+
+.status-update-card--bad .instruction-modal-header h2 {
+  color: #b91c1c;
+}
+
+.status-update-card .modal-content-wrapper p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+/* Status history list (the "My Status" button's modal) */
+.status-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-history-item {
+  border-left: 4px solid #94a3b8;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.status-history-item--good {
+  border-left-color: #16a34a;
+}
+
+.status-history-item--bad {
+  border-left-color: #dc2626;
+}
+
+.status-history-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.status-history-round {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.status-history-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+  color: #fff;
+}
+
+.status-history-item--good .status-history-badge {
+  background: #16a34a;
+}
+
+.status-history-item--bad .status-history-badge {
+  background: #dc2626;
+}
+
+.status-history-message {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #334155;
 }
 
 
@@ -466,10 +532,6 @@ body:has(.admin-interaction-page) {
 }
 
 .info-icon-button {
-  /* width: 36px;
-  height: 36px;
-  border-radius: 50%; */
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -484,10 +546,6 @@ body:has(.admin-interaction-page) {
 
   cursor: pointer;
 
-  /* transition:
-    background-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.1s ease; */
 }
 
 .info-icon-button:hover {
@@ -534,6 +592,31 @@ body:has(.admin-interaction-page) {
   margin: 0.15rem 0 0 0;
   font-size: 0.8125rem;
   color: #64748b;
+}
+
+.resources-summary {
+  flex: 0 0 auto;
+}
+
+.resources-history-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+/* Same "sent" confirmation shown on the mobile status bar, surfaced here
+   too so laptop-width users (who never see that bar) still get it. */
+.resources-sent-confirmation {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.5rem 0;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #15803d;
+  background: #dcfce7;
+  border-radius: 9999px;
 }
 
 .resources-round-pill {
@@ -685,14 +768,14 @@ body:has(.admin-interaction-page) {
 
 
 @media (max-width: 960px) {
-  .admin-interaction-page {
+  /* .admin-interaction-page {
     max-height: 100vh;
     min-height: 0vh;
-  }
+  } */
 
-  .admin-interaction-page.has-timer {
+  /* .admin-interaction-page.has-timer {
     padding-top: 50px;
-  }
+  } */
 
   body:has(.admin-interaction-page) nav {
     display: none;
@@ -748,6 +831,8 @@ body:has(.admin-interaction-page) {
   gap: 1.5rem;
   padding: 1.5rem 1.5rem 2rem;
   box-sizing: border-box;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @media (max-width: 960px) {
@@ -954,8 +1039,7 @@ body:has(.admin-interaction-page) {
 
 .admin-interaction-chat-box {
   flex: 1;
-  min-height: 12rem;
-  max-height: calc(100vh - 16rem);
+  min-height: 0;
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
   display: flex;
@@ -1022,6 +1106,8 @@ body:has(.admin-interaction-page) {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 @media (max-width: 960px) {
@@ -1042,7 +1128,73 @@ body:has(.admin-interaction-page) {
     overflow-y: auto;
     padding-top: 56px;
   }
+
+    .admin-resources-panel.mobile-visible .mobile-timer-bar.modal-timer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1002;
+    margin: 0;
+    border-radius: 0;
+  }
 }
+
+.instruction-modal-header {
+  display: flex;
+  justify-content: space-between;
+  /* position: sticky; */
+  /* top: 0;
+  z-index: 10; */
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  /* padding-top: 3rem; */
+  /* padding: 24px 24px 16px 24px; */
+  border-bottom: 1px solid #e2e8f0;
+  /* flex-shrink: 0; */
+}
+ 
+.instruction-modal-header h2 {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+ 
+.instructions-close:hover {
+  background: #1d4ed8;
+}
+
+/* Content wrapper - scrollable area */
+.modal-content-wrapper {
+  flex: 1; /* Take all remaining space */
+  overflow-y: auto; /* Scroll when content overflows */
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  background: #fafafa;
+}
+ 
+/* Content styling */
+.modal-content-wrapper p {
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+  color: #475569;
+}
+ 
+.modal-content-wrapper h3 {
+  margin: 1.5rem 0 0.75rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+ 
+.modal-content-wrapper h3:first-child {
+  margin-top: 0;
+}
+
 
 
 .admin-resources-panel .resources-title {
@@ -1183,36 +1335,67 @@ body:has(.admin-interaction-page) {
   display: none;
 }
 
+/* Shows send confirmation + the running sent-count on narrow screens, where
+   the resources panel (which already shows this on desktop) is hidden
+   behind the "Resources" toggle button. Admin doesn't send messages, so
+   this only appears in Interaction.jsx, never AdminInteraction.jsx. */
+.mobile-sent-status-bar {
+  display: none;
+}
+
+
 @media (max-width: 960px) {
   .mobile-timer-bar {
     display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1002;
-    padding: 12px;
+    padding: 10px 12px;
     margin: 0;
     background: linear-gradient(135deg, #394bf0 0%, #5b5bd6 100%);
     color: white;
     text-align: center;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 14px; /* Slightly smaller */
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     border-radius: 0;
+    /* Force GPU acceleration */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    will-change: transform;
   }
-  
+
   .mobile-timer-bar.urgent {
     background: linear-gradient(135deg, #f91313 0%, #e30724c1 100%);
     animation: pulse 1s infinite;
   }
-  
-  /* Hide timer in resources panel on mobile since it's at top */
+
+  .mobile-sent-status-bar {
+    display: block;
+    padding: 8px 12px;
+    margin: 0;
+    background: #f1f5f9;
+    color: #475569;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  /* Stronger visual confirmation once this user's own message is in */
+  .mobile-sent-status-bar.sent {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  /* Adjust container padding */
+  /* .interactions-container.has-timer {
+    padding-top: 42px;
+  } */
+
+  /* Hide timer in resources panel */
   .resources-panel .timer-warning {
     display: none;
   }
 }
- 
+
 
 /* Pulse animation for urgent timer */
 @keyframes pulse {

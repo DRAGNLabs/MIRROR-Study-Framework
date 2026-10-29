@@ -1,5 +1,6 @@
 import express from "express";
-import db from "../db.js"; 
+import db from "../db.js";
+import { isUserNameActive } from "../socket/socketHandlers.js";
  
 const router = express.Router();
 
@@ -125,7 +126,8 @@ router.get("/:userId", async (req, res) => {
 });
 
 
-
+// gets user with specific userName and roomCode
+// what is the point of this endpoint?
 router.get("/:userName/:roomCode", async (req, res) => {
     try {
         const userName = req.params.userName;
@@ -148,7 +150,8 @@ router.get("/:userName/:roomCode", async (req, res) => {
         if (row === undefined) {
                 return res.status(200).json(null);
         }
-        res.status(200).json(row);
+
+        res.status(200).json({ ...row, connected: isUserNameActive(roomCode, userName) });
 
 
     } catch (err) {
@@ -186,6 +189,38 @@ router.delete("/delete/:userId", async (req,res) => {
     } catch (err) {
         console.error("Error deleting user:", err);
         return res.status(500).json({ success: false, message: "Error deleting user." });
+    }
+
+});
+
+
+// updates user_status for user
+router.patch("/:userId/user_status", async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { user_status } = req.body;
+        if (userId === undefined || user_status === undefined) {
+            return res.status(400).json({ error: "userId and user_status are required"});
+        }
+
+        const result = await db.query(
+            'UPDATE users SET user_status = $1 WHERE "userId" = $2 RETURNING user_status, "userId";', 
+            [user_status, userId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        return res.status(200).json({
+            userId: result.rows[0].userId, 
+            user_status: result.rows[0].user_status, 
+            message: "user_status in users successfully updated!"
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message });
     }
 
 });

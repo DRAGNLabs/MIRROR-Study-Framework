@@ -7,8 +7,12 @@ export default function ResourcesPanel({
     currentUserName = null,
     isAdmin = false,
     showResources=false,
-    onClose=null
+    onClose=null,
+    sentMessages,
+    hasSentThisRound=false
 }) {
+    // const [sentMessages, setSentMessages] = useState(0);
+    
     const renderTotalAllocations = () => {
         const totals = {};
         resourceHistory.forEach(({ allocations }) => {
@@ -48,7 +52,9 @@ export default function ResourcesPanel({
             <ul className="resources-history-list">
                 {resourceHistory.map((entry) => (
                     <li key={entry.round} className="resources-history-item">
-                        <span className="resources-history-round">Round {entry.round}</span>
+                        <span className="resources-history-round">
+                            {entry.isPractice ? "Practice" : `Round ${entry.round}`}
+                        </span>
                         <span className="resources-history-summary">
                             {Object.entries(entry.allocations)
                                 .map(([identifier, details]) => {
@@ -68,7 +74,12 @@ export default function ResourcesPanel({
         <aside 
                         className={`${isAdmin ? "admin-resources-panel" : "resources-panel"} ${showResources ? "mobile-visible" : ""}`}
             aria-label="Fish resource split"
-        >   
+        >  
+        {timeRemaining !== null && formatTime && (
+            <div className={`mobile-timer-bar modal-timer ${timeRemaining <= 30 ? 'urgent' : ''}`}>
+                ⏱ Time remaining: {formatTime(timeRemaining)}
+            </div>
+        )} 
 
             {onClose && (
                 <button className={isAdmin ? "admin-resources-close-btn" : "resources-close-btn"} onClick={onClose}>
@@ -83,6 +94,10 @@ export default function ResourcesPanel({
             
             <div className="resources-header">
                 <div>
+                    {!isAdmin && hasSentThisRound && (
+                        <p className="resources-sent-confirmation">✓ Your message was sent</p>
+                    )}
+                    <h2 className="resources-subtitle">Messages Received: {sentMessages}</h2>
                     <h2 className="resources-title">Resource Allocations (Fish)</h2>
                     <p className="resources-subtitle">
                         {/* {isAdmin ? "Per-user allocations by round" : "How fish are divided this game"} */}
@@ -90,16 +105,21 @@ export default function ResourcesPanel({
                 </div>
             </div>
 
-            {resourceHistory.length > 0 ? (
-                <>
+            {resourceHistory.length > 0 && (
+                <div className="resources-summary">
                     {renderTotalAllocations()}
-                    {renderRoundBreakdown()}
-                </>
-            ) : (
-                <div className="resources-empty">
-                    <p>Fish allocations will appear here after the first round.</p>
                 </div>
             )}
+
+            <div className="resources-history-scroll">
+                {resourceHistory.length > 0 ? (
+                    renderRoundBreakdown()
+                ) : (
+                    <div className="resources-empty">
+                        <p>Fish allocations will appear here after the first round.</p>
+                    </div>
+                )}
+            </div>
         </aside>
     );
 }

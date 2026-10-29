@@ -67,7 +67,7 @@ export default function FishPerRoundChart({ resourceHistory, playerKey, dark }) 
               color: dark ? "#f1f5f9" : "#334155",
             }}
             formatter={(value, name) => [`${value} total fish`, `User ${name}`]}
-            labelFormatter={(label) => `Round ${label}`}
+            labelFormatter={(label) => (label === 0 ? "Practice round" : `Round ${label}`)}
           />
           <Legend
             wrapperStyle={{ fontSize: 11 }}

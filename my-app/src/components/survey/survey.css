@@ -1,6 +1,6 @@
 /* === Survey Container (User Survey Page) === */
 .survey-container {
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   padding: 2rem;
   box-sizing: border-box;
@@ -11,24 +11,71 @@
 }
 
 .survey-container.no-scroll {
+  position: fixed;
+  inset: 0;
+  height: auto;
+  max-height: none;
   overflow: hidden;
-  /* height: 100vh; */
+  box-sizing: border-box;
+}
 
-  /* min-height: 0vh;
-  height: 100vh; */
+/* Locks the outer document so only .reflection-chat scrolls on mobile
+   (mirrors the body:has() lock used for the interaction pages) */
+body:has(.survey-container.no-scroll) {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
 
+body:has(.survey-container.no-scroll) #root {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.survey-container.no-scroll .survey-card {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.survey-container.no-scroll .conversation-reflection {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.survey-container.no-scroll .reflection-prompt,
+.survey-container.no-scroll .reflection-summary {
+  flex-shrink: 0;
+}
+
+.survey-container.no-scroll .reflection-chat {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.survey-container.no-scroll .survey-nav {
+  flex-shrink: 0;
+  margin-top: 0.75rem;
 }
 
 @media (max-width: 768px) {
   .survey-container {
     padding: 1rem 0.5rem;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
-  
+
   .hide-on-mobile {
     display: none !important;
   }
@@ -839,6 +886,17 @@ survey conversation thingy
 }
 
 /* === Admin Survey Status (Dark Theme) === */
+.admin-survey-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 480px;
+  padding: 0 1rem 2rem;
+  box-sizing: border-box;
+}
+
 .survey-status-box {
   background: #ffffff;
   border-radius: 14px;
@@ -846,6 +904,64 @@ survey conversation thingy
   width: 100%;
   max-width: 420px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.admin-survey-stack .survey-status-box {
+  max-width: none;
+}
+
+.compensation-note {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-align: left;
+  color: #64748b;
+}
+
+.compensation-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.compensation-row {
+  display: grid;
+  grid-template-columns: 3.25rem 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.compensation-place {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.compensation-person {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.compensation-fish,
+.compensation-tie {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: #64748b;
+}
+
+.compensation-amount {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #15803d;
 }
 
 @media (max-width: 768px) {
@@ -984,6 +1100,28 @@ survey conversation thingy
   background: linear-gradient(90deg, #38bdf8, #0ea5e9);
 }
 
+.admin-container .compensation-note,
+.admin-container .compensation-fish {
+  color: #94a3b8;
+}
+
+.admin-container .compensation-place {
+  color: #e2e8f0;
+}
+
+.admin-container .compensation-tie {
+  color: #fcd34d;
+}
+
+.admin-container .compensation-amount {
+  color: #4ade80;
+}
+
+.admin-container .compensation-row {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
 
 .conversation-modal-card {
   background: #ffffff;
@@ -1032,13 +1170,17 @@ survey conversation thingy
 } */
  
   
-  /* Show conversation button on mobile */
+  /* Conversation/resource history buttons, side by side, at every width */
   .conversation-btn-wrapper {
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
     margin-bottom: 1rem;
     text-align: center;
   }
-  
+
   .conversation-history-btn {
     display: inline-block;
     padding: 0.75rem 1.5rem;
@@ -1051,9 +1193,35 @@ survey conversation thingy
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
-  
+
   .conversation-history-btn:active {
     transform: scale(0.98);
+  }
+
+  /* Distinguish it from Conversation History while staying in the same
+     blue family used throughout the survey/interaction pages. */
+  /* .resource-history-btn {
+    background: #0ea5e9;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+  } */
+
+  /* Keep this row available on the reflection step, which uses .no-scroll's
+     fixed flex-column layout — treat it like the other fixed-size children
+     (.reflection-prompt, .survey-nav, etc.) so it doesn't get squeezed. */
+  .survey-container.no-scroll .conversation-btn-wrapper {
+    flex-shrink: 0;
+  }
+
+  /* Let the embedded ResourcesPanel read as ordinary modal content instead
+     of the interaction page's flex-sidebar / mobile-fullscreen-overlay card. */
+  .conversation-modal-chat-box .resources-panel {
+    display: flex;
+    flex: 1 1 auto;
+    max-width: none;
+    width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
   }
 
   /* Fix slider cutoff on mobile */
@@ -1080,39 +1248,32 @@ survey conversation thingy
   }
 }
 
-/* Fix reflection step - remove double scroll and reduce header size */
+/* Reflection step: keep prompt compact; layout lock is on .no-scroll */
 @media (max-width: 768px) {
   .survey-progress-wrapper {
-    padding: 0rem 0rem;
-    /* display: none; */
+    padding: 0;
   }
 
-  
-  
   .survey-progress-text {
     font-size: 0.75rem;
   }
-  
-  .conversation-reflection {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
+
   .reflection-prompt {
     font-size: 0.8rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .reflection-summary {
     font-size: 0.75rem;
     margin-bottom: 0.75rem;
   }
-  
-  .reflection-chat {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
+
+  .survey-container.no-scroll .survey-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .survey-container.no-scroll .survey-nav {
+    padding-top: 0.75rem;
   }
 }
 
@@ -1157,4 +1318,20 @@ survey conversation thingy
   text-align: center;
   padding: 2rem;
   margin: auto;
+}
+
+.conversation-modal-chat-box .resources-panel {
+  display: flex;
+  flex: 1 1 auto;
+  max-width: none;
+  width: 100%;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;   /* stop painting its own white card */
+}
+
+/* Resource modal only: white body instead of the chat's #fafafa */
+.conversation-modal-chat-box:has(.resources-panel) {
+  background: #ffffff;
 }

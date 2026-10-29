@@ -3,11 +3,23 @@ import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel, updateRoomPractice } from "../../services/roomsService";
 import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
+import { getFolders } from "../../services/foldersService";
+import CompletedRooms from "./CompletedRooms";
 import './admin.css';
+
+function defaultRoundsForGame(game) {
+  const rounds = Number(game?.rounds);
+  return Number.isInteger(rounds) && rounds >= 1 ? rounds : 8;
+}
+
+function isValidRoundCount(value) {
+  const rounds = Number(value);
+  return Number.isInteger(rounds) && rounds >= 1;
+}
 
 function formatRoomCreatedAt(value) {
   if (value == null || value === "") return "\u2014";
@@ -25,17 +37,30 @@ export function Admin() {
     const [roomPendingDelete, setRoomPendingDelete] = useState(null);
     const [start, setStart] = useState(true);
     const [count, setCount] = useState(3);
+    const [isTestMode, setIsTestMode] = useState(false);
+    const [testStatusMessage, setTestStatusMessage] = useState("");
+
+    //This is populated from the backend when started to read from the available models 
+    const [modelIds, setModelIds] = useState([]);
+    const [selectedModel, setSelectedModel] = useState("openai/gpt-4.1-mini");
 
     const [selectedGame, setSelectedGame] = useState(null);
-    const [selectedModel, setSelectedModel] = useState("gpt-4o");
+    const [rounds, setRounds] = useState("");
+    // const [selectedModel, setSelectedModel] = useState("gpt-4o");
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
+    const [practice, setPractice] = useState(false);
     // Stores the list of completed rooms from the db
     const [completedRoomList, setCompletedRoomList] = useState([]);
     // const [ error, setError] = useState("");
     const [roomUsers, setRoomUsers] = useState({});
     // When true shows the completed rooms page.
     const [completed, setCompleted] = useState(false);
+    // Folders for organizing completed rooms, and which one is open (null = top level)
+    const [folders, setFolders] = useState([]);
+    const [openFolderId, setOpenFolderId] = useState(null);
+    // Folder a new automated test room gets filed into
+    const [testFolderId, setTestFolderId] = useState("");
 
     const [ rooms, setRooms ] = useState([]);
 
@@ -45,10 +70,20 @@ export function Admin() {
     const location = useLocation();
 
 
-    async function showCompletedRooms() {
+    async function loadFolders() {
+      try {
+        setFolders(await getFolders());
+      } catch (error) {
+        console.error("Error loading folders:", error);
+      }
+    }
+
+    async function showCompletedRooms(folderId = null) {
       try {
         const data = await fetchCompletedRooms();
+        await loadFolders();
         setCompletedRoomList(data);
+        setOpenFolderId(folderId);
         setCompleted(true);
         setStart(false);
         setRoomCreated(false);
@@ -60,6 +95,7 @@ export function Admin() {
     async function init(){
         const rooms = await getOpenRooms();
         setRooms(rooms);
+        loadFolders();
     }
 
     function getGameById(id) {
@@ -115,15 +151,34 @@ export function Admin() {
     //Navigating back from the room details page it'll take you back where you were. 
     useEffect(() => {
       if (location.state?.showCompletedRooms === true) {
-        showCompletedRooms();
+        showCompletedRooms(location.state?.folderId ?? null);
       }
     }, [location.state?.showCompletedRooms]);
 
+    // useEffect(() => {
+    //   getModels()
+    //     .then(models => {
+    //       setModelIds(models);
+    //     })
+    //     .catch(error => {
+    //       console.error(error);
+    //     });
+    // }, []);
+
     
+    function selectGame(game) {
+        setSelectedGame(game.id);
+        setRounds(defaultRoundsForGame(game));
+    }
+
     async function createRoom() { //changes the page to customize the room
         setCompleted(false);
         const newRoomCode = await generateRoomCode();
         setNewRoomCode(newRoomCode);
+        if (selectedGame != null) {
+            const game = games.find((g) => g.id === selectedGame);
+            setRounds(defaultRoundsForGame(game));
+        }
         setStart(false);
         setRoomCreated(true);
     }
@@ -140,12 +195,29 @@ export function Admin() {
 
     async function buildRoom() { //sends the room into the backend
         try {
-            const gameData = games.find(g => g.id === selectedGame);
-            const response = await sendRoom(newRoomCode, selectedGame, gameData.rounds, count, selectedModel); 
+            const folderId = isTestMode && testFolderId !== "" ? Number(testFolderId) : null;
+            if (!isValidRoundCount(rounds)) return;
+            const response = await sendRoom(newRoomCode, selectedGame, Number(rounds), count, selectedModel, isTestMode, folderId);
+            const practice_response = await updateRoomPractice(practice, newRoomCode);
+           
+            if (isTestMode) {
+  
+                socket.emit("run-automated-test", { roomCode: Number(newRoomCode), testUserCount: Number(count) });
+                setTestStatusMessage(
+                    `Automated test started for room ${newRoomCode} with ${count} bot users. ` +
+                    `It'll run in the background — check Completed Rooms in a few minutes.`
+                );
+            } else {
+                setTestStatusMessage("");
+            }
+
             const rooms = await getOpenRooms();
             setRooms(rooms);
             setStart(true); // what does setStart do?
             setRoomCreated(false); // what is the point of setRoomCreated?
+            setIsTestMode(false);
+            setPractice(false);
+            // sendModel(selectedModel);
         } catch (error){
             console.error("Error:", error);
             // setError(error.message || "Something went wrong."); // at what point is there not going to be error.message, also why setError?
@@ -224,13 +296,14 @@ export function Admin() {
 
 
 
+
 return (
   <div className="admin-container admin-dashboard">
     <div className="admin-top">
       <button className="btn-primary-admin" onClick={activeRoomsDisplay}>
         Rooms
       </button>
-      <button className="btn-primary-admin" onClick={showCompletedRooms}>
+      <button className="btn-primary-admin" onClick={() => showCompletedRooms()}>
         Completed Rooms
       </button>
       <button className="btn-primary-admin" onClick={createRoom}>
@@ -241,6 +314,9 @@ return (
 
     {!completed ? (
     <>
+      {testStatusMessage && (
+        <p className="rooms-section-subtitle test-status-banner">{testStatusMessage}</p>
+      )}
       {start && rooms && (
         <div className="rooms-grid">
           <h2 className="rooms-section-title">Your rooms</h2>
@@ -266,9 +342,13 @@ return (
                   </div>
 
                   <div className="room-meta">
+                    {room.isTest && (
+                      <span className="meta-item test-mode-badge">Automated Test</span>
+                    )}
                     <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span>
                     <span className="meta-item">{room.modelType}</span>
-                    <span className="meta-item">Needs {room.usersNeeded} user(s)</span>
+                    <span className="meta-item">Min {room.usersNeeded} user(s)</span>
+                    <span className="meta-item">Rounds: {room.numRounds}</span>
                     <span className="meta-item">Started: {room.started ? "✅" : "❌"}</span>
                     {status && ( <span className={`meta-item`}>Status: {status}</span> )}
 
@@ -313,7 +393,7 @@ return (
 
           <h3 className="room-info-section">Participants</h3>
           <div className="label-inline">
-            <label>Users allowed</label>
+            <label>{isTestMode ? "Number of simulated bot users" : "Minimum users"}</label>
             <input
               className="text-input small"
               type="number"
@@ -325,6 +405,17 @@ return (
             />
           </div>
 
+          <h3 className="room-info-section">Practice Round</h3>
+          <label className="custom-checkbox">
+            <input
+              type="checkbox"
+              checked={practice}
+              onChange={(e) => setPractice(e.target.checked)}
+            />
+            <span className="checkbox-mark" />
+            <span>Add practice round</span>
+          </label>
+
           <h3 className="room-info-section">Game</h3>
           <div className="games-options">
             {games.map((game) => (
@@ -334,7 +425,7 @@ return (
                   name="game"
                   value={game.id}
                   checked={selectedGame === game.id}
-                  onChange={() => setSelectedGame(game.id)}
+                  onChange={() => selectGame(game)}
                 />
                 <span className="radio-mark" />
                 <span>{game.title}</span>
@@ -342,14 +433,62 @@ return (
             ))}
           </div>
 
+          {selectedGame != null && (
+            <div className="label-inline">
+              <label htmlFor="roomRounds">Rounds</label>
+              <input
+                id="roomRounds"
+                className="text-input small"
+                type="number"
+                min={1}
+                step={1}
+                value={rounds}
+                onChange={(e) => setRounds(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          <h3 className="room-info-section">Automated Test</h3>
+          <label className="custom-checkbox">
+            <input
+              type="checkbox"
+              checked={isTestMode}
+              onChange={(e) => setIsTestMode(e.target.checked)}
+            />
+            <span className="checkbox-mark" />
+            <span>🤖 Run as automated test</span>
+          </label>
+          {isTestMode && (
+            <p className="rooms-section-subtitle">
+              Seats {count} simulated bot users and runs to completion on its own. 
+            </p>
+          )}
+          {isTestMode && (
+            <div className="label-inline">
+              <label htmlFor="testFolder">Save results to folder</label>
+              <select
+                id="testFolder"
+                className="model-select-input folder-inline-select"
+                value={testFolderId}
+                onChange={(e) => setTestFolderId(e.target.value)}
+              >
+                <option value="">No folder</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <h3 className="room-info-section">Model</h3>
           <div className="model-select">
             <div className="model-select-header">
               <label htmlFor="modelType" className="model-select-label">
-                ChatGPT model
+                Model
               </label>
               <p className="model-select-helper">
-                Choose which ChatGPT model this session will use.
+                Choose which model this session will use.
               </p>
             </div>
             <div className="model-select-control">
@@ -359,10 +498,32 @@ return (
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
               >
-                <option value="gpt-4o">gpt-4o (default)</option>
-                <option value="gpt-4.1">gpt-4.1</option>
-                <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-                <option value="gpt-5.2-chat-latest">gpt-5.2-chat-latest</option>
+                {/* <option value="openai/gpt-4o">gpt-4o (default)</option> */}
+                <option value="openai/gpt-4.1-mini">GPT 4.1 Mini (for testing)</option>
+                {/* <option value="openai/gpt-4.1">gpt-4.1</option> */}
+                <option value="openai/gpt-6-astra">GPT 6 Astra</option>
+                <option value="anthropic/claude-sonnet-5.5">Claude Sonnet 5.5</option>
+                <option value="google/gemini-3.8-flash">Gemini 3.8 Flash</option>
+                <option value="google/gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                {/* <option value="qwen/qwen3.5-397b-a17b">Qwen                                                                                                                                                                      3.5 397b</option> */}
+                <option value="moonshotai/kimi-k3">Kimi K3</option>
+
+
+                <option value="openai/gpt-6-astra-pro">GPT 6 Astra Pro (not planned for the user study)</option>
+                <option value="openai/gpt-5.1">GPT 5.1 (not planned for the user study)</option>
+                <option value="anthropic/claude-sonnet-5">Claude Sonnet 5 (not planned for the user study)</option>
+                <option value="anthropic/claude-fable-5.1">Claude Fable 5.1 (not planned for the user study)</option>
+                <option value="anthropic/claude-opus-5.5">Claude Opus 5.5 (not planned for the user study)</option>
+                <option value="google/gemini-3.1-pro-preview">Gemini 3.1 Pro (not planned for the user study)</option>
+
+                {/* <option value="qwen/qwen3.5-397b-a17b">Qwen 3.5 397b</option> */}
+                {/* <option value="openai/gpt-4.1-mini">gpt-4.1-mini (for testing)</option> */}
+                
+                {/* {modelIds.map((modelId) => (
+                  <option key={modelId} value={modelId}>
+                    {modelId}
+                  </option>
+                ))} */}
               </select>
             </div>
           </div>
@@ -370,7 +531,7 @@ return (
           <button
             className="btn-primary-admin btn-full"
             onClick={buildRoom}
-            disabled={!selectedGame}
+            disabled={!selectedGame || !isValidRoundCount(rounds)}
           >
             Save room
           </button>
@@ -378,55 +539,17 @@ return (
       )}
       </>
     ): (
-      <div className="rooms-grid">
-        <h2 className="rooms-section-title">Completed Rooms</h2>
-          <p className="rooms-section-subtitle">Completed room data here.</p>
-        <div className="rooms-container">
-          {Array.isArray(completedRoomList) && completedRoomList.length > 0 ? (
-            completedRoomList.map((room) => (
-              <div className="room-display" key={room.roomCode}>
-                <div className="room-display-header">
-                  <span className="room-code-badge">{room.roomCode}</span>
-                  <span
-                    className="room-created-at"
-                    title={room.createdAt != null ? String(room.createdAt) : ""}
-                  >
-                    {formatRoomCreatedAt(room.createdAt)}
-                  </span>
-                </div>
-
-                <div className="room-meta">
-                  {(() => {
-                    const game = games.find((g) => parseInt(g.id) == room.gameType);
-                    return game ? (
-                      <span className="meta-item"><strong>{game.title}</strong></span>
-                    ) : (
-                      <span className="meta-item"><strong>Unknown Game</strong></span>
-                    );
-                  })()}
-                  {/* <span className="meta-item"><strong>{game ? game.title : "Unknown"}</strong></span> */}
-                  {/* <span></span> */}
-                  <span className="meta-item">
-                    Users: {Array.isArray(roomUsers?.[room.roomCode])
-                      ? roomUsers[room.roomCode].join(", ")
-                      : "No users"}
-                  </span>
-                  
-                  <span className="meta-item">Model used: {room.modelType}</span>
-    
-                </div>
-
-                <div className="room-actions">
-                  <button className="btn-primary-admin" onClick={() => navigate(`/admin/completed-room/${room.roomCode}`)}>View</button>
-                  <button className="btn-secondary-admin"  onClick={() => setRoomPendingDelete(room)}>Delete</button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No completed rooms found.</p>
-          )}
-        </div>
-      </div>
+      <CompletedRooms
+        completedRoomList={completedRoomList}
+        setCompletedRoomList={setCompletedRoomList}
+        folders={folders}
+        setFolders={setFolders}
+        roomUsers={roomUsers}
+        openFolderId={openFolderId}
+        setOpenFolderId={setOpenFolderId}
+        onView={(room) => navigate(`/admin/completed-room/${room.roomCode}`)}
+        onDelete={(room) => setRoomPendingDelete(room)}
+      />
     )
     }
       {roomPendingDelete && createPortal(

@@ -4,10 +4,13 @@ import { useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { formatTime } from "./interactionUtils";
 import InstructionsModal from "./InstructionsModal"
+import StatusUpdateModal from "./StatusUpdateModal"
+import StatusHistoryModal from "./StatusHistoryModal"
 import ChatBox from "./ChatMessages";
 import ResourcesPanel from "./ResourcePanel";
 import './interaction.css'
 import { useInteractionSocket } from "./interactionSocket";
+// import { getUsersInRoom } from "./../../services/roomsService";
 
 
 export function Interaction(){
@@ -27,6 +30,7 @@ export function Interaction(){
         }
     });
 
+    const [sentMessages, setSentMessages] = useState(0);
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
     const [currentStreamingId, setCurrentStreamingId] = useState(null);
@@ -40,6 +44,9 @@ export function Interaction(){
     // const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
+    const [statusUpdate, setStatusUpdate] = useState(null);
+    const [statusHistory, setStatusHistory] = useState([]);
+    const [showStatusHistory, setShowStatusHistory] = useState(false);
 
     const isStreamingRef = useRef(false);
     const timerIntervalRef = useRef(null);
@@ -62,10 +69,13 @@ export function Interaction(){
         setTimeRemaining, 
         setStreamingText, 
         setCurrentStreamingId, 
-        setCanSend, 
-        setHasSentThisRound, 
-        setGame, 
-        setUserRole
+        setSentMessages,
+        setCanSend,
+        setHasSentThisRound,
+        setGame,
+        setUserRole,
+        setStatusUpdate,
+        setStatusHistory,
     );
 
     useEffect(() => {
@@ -114,7 +124,7 @@ export function Interaction(){
         }
 
         if (!prompt.trim()) return;
-
+        
         const userName = user.userName;
         socket.emit("submit-round-message", {
             roomCode,
@@ -122,7 +132,6 @@ export function Interaction(){
             userName,
             text: prompt
         });
-
         setPrompt("");
         setHasSentThisRound(true);
         setCanSend(false);
@@ -148,6 +157,17 @@ export function Interaction(){
                 Instructions
             </button>
 
+            {game?.role_prompt && (
+                <button
+                    type="button"
+                    className="info-button"
+                    title="See what's happened to your status each round"
+                    onClick={() => setShowStatusHistory(true)}
+                >
+                    My Status
+                </button>
+            )}
+
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
             </h1>
@@ -172,6 +192,8 @@ export function Interaction(){
                 isAdmin={false}
                 showResources={showResources}
                 onClose={() => setShowResources(false)}
+                sentMessages={sentMessages}
+                hasSentThisRound={hasSentThisRound}
             />
 
             <div className="chat-container" >
@@ -183,6 +205,14 @@ export function Interaction(){
             {timeRemaining !== null && (
                 <div className={`mobile-timer-bar ${timeRemaining <= 30 ? 'urgent' : ''}`}>
                     ⏱ Time remaining: {formatTime(timeRemaining)}
+                </div>
+            )}
+
+            {timeRemaining !== null && (
+                <div className={`mobile-sent-status-bar ${hasSentThisRound ? 'sent' : ''}`}>
+                    {hasSentThisRound
+                        ? `✓ Your message was sent — ${sentMessages} sent this round`
+                        : `${sentMessages} message sent this round`}
                 </div>
             )}
 
@@ -216,6 +246,16 @@ export function Interaction(){
             role={userRole}
             timeRemaining={timeRemaining}
             formatTime={formatTime}
+        />
+        <StatusUpdateModal
+            open={!!statusUpdate}
+            onClose={() => setStatusUpdate(null)}
+            update={statusUpdate}
+        />
+        <StatusHistoryModal
+            open={showStatusHistory}
+            onClose={() => setShowStatusHistory(false)}
+            history={statusHistory}
         />
         </>
     )
