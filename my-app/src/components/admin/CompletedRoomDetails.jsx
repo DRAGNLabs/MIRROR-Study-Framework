@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  deidentifyCompletedRoom,
-  exportCompletedRoom,
-  getDeidentificationPreview,
-  getRoom,
-} from "../../services/roomsService";
+import { exportCompletedRoom, getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
-import { buildConversation } from "../survey/surveyUtils";
+import { getFolders } from "../../services/foldersService";
+import { buildConversation, buildResourceHistory } from "../survey/surveyUtils";
+import { buildStatusHistory } from "../interaction/interactionUtils";
+import { buildTownReportForRound } from "./completedRoomUtils";
 import games from "../../gameLoader";
 import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
+import DeidentifyRoomModal from "./DeidentifyRoomModal";
 import "../interaction/interaction.css";
 import "./admin.css";
 
@@ -49,10 +48,9 @@ function conversationMessageSenderLabel(msg) {
   return msg.sender === "user" ? msg.userName || "You" : "LLM";
 }
 
-function normalizeConversationMessageIndex(messageIndex) {
-  const n = Number(messageIndex);
-  if (!Number.isFinite(n) || !Number.isInteger(n)) return null;
-  return n;
+function displayNameFor(user) {
+  const key = user.userId ?? user.id;
+  return user.userName || user.username || `User ${key}`;
 }
 
 export function CompletedRoomPage() {
@@ -64,13 +62,9 @@ export function CompletedRoomPage() {
   const [usernames, setUsernames] = useState([]);
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [folder, setFolder] = useState(null);
   const [exportError, setExportError] = useState("");
-  const [deidentificationPreview, setDeidentificationPreview] = useState(null);
-  const [deidentificationModalOpen, setDeidentificationModalOpen] = useState(false);
-  const [deidentificationLoading, setDeidentificationLoading] = useState(false);
-  const [deidentificationSubmitting, setDeidentificationSubmitting] = useState(false);
-  const [deidentificationPassword, setDeidentificationPassword] = useState("");
-  const [deidentificationError, setDeidentificationError] = useState("");
+  const [deidentifyOpen, setDeidentifyOpen] = useState(false);
   const [deidentificationMessage, setDeidentificationMessage] = useState("");
 
   async function exportRoom() {
@@ -82,30 +76,44 @@ export function CompletedRoomPage() {
     }
   }
 
+  // Kept outside the effect so it can be called again after deidentifying,
+  // since that rewrites names in the room, users, and surveys
   const loadRoomData = useCallback(async () => {
     setLoading(true);
     try {
       const roomData = await getRoom(roomCode);
       setRoom(roomData);
 
+      if (roomData?.folderId != null) {
+        getFolders()
+          .then((folders) => setFolder(folders.find((f) => f.id === roomData.folderId) ?? null))
+          .catch((error) => console.error("Failed to load folder:", error));
+      } else {
+        setFolder(null);
+      }
+
       const userIds = roomData?.userIds ?? [];
+
       if (userIds.length > 0) {
         const loadedUsers = await Promise.all(userIds.map((id) => getUser(id)));
         setUsers(loadedUsers);
-        setUsernames(
-          loadedUsers.map((user) => user.userName || user.username || "Unknown User")
-        );
+        setUsernames(loadedUsers.map(displayNameFor));
 
-        const surveys = await Promise.all(
-          userIds.map(async (id) => {
-            try {
-              return [id, await getUsersSurvey(id)];
-            } catch {
-              return [id, null];
-            }
-          })
-        );
-        setUserSurveys(Object.fromEntries(surveys));
+        // Bots don't take a survey — skip fetching entirely for test rooms.
+        if (!roomData.isTest) {
+          const surveys = await Promise.all(
+            userIds.map(async (id) => {
+              try {
+                return [id, await getUsersSurvey(id)];
+              } catch {
+                return [id, null];
+              }
+            })
+          );
+          setUserSurveys(Object.fromEntries(surveys));
+        } else {
+          setUserSurveys({});
+        }
       } else {
         setUsers([]);
         setUsernames([]);
@@ -123,60 +131,12 @@ export function CompletedRoomPage() {
     loadRoomData();
   }, [loadRoomData]);
 
-  useEffect(() => {
-    if (!deidentificationModalOpen) return undefined;
-    function handleEscape(event) {
-      if (event.key === "Escape" && !deidentificationSubmitting) {
-        setDeidentificationModalOpen(false);
-        setDeidentificationPassword("");
-      }
-    }
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [deidentificationModalOpen, deidentificationSubmitting]);
-
-  async function openDeidentificationPreview() {
-    setDeidentificationModalOpen(true);
-    setDeidentificationLoading(true);
-    setDeidentificationPreview(null);
-    setDeidentificationError("");
-    setDeidentificationPassword("");
-    try {
-      setDeidentificationPreview(await getDeidentificationPreview(roomCode));
-    } catch (error) {
-      setDeidentificationError(error.message || "Can't create preview.");
-    } finally {
-      setDeidentificationLoading(false);
-    }
-  }
-
-  async function confirmDeidentification(event) {
-    event.preventDefault();
-    setDeidentificationError("");
-    setDeidentificationSubmitting(true);
-    try {
-      const result = await deidentifyCompletedRoom(
-        roomCode,
-        deidentificationPassword,
-        deidentificationPreview.confirmationToken
-      );
-      setDeidentificationModalOpen(false);
-      setDeidentificationPassword("");
-      setDeidentificationMessage(
-        `${result.message} Replaced ${result.summary.participantNames} participant-name occurrences, ${result.summary.emails} email addresses, ${result.summary.phoneNumbers} phone numbers, and ${result.summary.locations} location patterns.`
-      );
-      await loadRoomData();
-    } catch (error) {
-      setDeidentificationError(error.message || "Can't deidentify completed room.");
-    } finally {
-      setDeidentificationSubmitting(false);
-    }
-  }
-
-  function closeDeidentificationModal() {
-    if (deidentificationSubmitting) return;
-    setDeidentificationModalOpen(false);
-    setDeidentificationPassword("");
+  async function finishDeidentify(result) {
+    setDeidentifyOpen(false);
+    setDeidentificationMessage(
+      `${result.message} Replaced ${result.summary.participantNames} participant-name occurrences, ${result.summary.emails} email addresses, ${result.summary.phoneNumbers} phone numbers, and ${result.summary.locations} location patterns.`
+    );
+    await loadRoomData();
   }
 
   const messageAnnotations = useMemo(
@@ -184,9 +144,60 @@ export function CompletedRoomPage() {
     [users, userSurveys]
   );
 
+  const game = useMemo(
+    () => (room ? games.find((g) => parseInt(g.id) === room.gameType) : null),
+    [room]
+  );
+
+  const hasStatusFeature = !!game?.role_prompt;
+
+  const resourceHistory = useMemo(
+    () => (room ? buildResourceHistory(room) : []),
+    [room]
+  );
+
+  const resourceTotals = useMemo(() => {
+    const totals = {};
+    for (const entry of resourceHistory) {
+      for (const [name, details] of Object.entries(entry.allocations ?? {})) {
+        totals[name] = (totals[name] ?? 0) + (details?.fish ?? 0);
+      }
+    }
+    return totals;
+  }, [resourceHistory]);
+
+  const roundNumbers = useMemo(() => {
+    if (!room?.numRounds) return [];
+    return Array.from({ length: room.numRounds }, (_, i) => i + 1);
+  }, [room]);
+
+  // Per-user list of round-by-round status changes (same logic that drives
+  // the live "My Status" popup/history on the interaction page).
+  const statusTimelines = useMemo(() => {
+    if (!hasStatusFeature || !room) return [];
+    return users.map((user) => ({
+      displayName: displayNameFor(user),
+      history: buildStatusHistory(user, game, room.numRounds ?? room.curr_round ?? 1),
+    }));
+  }, [users, game, room, hasStatusFeature]);
+
+  // Reconstructed per-round "town report" text sent to the LLM (never
+  // persisted anywhere — see completedRoomUtils.js), stopping at whichever
+  // round the game actually reached.
+  const townReportsByRound = useMemo(() => {
+    if (!hasStatusFeature || !room?.numRounds) return [];
+    const reports = [];
+    for (let round = 2; round <= room.numRounds; round++) {
+      if (!room.llmInstructions?.[round]) break; // game ended before this round
+      const text = buildTownReportForRound(users, game, round, room.resourceAllocations);
+      if (text) reports.push({ round, text });
+    }
+    return reports;
+  }, [users, game, room, hasStatusFeature]);
+
   if (loading) {
     return (
-      <div className="admin-container admin-dashboard">
+      <div className="admin-container admin-dashboard completed-room-page">
         <div className="rooms-grid">
           <p className="rooms-section-subtitle">Loading room...</p>
         </div>
@@ -196,7 +207,7 @@ export function CompletedRoomPage() {
 
   if (!room) {
     return (
-      <div className="admin-container admin-dashboard">
+      <div className="admin-container admin-dashboard completed-room-page">
         <div className="rooms-grid">
           <button
             className="btn-secondary-admin"
@@ -212,22 +223,20 @@ export function CompletedRoomPage() {
     );
   }
 
-  const selectedSurvey = games.find(
-    (g) => parseInt(g.id) === room.gameType
-  );
-
+  const selectedSurvey = game;
   const surveyQuestions = (selectedSurvey?.questions || []).filter(
     (q) => q.type !== "label"
   );
+  const showSurvey = !room.isTest;
 
   return (
-    <div className="admin-container admin-dashboard">
+    <div className="admin-container admin-dashboard completed-room-page">
       <div className="rooms-grid">
-        <div className="room-actions" style={{ marginBottom: "1rem" }}>
+        <div className="room-actions completed-room-back">
           <button
             className="btn-secondary-admin"
             onClick={() =>
-              navigate("/admin", { state: { showCompletedRooms: true } })
+              navigate("/admin", { state: { showCompletedRooms: true, folderId: room.folderId ?? null } })
             }
           >
             Back
@@ -237,308 +246,307 @@ export function CompletedRoomPage() {
           </button>
           <button
             className="btn-secondary-admin"
-            onClick={openDeidentificationPreview}
+            onClick={() => {
+              setDeidentificationMessage("");
+              setDeidentifyOpen(true);
+            }}
           >
             Deidentify room
           </button>
         </div>
-        {exportError && <p role="alert">{exportError}</p>}
+        {exportError && <p className="deidentify-error" role="alert">{exportError}</p>}
         {deidentificationMessage && (
           <p className="deidentify-success" role="status">
             {deidentificationMessage}
           </p>
         )}
 
-        <div className="room-display">
+        <div className="room-display completed-room-summary">
           <h2 className="room-section-title">
             Completed Room {room.roomCode}
           </h2>
           <p className="room-section-subtitle">
             Conversation transcript and room details
           </p>
-        <div className="room-badges">
-          <span className="room-badge">Room Code: {room.roomCode}</span>
-          <span className="room-badge">Game: {room.gameType || "Unknown"}</span>
-          <span className="room-badge">Model: {room.modelType || "Unknown"}</span>
-          <span className="room-badge">Rounds: {room.numRounds}</span>
-          <span className="room-badge">
-            People: {Array.isArray(room.userIds) ? room.userIds.length : usernames.length} (min {room.usersNeeded})
-          </span>
-          <span className="room-badge room-badge-users">
-            Users: {usernames.length > 0 ? usernames.join(", ") : "No users"}
-          </span>
+          <div className="room-badges">
+            {room.isTest && (
+              <span className="room-badge test-mode-badge">Automated Test</span>
+            )}
+            {folder && (
+              <span className="room-badge" title={folder.description || ""}>{folder.name}</span>
+            )}
+            <span className="room-badge">Room Code: {room.roomCode}</span>
+            <span className="room-badge">Game: {selectedSurvey?.title || room.gameType || "Unknown"}</span>
+            <span className="room-badge">Model: {room.modelType || "Unknown"}</span>
+            <span className="room-badge">Rounds: {room.numRounds}</span>
+            <span className="room-badge">
+              People: {Array.isArray(room.userIds) ? room.userIds.length : usernames.length} (min {room.usersNeeded})
+            </span>
+            <span className="room-badge room-badge-users">
+              Users: {usernames.length > 0 ? usernames.join(", ") : "No users"}
+            </span>
+          </div>
         </div>
-        </div>
 
-        <div className="chat-container">
-        <div className="chat-box">
-          {conversation.length === 0 ? (
-            <div className="chat-placeholder">
-              <p>No conversation found for this room.</p>
-            </div>
-          ) : (
-            conversation.map((msg, i) => {
-              const rawText = typeof msg.text === "string" ? msg.text : "";
-              const isJsonLike =
-                rawText.trim().startsWith("{") &&
-                rawText.includes("allocationByUserName");
-
-              const safeText = isJsonLike
-                ? "An internal allocation update occurred."
-                : rawText;
-
-              const annotations = messageAnnotations[i] ?? [];
-
-              return (
-                <div
-                  key={msg.id ?? i}
-                  className={`message ${
-                    msg.sender === "user" ? "message--user" : "message--bot"
-                  }`}
-                >
-                  <span className="message-sender">
-                    {msg.sender === "user" ? msg?.userName || "You" : "LLM"}
-                  </span>
-                  <span><MessageMarkdown content={safeText} /></span>
-                  {annotations.length > 0 && (
+        <div className="completed-room-panel">
+          <h3 className="completed-room-panel-title">Conversation Transcript</h3>
+          <div className="completed-room-chat-scroll">
+            {conversation.length === 0 ? (
+              <div className="completed-room-chat-placeholder">
+                <p>No conversation found for this room.</p>
+              </div>
+            ) : (
+              <div className="completed-room-messages">
+                {conversation.map((msg, i) => {
+                  const annotations = messageAnnotations[i] ?? [];
+                  return (
                     <div
-                      className="message-survey-annotations"
-                      aria-label="Survey annotations for this message"
+                      key={msg.id ?? i}
+                      className={`completed-room-message ${
+                        msg.sender === "user" ? "completed-room-message--user" : "completed-room-message--bot"
+                      }`}
                     >
-                      {annotations.map((a, j) => (
+                      <span className="completed-room-message-sender">
+                        {conversationMessageSenderLabel(msg)}
+                      </span>
+                      <span className="completed-room-message-text">
+                        <MessageMarkdown content={conversationMessageSafeText(msg)} />
+                      </span>
+                      {annotations.length > 0 && (
                         <div
-                          key={`${i}-annotation-${j}`}
-                          className="message-survey-annotation"
+                          className="message-survey-annotations"
+                          aria-label="Survey annotations for this message"
                         >
-                          <span className="message-survey-annotation-author">
-                            {a.commenter}
-                          </span>
-                          <span className="message-survey-annotation-note">
-                            {a.note?.trim()
-                              ? a.note
-                              : "No note provided"}
-                          </span>
+                          {annotations.map((a, j) => (
+                            <div
+                              key={`${i}-annotation-${j}`}
+                              className="message-survey-annotation"
+                            >
+                              <span className="message-survey-annotation-author">
+                                {a.commenter}
+                              </span>
+                              <span className="message-survey-annotation-note">
+                                {a.note?.trim() ? a.note : "No note provided"}
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {showSurvey && (
+          <div className="completed-room-panel completed-room-panel--full">
+            <h3 className="completed-room-panel-title">Survey Information</h3>
+            <div className="completed-room-survey-scroll">
+              {surveyQuestions.length === 0 ? (
+                <p className="survey-empty">No survey questions found.</p>
+              ) : (
+                <div className="completed-room-table-wrap">
+                  <table className="completed-room-table">
+                    <thead>
+                      <tr>
+                        <th>Question</th>
+                        {usernames.map((name) => <th key={name}>{name}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {surveyQuestions.map((question) => (
+                        <tr key={question.id}>
+                          <td className="completed-room-table-row-label">{question.label}</td>
+                          {users.map((user) => {
+                            const userKey = user.userId ?? user.id;
+                            const survey = userSurveys[userKey];
+                            const answers = survey?.data?.answers || {};
+                            const answer = answers[question.id];
+                            return (
+                              <td key={`${question.id}-${userKey}`}>
+                                {answer == null || answer === "" ? (
+                                  <span className="survey-answer-empty">No response</span>
+                                ) : Array.isArray(answer) ? (
+                                  <ol className="survey-answer-list">
+                                    {answer.map((item, index) => (
+                                      <li key={`${question.id}-${userKey}-${index}`}>{item}</li>
+                                    ))}
+                                  </ol>
+                                ) : (
+                                  String(answer)
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              );
-            })
-          )}
-        </div>
-        </div>
+              )}
 
+              <div className="survey-section">
+                <h4 className="survey-section-title">Marked Conversation Moments</h4>
+                {users.map((user) => {
+                  const userKey = user.userId ?? user.id;
+                  const survey = userSurveys[userKey];
+                  const conversationMarks = survey?.data?.conversationMarks || [];
+                  return (
+                    <div key={`marks-${userKey}`} className="completed-room-mark-row">
+                      <div className="survey-question">{displayNameFor(user)}</div>
+                      {conversationMarks.length === 0 ? (
+                        <div className="survey-answer">No conversation moments were marked.</div>
+                      ) : (
+                        <div className="survey-admin-fields">
+                          {conversationMarks.map((mark, index) => (
+                            <div key={`mark-${userKey}-${index}`} className="survey-user-answer-row">
+                              <span className="survey-user-name">
+                                Message {mark.messageIndex}:
+                              </span>
+                              <div className="survey-answer">
+                                {mark.note || "No note provided"}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
-      <div className="room-display" style={{ marginTop: "1.5rem" }}>
-  <h2 className="room-section-title">Survey Information</h2>
+        {resourceHistory.length > 0 && (
+          <div className="room-display" style={{ marginTop: "1.5rem" }}>
+            <h2 className="room-section-title">Resource Allocations</h2>
+            <div className="completed-room-table-wrap completed-room-table-wrap--scroll">
+              <table className="completed-room-table">
+                <thead>
+                  <tr>
+                    <th>Round</th>
+                    {usernames.map((name) => <th key={name}>{name}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {resourceHistory.map((entry) => (
+                    <tr key={entry.round}>
+                      <td className="completed-room-table-row-label">Round {entry.round}</td>
+                      {usernames.map((name) => (
+                        <td key={name}>
+                          {entry.allocations?.[name]?.fish ?? "—"} tons
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="completed-room-table-total-row">
+                    <td className="completed-room-table-row-label">Total</td>
+                    {usernames.map((name) => (
+                      <td key={name}>{resourceTotals[name] ?? 0} tons</td>
+                    ))}
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
 
-  {surveyQuestions.length === 0 ? (
-    <p className="survey-empty">No survey questions found.</p>
-  ) : (
-    <div className="survey-list">
-      {surveyQuestions.map((question) => (
-        <div key={question.id} className="survey-field">
-          <div className="survey-question">{question.label}</div>
+        {hasStatusFeature && (
+          <div className="room-display" style={{ marginTop: "1.5rem" }}>
+            <h2 className="room-section-title">Status Over Time</h2>
+            <p className="room-section-subtitle">
+              Each user's status by round, and — where it changed — the message they (and the LLM) received.
+            </p>
 
-          <div className="survey-user-answers">
-            {users.map((user) => {
-              const userKey = user.userId ?? user.id;
-              const survey = userSurveys[userKey];
-              const answers = survey?.data?.answers || {};
-              const answer = answers[question.id];
-              const displayName =
-                user.userName || user.username || `User ${userKey}`;
+            <div className="completed-room-table-wrap completed-room-table-wrap--scroll">
+              <table className="completed-room-table completed-room-status-table">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    {roundNumbers.map((r) => <th key={r}>R{r}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {statusTimelines.map(({ displayName }, idx) => {
+                    const user = users[idx];
+                    const userStatus = user?.user_status ?? {};
+                    return (
+                      <tr key={displayName}>
+                        <td className="completed-room-table-row-label">{displayName}</td>
+                        {roundNumbers.map((r) => {
+                          const raw = userStatus[r];
+                          const value = raw ?? (r === 1 ? 0 : null);
+                          const cellClass =
+                            value == null ? "" : value > 0 ? "status-cell--good" : value < 0 ? "status-cell--bad" : "status-cell--neutral";
+                          return (
+                            <td key={r} className={cellClass}>
+                              {value == null ? "—" : value}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-              return (
-                <div
-                  key={`${question.id}-${userKey}`}
-                  className="survey-user-answer-row"
-                >
-                  <span className="survey-user-name">{displayName}:</span>
-                    {answer == null || answer === "" ? (
-                      <span className="survey-answer"> No response</span>
-                    ) : Array.isArray(answer) ? (
-                      <ol className="survey-answer-list">
-                        {answer.map((item, index) => (
-                          <li key={`${question.id}-${userKey}-${index}`}>
-                            {item}
-                          </li>
+            <div className="completed-room-round-list">
+              {townReportsByRound.map(({ round, text }) => {
+                const messagesThisRound = statusTimelines
+                  .map(({ displayName, history }) => ({
+                    displayName,
+                    entry: history.find((h) => h.round === round),
+                  }))
+                  .filter((x) => x.entry);
+
+                return (
+                  <div key={round} className="completed-room-round-card">
+                    <h4 className="completed-room-round-title">Round {round}</h4>
+
+                    <div className="completed-room-town-report">
+                      <span className="completed-room-round-label">Town report sent to LLM</span>
+                      <pre className="completed-room-town-report-text">{text}</pre>
+                    </div>
+
+                    {messagesThisRound.length > 0 && (
+                      <div className="status-history-list">
+                        {messagesThisRound.map(({ displayName, entry }) => (
+                          <div
+                            key={displayName}
+                            className={`status-history-item ${entry.good ? "status-history-item--good" : "status-history-item--bad"}`}
+                          >
+                            <div className="status-history-item-header">
+                              <span className="status-history-round">{displayName}</span>
+                              <span className="status-history-badge">
+                                {entry.good ? "Good news" : "Bad news"}
+                              </span>
+                            </div>
+                            <p className="status-history-message">{entry.message}</p>
+                          </div>
                         ))}
-                      </ol>
-                    ) : (
-                      <span className="survey-answer">{String(answer)}</span>
+                      </div>
                     )}
                   </div>
-          
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
-
-  <div className="survey-section" style={{ marginTop: "1.5rem" }}>
-    <h4 className="survey-section-title">Marked Conversation Moments</h4>
-
-    {users.map((user) => {
-      const userKey = user.userId ?? user.id;
-      const survey = userSurveys[userKey];
-      const conversationMarks = survey?.data?.conversationMarks || [];
-      const displayName =
-        user.userName || user.username || `User ${userKey}`;
-
-      return (
-        <div key={`marks-${userKey}`} className="survey-field">
-          <div className="survey-question">{displayName}</div>
-
-          {conversationMarks.length === 0 ? (
-            <div className="survey-answer">No conversation moments were marked.</div>
-          ) : (
-            <div className="survey-admin-fields">
-              {conversationMarks.map((mark, index) => (
-                <div key={`mark-${userKey}-${index}`} className="survey-user-answer-row">
-                  <span className="survey-user-name">
-                    Message {mark.messageIndex}:
-                  </span>
-                  <div className="survey-answer">
-                    {mark.note || "No note provided"}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          )}
-        </div>
-      );
-    })}
-  </div>
-</div>
-    </div>
-    {deidentificationModalOpen && (
-<div
-  className="modal-backdrop"
-  onMouseDown={(event) => {
-    if (event.target === event.currentTarget) closeDeidentificationModal();
-  }}
->
-  <section
-    className="confirm-modal-card deidentify-modal-card"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="deidentify-modal-title"
-    aria-describedby="deidentify-modal-notice"
-  >
-    <button
-      className="deidentify-modal-close"
-      type="button"
-      onClick={closeDeidentificationModal}
-      disabled={deidentificationSubmitting}
-      aria-label="Close preview"
-    >
-      &times;
-    </button>
-    <h2 className="confirm-modal-title" id="deidentify-modal-title">
-      Review deidentification preview
-    </h2>
-    <p id="deidentify-modal-notice" className="deidentify-warning">
-      This will permanently update the database for this completed room,
-      its users, and surveys. No original-name mapping or automatic undo
-      is kept. Participant IDs remain, so this is pseudonymization, not a
-      guarantee of anonymity.
-    </p>
-    <p className="confirm-modal-text">
-      The automatic scan targets participant names, email addresses,
-      formatted phone numbers, and recognizable street-address/location
-      patterns. It can miss other identifying details and may replace
-      ordinary text that resembles these patterns. Review the preview
-      before continuing.
-    </p>
-
-    {deidentificationLoading && <p role="status">Preparing preview...</p>}
-    {deidentificationError && (
-      <p className="deidentify-error" role="alert">
-        {deidentificationError}
-      </p>
-    )}
-    {deidentificationPreview && (
-      <>
-        <ul className="deidentify-summary">
-          <li>Participants: {deidentificationPreview.summary.participants}</li>
-          <li>Participant-name occurrences: {deidentificationPreview.summary.participantNames}</li>
-          <li>Email addresses: {deidentificationPreview.summary.emails}</li>
-          <li>Phone numbers: {deidentificationPreview.summary.phoneNumbers}</li>
-          <li>Location patterns: {deidentificationPreview.summary.locations}</li>
-        </ul>
-        <details className="deidentify-preview-details">
-          <summary>Review transformed room, users, and survey data</summary>
-          <pre>{JSON.stringify({
-            room: deidentificationPreview.room,
-            users: deidentificationPreview.users,
-            surveys: deidentificationPreview.surveys,
-          }, null, 2)}</pre>
-        </details>
-        <form onSubmit={confirmDeidentification}>
-          <label className="deidentify-password-label" htmlFor="deidentify-admin-password">
-            Re-enter admin password to make this change
-          </label>
-          <input
-            id="deidentify-admin-password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={deidentificationPassword}
-            onChange={(event) => setDeidentificationPassword(event.target.value)}
-            disabled={deidentificationSubmitting}
-          />
-          <div className="confirm-modal-actions">
-            <button
-              className="btn-secondary-admin"
-              type="button"
-              onClick={closeDeidentificationModal}
-              disabled={deidentificationSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              className="deidentify-confirm-button"
-              type="submit"
-              disabled={
-                deidentificationSubmitting ||
-                !deidentificationPassword ||
-                deidentificationLoading
-              }
-            >
-              {deidentificationSubmitting
-                ? "Updating database..."
-                : "Looks good — permanently deidentify"}
-            </button>
           </div>
-        </form>
-      </>
-    )}
-    {!deidentificationPreview && !deidentificationLoading && (
-      <div className="confirm-modal-actions">
-        <button
-          className="btn-secondary-admin"
-          type="button"
-          onClick={closeDeidentificationModal}
-        >
-          Close
-        </button>
-        <button
-          className="btn-secondary-admin"
-          type="button"
-          onClick={openDeidentificationPreview}
-        >
-          Retry preview
-        </button>
+        )}
       </div>
-    )}
-  </section>
-</div>
-    )}
-  </div>
+      {deidentifyOpen && (
+        <DeidentifyRoomModal
+          roomCode={roomCode}
+          onClose={() => setDeidentifyOpen(false)}
+          onDone={finishDeidentify}
+        />
+      )}
+    </div>
   );
 }
 

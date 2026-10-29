@@ -20,6 +20,48 @@ export async function getRoom(roomCode) {
   return response.json();
 }
 
+export async function getRoomPractice(roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practice`);
+  if (!response.ok) throw new Error(`Can't get practice setting for room ${roomCode}.`);
+
+  return response.json();
+}
+
+export async function updateRoomPractice(practice, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practice`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ practice })
+  });
+  if (!response.ok) throw new Error(`Can't update practice setting for room ${roomCode}.`);
+
+  return response.json();
+}
+
+export async function updatePracticeData(practiceData, roomCode) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practiceData`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ practiceData })
+  });
+  if (!response.ok) throw new Error(`Can't update practice data for room ${roomCode}.`);
+
+  return response.json();
+}
+
+// returns { appended, practiceData } — appended is false if the practice round isn't
+// in progress or this user already sent their practice message
+export async function appendPracticeMessage(roomCode, userId, text) {
+  const response = await fetch(`${API_BASE}/rooms/${roomCode}/practiceData/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, text })
+  });
+  if (!response.ok) throw new Error(`Can't add practice message for room ${roomCode}.`);
+
+  return response.json();
+}
+
 export async function updateLlmInstructions(llmInstructions, roomCode) {
     const response = await fetch(`${API_BASE}/rooms/${roomCode}/llmInstructions`, {
         method: 'PATCH',
@@ -94,6 +136,29 @@ export async function updateFishAmount(fishAmount, roomCode) {
 }
 
 
+// Used to seat the simulated bot users into a room for an automated test.
+export async function updateUserIds(userIds, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/userIds`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds })
+    });
+    if (!response.ok) throw new Error(`Error updating userIds in room ${roomCode}`);
+    return response.json();
+}
+
+// Used to skip an automated test room straight to "interaction" — there's no
+// real admin/participants to walk it through waiting/instructions by hand.
+export async function updateStatus(status, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+    });
+    if (!response.ok) throw new Error(`Error updating status in room ${roomCode}`);
+    return response.json();
+}
+
 export async function updateCurrRound(currRound, roomCode) {
     const response = await fetch(`${API_BASE}/rooms/${roomCode}/currRound`, {
         method: 'PATCH',
@@ -101,15 +166,6 @@ export async function updateCurrRound(currRound, roomCode) {
         body: JSON.stringify({ currRound })
     });
     if (!response.ok) throw new Error(`Error updating currRound in room ${roomCode}`);
-    return response.json();
-}
-
-// these should probably be in different service file (this one in userService and other in surveyService),
-// I just felt like it was annoying to have one function in each file so added them to this one
-export async function getUser(userId) {
-    const response = await fetch(`${API_BASE}/users/${userId}`);
-    if (!response.ok) throw new Error("Can't get user.");
-
     return response.json();
 }
 

@@ -4,6 +4,8 @@ import { useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { formatTime } from "./interactionUtils";
 import InstructionsModal from "./InstructionsModal"
+import StatusUpdateModal from "./StatusUpdateModal"
+import StatusHistoryModal from "./StatusHistoryModal"
 import ChatBox from "./ChatMessages";
 import ResourcesPanel from "./ResourcePanel";
 import './interaction.css'
@@ -18,8 +20,15 @@ export function Interaction(){
     const { user } = location.state
     const { userId } = user;
     const roomCode = parseInt(user.roomCode);
+    const draftStorageKey = `chat_draft_${roomCode}_${userId}`;
     
-    const [prompt, setPrompt] = useState("");
+    const [prompt, setPrompt] = useState(() => {
+        try {
+            return localStorage.getItem(draftStorageKey) ?? "";
+        } catch {
+            return "";
+        }
+    });
     const [sentMessages, setSentMessages] = useState(0);
     const [messages, setMessages] = useState([]);
     const [streamingText, setStreamingText] = useState(""); 
@@ -34,11 +43,15 @@ export function Interaction(){
     // const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [resourceHistory, setResourceHistory] = useState([]);
+    const [statusUpdate, setStatusUpdate] = useState(null);
+    const [statusHistory, setStatusHistory] = useState([]);
+    const [showStatusHistory, setShowStatusHistory] = useState(false);
 
     const isStreamingRef = useRef(false);
     const timerIntervalRef = useRef(null);
     const loadCurrUserMessages = useRef(false);
     const chatBoxRef = useRef(null);
+    const textareaRef = useRef(null);
     // const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -56,10 +69,12 @@ export function Interaction(){
         setStreamingText, 
         setCurrentStreamingId, 
         setSentMessages,
-        setCanSend, 
-        setHasSentThisRound, 
-        setGame, 
+        setCanSend,
+        setHasSentThisRound,
+        setGame,
         setUserRole,
+        setStatusUpdate,
+        setStatusHistory,
     );
 
     useEffect(() => {
@@ -79,8 +94,45 @@ export function Interaction(){
         }
     }, [messages]);
 
-    // const totalUsers = getUsersInRoom(roomCode).
-    // console.log("Total Users:", totalUsers);
+    useEffect(() => {
+        try {
+            if (prompt) {
+                localStorage.setItem(draftStorageKey, prompt);
+            } else {
+                localStorage.removeItem(draftStorageKey);
+            }
+        } catch {
+            // Ignore storage quota / private-mode failures
+        }
+    }, [prompt, draftStorageKey]);
+
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+    }, [prompt]);
+
+
+
+    useEffect(() => {
+        try {
+            if (prompt) {
+                localStorage.setItem(draftStorageKey, prompt);
+            } else {
+                localStorage.removeItem(draftStorageKey);
+            }
+        } catch {
+            // Ignore storage quota / private-mode failures
+        }
+    }, [prompt, draftStorageKey]);
+
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+    }, [prompt]);
 
     const handleSubmit = async(e) => {
         e.preventDefault();
@@ -122,6 +174,17 @@ export function Interaction(){
             >
                 Instructions
             </button>
+
+            {game?.role_prompt && (
+                <button
+                    type="button"
+                    className="info-button"
+                    title="See what's happened to your status each round"
+                    onClick={() => setShowStatusHistory(true)}
+                >
+                    My Status
+                </button>
+            )}
 
             <h1 className="interaction-header-title">
                 {user ? <>Welcome, <span className="interaction-header-name">{user.userName}</span></> : "Loading..."}
@@ -173,14 +236,13 @@ export function Interaction(){
 
                 <form className="chat-form" onSubmit={handleSubmit}>
                     <textarea
+                        ref={textareaRef}
                         className="chat-input"
                         rows={1}
                         placeholder="Type your message..."
                         value={prompt}
                         onChange={(e) => {
                             setPrompt(e.target.value);
-                            e.target.style.height = "auto";
-                            e.target.style.height = e.target.scrollHeight + "px";
                         }}
                         aria-label="Message input"
                     />
@@ -202,6 +264,16 @@ export function Interaction(){
             role={userRole}
             timeRemaining={timeRemaining}
             formatTime={formatTime}
+        />
+        <StatusUpdateModal
+            open={!!statusUpdate}
+            onClose={() => setStatusUpdate(null)}
+            update={statusUpdate}
+        />
+        <StatusHistoryModal
+            open={showStatusHistory}
+            onClose={() => setShowStatusHistory(false)}
+            history={statusHistory}
         />
         </>
     )

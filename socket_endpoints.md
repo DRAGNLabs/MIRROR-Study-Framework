@@ -22,11 +22,13 @@ Note that all socket events emitted and listened to on backend are in the `/back
 | ----- | ----------- | ---- | ---- |
 | "navigate-users" | Sent when Admin clicks next on instructions page | { roomCode, status } | AdminInstructions.jsx |
 | "start-round" |  Sent when Admin clicks next on instructions page | { roomCode, round } | AdminInstructions.jsx |
+| "practice-round" | Sent when Admin clicks next on instructions page when a practice round was selected | { roomCode } | AdminInstructions.jsx |
 
 ### /src/interaction
 | title | description | body | file |
 | ----- | ----------- | ---- | ---- |
 | "navigate-users" | Sent when Admin clicks next on interactions page | { roomCode, status } | AdminInteraction.jsx |
+| "start-official-game" | Sent when Admin clicks Next after the practice round completes | { roomCode } | AdminInteraction.jsx |
 | "leave-room" | Sent when Admin clicks home | { roomCode } | AdminInteraction.jsx |
 | "submit-round-message" | Sent when a user submits a message | { roomCode, userId, userName, text } | Interaction.jsx |
 
