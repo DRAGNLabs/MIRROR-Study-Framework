@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { setRoomFolder } from "../../services/roomsService";
 import { createFolder, updateFolder, deleteFolder } from "../../services/foldersService";
 import games from "../../gameLoader";
+import PromptSnapshot from "./PromptSnapshot";
+import { groupRoomsByPrompts } from "./completedRoomUtils";
 
 function formatDate(value) {
   if (value == null || value === "") return "—";
@@ -356,6 +358,8 @@ export function CompletedRooms({
   if (openFolder) {
     const rooms = roomsByFolder[openFolder.id] ?? [];
     const summary = folderSummary(rooms);
+    const promptGroups = groupRoomsByPrompts(rooms);
+    const roomsWithoutPrompts = rooms.length - promptGroups.reduce((n, g) => n + g.roomCodes.length, 0);
     return (
       <div className="rooms-grid">
         <button className="btn-secondary-admin completed-room-back" onClick={() => setOpenFolderId(null)}>
@@ -391,6 +395,33 @@ export function CompletedRooms({
             )}
           </dl>
         </div>
+
+        {promptGroups.length > 0 && (
+          <div className="room-display folder-prompts">
+            <h3 className="rooms-section-title">Prompts used</h3>
+            {promptGroups.length > 1 && (
+              <p className="folder-prompts-warning">
+                Rooms in this folder were run with {promptGroups.length} different sets of prompts.
+              </p>
+            )}
+            {promptGroups.map((group, i) => (
+              <div key={group.roomCodes.join(",")} className="folder-prompts-group">
+                {promptGroups.length > 1 && (
+                  <p className="folder-prompts-group-label">
+                    Version {i + 1} — rooms {group.roomCodes.join(", ")}
+                  </p>
+                )}
+                <PromptSnapshot snapshot={group.snapshot} />
+              </div>
+            ))}
+            {roomsWithoutPrompts > 0 && (
+              <p className="rooms-section-subtitle">
+                {roomsWithoutPrompts} room{roomsWithoutPrompts === 1 ? " has" : "s have"} no saved prompts
+                (not an automated test, or run before prompts were saved).
+              </p>
+            )}
+          </div>
+        )}
 
         <h3 className="rooms-section-title folder-section-heading">Rooms in this folder</h3>
         {renderRooms(rooms, "No rooms in this folder yet. Use the Folder dropdown on a room to move it here.")}

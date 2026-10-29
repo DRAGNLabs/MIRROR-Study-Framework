@@ -1615,3 +1615,57 @@
   font-size: 0.8125rem;
   cursor: pointer;
 }
+
+/* === Saved prompt snapshots (automated test rooms) === */
+.folder-prompts {
+  margin-bottom: 1rem;
+}
+
+.folder-prompts-warning {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.folder-prompts-group + .folder-prompts-group {
+  margin-top: 1rem;
+}
+
+.folder-prompts-group-label {
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+}
+
+.room-prompts {
+  margin-top: 1rem;
+}
+
+.prompt-snapshot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.prompt-snapshot-item {
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.prompt-snapshot-item > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.prompt-snapshot-body {
+  margin-top: 0.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.prompt-snapshot-plain {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.85rem;
+  margin: 0;
+}

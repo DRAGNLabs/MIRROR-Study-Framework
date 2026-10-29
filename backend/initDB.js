@@ -109,7 +109,8 @@ async function init() {
       "practiceData" JSONB NOT NULL DEFAULT '{}'::jsonb,
       "isTest" BOOLEAN NOT NULL DEFAULT FALSE,
       "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL,
-      tons_needed INTEGER NOT NULL DEFAULT 20
+      tons_needed INTEGER NOT NULL DEFAULT 20,
+      "promptSnapshot" JSONB
     )
   `);
 
@@ -132,6 +133,12 @@ async function init() {
   await db.query(`
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL
+  `);
+  // Copy of the game's prompt templates at the time an automated test room was
+  // created, so prompt experiments can be told apart later. NULL for real rooms.
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "promptSnapshot" JSONB
   `);
   // Tons each player needs per round (see Rooms Table above).
   await db.query(`

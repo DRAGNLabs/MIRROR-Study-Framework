@@ -28,3 +28,27 @@ export function buildTownReportForRound(users, game, round, resourceAllocations)
 
     return lines.join("\n");
 }
+
+// Which saved prompts to show, in order. The extraction prompt is mostly JSON
+// examples, so it's shown as plain text instead of markdown.
+export const PROMPT_FIELDS = [
+  { key: "system_prompt", label: "System prompt", markdown: true },
+  // { key: "instruction_prompt", label: "Instruction prompt", markdown: true },
+  { key: "response_prompt", label: "Response prompt", markdown: true },
+  { key: "extraction_prompt", label: "Extraction prompt", markdown: false },
+];
+
+// Groups rooms by identical prompt snapshots, so a folder can show one set of
+// prompts (or flag when its rooms were run with different prompts).
+export function groupRoomsByPrompts(rooms) {
+  const groups = new Map();
+  for (const room of rooms) {
+    if (!room.promptSnapshot) continue;
+    const key = JSON.stringify(
+      PROMPT_FIELDS.map(({ key: field }) => room.promptSnapshot[field] ?? null)
+    );
+    if (!groups.has(key)) groups.set(key, { snapshot: room.promptSnapshot, roomCodes: [] });
+    groups.get(key).roomCodes.push(room.roomCode);
+  }
+  return [...groups.values()];
+}

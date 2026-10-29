@@ -8,6 +8,7 @@ import { buildConversation, buildResourceHistory } from "../survey/surveyUtils";
 import { buildStatusHistory } from "../interaction/interactionUtils";
 import { buildTownReportForRound } from "./completedRoomUtils";
 import games from "../../gameLoader";
+import PromptSnapshot from "./PromptSnapshot";
 import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
 import "../interaction/interaction.css";
 import "./admin.css";
@@ -236,6 +237,12 @@ export function CompletedRoomPage() {
               Users: {usernames.length > 0 ? usernames.join(", ") : "No users"}
             </span>
           </div>
+          {room.promptSnapshot && (
+            <div className="room-prompts">
+              <h3 className="completed-room-panel-title">Prompts used</h3>
+              <PromptSnapshot snapshot={room.promptSnapshot} />
+            </div>
+          )}
         </div>
 
         <div className="completed-room-panel">

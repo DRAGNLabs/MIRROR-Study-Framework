@@ -12,6 +12,21 @@ function computeTonsNeeded(game, numPlayers) {
   if (!total || !numPlayers) return null;
   return Math.ceil(total / numPlayers);
 }
+
+// The prompt templates (placeholders unfilled) that gameHandler will use for this game.
+// Saved on automated test rooms only, so different prompt versions can be compared.
+function promptSnapshotFor(gameType) {
+  const game = games.find((g) => parseInt(g.id) === Number(gameType));
+  const prompts = game?.prompts?.[0];
+  if (!prompts) return null;
+  return {
+    gameTitle: game.title,
+    system_prompt: prompts.system_prompt ?? null,
+    instruction_prompt: prompts.instruction_prompt ?? null,
+    response_prompt: prompts.response_prompt ?? null,
+    extraction_prompt: prompts.extraction_prompt ?? null,
+  };
+}
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -38,12 +53,13 @@ router.post('/', async (req, res) => {
     }
 
     const sql = `
-      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "isTest", "folderId")
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "isTest", "folderId", "promptSnapshot")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt", "isTest", "folderId";
     `;
 
-    const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType, !!isTest, folderId ?? null]);
+    const promptSnapshot = isTest ? promptSnapshotFor(gameType) : null;
+    const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType, !!isTest, folderId ?? null, promptSnapshot]);
     await syncFolderRooms([result.rows[0].folderId]);
 
     return res.status(201).json(result.rows[0]);
