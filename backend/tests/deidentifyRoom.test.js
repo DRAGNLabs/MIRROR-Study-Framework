@@ -5,8 +5,8 @@ import {
   DeidentificationPreviewChangedError,
   deidentificationPreviewToken,
   persistRoomDeidentification,
-} from "./deidentifyRoom.js";
-import { buildDeidentificationData } from "./pseudonymize.js";
+} from "../deidentify/deidentifyRoom.js";
+import { buildDeidentificationData } from "../deidentify/pseudonymize.js";
 
 function fakeClient({ missingUpdate } = {}) {
   const calls = [];

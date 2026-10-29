@@ -5,7 +5,7 @@ import {
   buildPreviewExport,
   DuplicateParticipantNameError,
   RedactionCollisionError,
-} from "./pseudonymize.js";
+} from "../deidentify/pseudonymize.js";
 
 function lilyRoom() {
   return {

@@ -8,13 +8,13 @@ import {
   DeidentificationPreviewChangedError,
   deidentificationPreviewToken,
   persistRoomDeidentification,
-} from "../deidentifyRoom.js";
+} from "../deidentify/deidentifyRoom.js";
 import {
   buildDeidentificationData,
   buildPreviewExport,
   DuplicateParticipantNameError,
   RedactionCollisionError,
-} from "../pseudonymize.js";
+} from "../deidentify/pseudonymize.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 
