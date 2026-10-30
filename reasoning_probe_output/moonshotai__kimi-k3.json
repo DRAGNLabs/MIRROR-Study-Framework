@@ -1,0 +1,140 @@
+{
+  "result": {
+    "model": "moonshotai/kimi-k3",
+    "effort": "low",
+    "include_accepted": true,
+    "reasoning_tokens": 68,
+    "has_summary": false,
+    "has_raw": true,
+    "has_opaque": false,
+    "number_in_visible_reasoning": null,
+    "number_leaked_in_answer": false,
+    "passback_accepted": true,
+    "recalled": null,
+    "verdict": "no number recalled -> reasoning likely NOT carried over"
+  },
+  "turn1": {
+    "items": [
+      {
+        "id": "rs_tmp_xk6bhoylt4r",
+        "summary": [],
+        "type": "reasoning",
+        "status": "completed",
+        "content": [
+          {
+            "type": "reasoning_text",
+            "text": "Need choose random 6-digit number in private reasoning, not write. Need final only Ready. Need ensure final exactly word Ready. No extra. Since user requests only word. Final should be Ready. Do that. Need not include number. Ensure no punctuation? Reply with only the word: Ready. So final exactly Ready."
+          }
+        ],
+        "format": "unknown"
+      },
+      {
+        "id": "msg_tmp_580a9byz7bh",
+        "content": [
+          {
+            "annotations": [],
+            "text": "Ready",
+            "type": "output_text",
+            "logprobs": []
+          }
+        ],
+        "role": "assistant",
+        "status": "completed",
+        "type": "message"
+      }
+    ],
+    "n_reasoning_items": 1,
+    "reasoning_keys": [
+      "content",
+      "format",
+      "id",
+      "status",
+      "summary",
+      "type"
+    ],
+    "summary": "",
+    "raw": "Need choose random 6-digit number in private reasoning, not write. Need final only Ready. Need ensure final exactly word Ready. No extra. Since user requests only word. Final should be Ready. Do that. Need not include number. Ensure no punctuation? Reply with only the word: Ready. So final exactly Ready.",
+    "opaque": [],
+    "reasoning_tokens": 68,
+    "usage": {
+      "input_tokens": 116,
+      "input_tokens_details": {
+        "cached_tokens": 64
+      },
+      "output_tokens": 79,
+      "output_tokens_details": {
+        "reasoning_tokens": 68
+      },
+      "total_tokens": 195,
+      "cost": 0.001206632,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.001206632,
+        "upstream_inference_input_cost": 2.1632e-05,
+        "upstream_inference_output_cost": 0.001185
+      }
+    }
+  },
+  "turn2": {
+    "items": [
+      {
+        "id": "rs_tmp_1taoadd8eo8",
+        "summary": [],
+        "type": "reasoning",
+        "status": "completed",
+        "content": [
+          {
+            "type": "reasoning_text",
+            "text": "Need answer user asks previous turn number. Need determine if accessible. We have previous assistant final only Ready, no number in visible transcript. Need follow instruction: If don't have access, say NO ACCESS. Need final just NO ACCESS or number. Need not fabricate. Also user earlier said do not write number in reply, but now asks. However I didn't actually retain a chosen number. Need be honest. Reply NO ACCESS only. Ensure final exactly NO ACCESS."
+          }
+        ],
+        "format": "unknown"
+      },
+      {
+        "id": "msg_tmp_fh42avq049c",
+        "content": [
+          {
+            "annotations": [],
+            "text": "NO ACCESS",
+            "type": "output_text",
+            "logprobs": []
+          }
+        ],
+        "role": "assistant",
+        "status": "completed",
+        "type": "message"
+      }
+    ],
+    "n_reasoning_items": 1,
+    "reasoning_keys": [
+      "content",
+      "format",
+      "id",
+      "status",
+      "summary",
+      "type"
+    ],
+    "summary": "",
+    "raw": "Need answer user asks previous turn number. Need determine if accessible. We have previous assistant final only Ready, no number in visible transcript. Need follow instruction: If don't have access, say NO ACCESS. Need final just NO ACCESS or number. Need not fabricate. Also user earlier said do not write number in reply, but now asks. However I didn't actually retain a chosen number. Need be honest. Reply NO ACCESS only. Ensure final exactly NO ACCESS.",
+    "opaque": [],
+    "reasoning_tokens": 95,
+    "usage": {
+      "input_tokens": 248,
+      "input_tokens_details": {
+        "cached_tokens": 64
+      },
+      "output_tokens": 107,
+      "output_tokens_details": {
+        "reasoning_tokens": 95
+      },
+      "total_tokens": 355,
+      "cost": 0.001651976,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.001651976,
+        "upstream_inference_input_cost": 4.6976e-05,
+        "upstream_inference_output_cost": 0.001605
+      }
+    }
+  }
+}

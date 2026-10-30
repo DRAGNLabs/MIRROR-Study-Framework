@@ -1,0 +1,142 @@
+{
+  "result": {
+    "model": "google/gemini-3.8-flash",
+    "effort": "medium",
+    "include_accepted": true,
+    "reasoning_tokens": 57,
+    "has_summary": false,
+    "has_raw": false,
+    "has_opaque": true,
+    "number_in_visible_reasoning": null,
+    "number_leaked_in_answer": false,
+    "passback_accepted": true,
+    "recalled": null,
+    "verdict": "no number recalled -> reasoning likely NOT carried over"
+  },
+  "turn1": {
+    "items": [
+      {
+        "id": "msg_tmp_4qd07ahqys8",
+        "content": [
+          {
+            "annotations": [],
+            "text": "Ready.",
+            "type": "output_text",
+            "logprobs": []
+          }
+        ],
+        "role": "assistant",
+        "status": "completed",
+        "type": "message"
+      },
+      {
+        "id": "rs_tmp_d4dw3n73d3q",
+        "summary": [],
+        "type": "reasoning",
+        "encrypted_content": "AY89a18EUWtg6JDObMg7cQicZid8hI4yK8TxP0wMPCRmgAL+yNd/pSa9xGOWDwvTa5DsRKcc/YkeyfgEJVRUFaO15KajWp09/F2yqekeWd/1y89xRi2y2Mzfbc+4XcYj3L2ZYHY5LLHDHMI4bpexlyRo9lgEgY8W2TNn+QIpR7LGE2mtImWTO2VqZb3dbMihjIg5ifakXua4MNK3IyhCnsIUVA7YDNztLwQXPRzbw/Mbdu4c1jY9G25Jz9U7CKyPJZGMi0DWgtBwhbRWCU5crM7OunyaC4Q8b2+fdBmiqlUNx9Kp0Zan3gpVgRa/06ubpllXQ/iAAJtXu7sIH/mDLE0xwzXGlsfNyZ+VAve9Z1E6PgVRZX+WgeH64581AQhgkApwX/oXLF/Ap1Tb77A9wkjFHPQNJWI2mQMSc+nDPscCDqt1tbCILiTQOuHOM61WYxYlQ00AJZgaofEJgA==",
+        "status": "completed",
+        "format": "google-gemini-v1"
+      }
+    ],
+    "n_reasoning_items": 1,
+    "reasoning_keys": [
+      "encrypted_content",
+      "format",
+      "id",
+      "status",
+      "summary",
+      "type"
+    ],
+    "summary": "",
+    "raw": "",
+    "opaque": [
+      [
+        "encrypted_content",
+        468
+      ]
+    ],
+    "reasoning_tokens": 57,
+    "usage": {
+      "input_tokens": 31,
+      "input_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "output_tokens": 59,
+      "output_tokens_details": {
+        "reasoning_tokens": 57
+      },
+      "total_tokens": 90,
+      "cost": 0.0002445,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.0002445,
+        "upstream_inference_input_cost": 2.325e-05,
+        "upstream_inference_output_cost": 0.00022125
+      }
+    }
+  },
+  "turn2": {
+    "items": [
+      {
+        "id": "msg_tmp_mn2dienrna",
+        "content": [
+          {
+            "annotations": [],
+            "text": "NO ACCESS",
+            "type": "output_text",
+            "logprobs": []
+          }
+        ],
+        "role": "assistant",
+        "status": "completed",
+        "type": "message"
+      },
+      {
+        "id": "rs_tmp_gcqrergrzzf",
+        "summary": [],
+        "type": "reasoning",
+        "encrypted_content": "AY89a1920A9u9+gamjRcjQ6MPrDwv6UNqAHLalJ0dv0mrizNDZD+f0yL307i+Eu8vElutUCkUezKerdwLsVUCUpNj40IYCZuqQsKAk+4OvZHIa4MLMYZkB4WJwih9QxzE27xx/DkjFAvEb56feNvOs0aKumRGJWh5HInUSm+jzcF833h1/28jxIWJ25d50P8sZUOxrwn82UnzS/PnbsnAdxjwaIRwI/CyMQckSLlP4jGJv8uZdOZxto8cbKEVZbXKG298peym7fpiqBOCbx5+R0Q13fpC+1WF8re55tvrNYq+6yv0XnpjMjhS0zv3FCqWzmMik+gfr7tU4r6nXQXYmQfHtpFod0hRFyXZ28dw/4uVMRiQtzJ6W+LCzTvSYJKA4YOw0Mk39vdbKboZLQyg9pxXc+k7zuSnDnYqQMGebccjsYvcO689cXjm+XOydZTi3fLCvKFUMcvp7sLAF/gxi3felW0xvI8/No40dxMgHGzGu57Hndvd1rNRCFK4lSkSH4JxSyFb3gl1gybw5nOP/mzb/XykXI+q8SvpPye36kZgTQwhCahTLVGht2r7FHhtd/bKOtt9ghEKo7XKnRobTqKQisVafCHzQeXNackAqksfyH3FjJQtOJhCGV1zYHYSmPCCaIL18ik1OrzYkJZkqSX56pIOezszFxuqSnipv6WiIRurCmDbhcIjklk6CJepmGPJThCzJ5srzw82Rc4696R7/koAwOtUeyyO6t82WPu2gjo0HCF+BlSh5wCNx1g2k2W97wvKQc73t/VDEwdAYaOURBmeHUFzN6TMdsW+zsg1HIv65fHpngYaS7gCAQiyZoiLCBC+hoK4TJV5cbf1o2DeTHFzI4yMv6JVnGML4eYHghMkjP6BF5KuiQ8K3RADA==",
+        "status": "completed",
+        "format": "google-gemini-v1"
+      }
+    ],
+    "n_reasoning_items": 1,
+    "reasoning_keys": [
+      "encrypted_content",
+      "format",
+      "id",
+      "status",
+      "summary",
+      "type"
+    ],
+    "summary": "",
+    "raw": "",
+    "opaque": [
+      [
+        "encrypted_content",
+        900
+      ]
+    ],
+    "reasoning_tokens": 117,
+    "usage": {
+      "input_tokens": 68,
+      "input_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "output_tokens": 119,
+      "output_tokens_details": {
+        "reasoning_tokens": 117
+      },
+      "total_tokens": 187,
+      "cost": 0.00049725,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.00049725,
+        "upstream_inference_input_cost": 5.1e-05,
+        "upstream_inference_output_cost": 0.00044625
+      }
+    }
+  }
+}

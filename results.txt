@@ -1,0 +1,86 @@
+
+=== openai/gpt-6-astra (effort=medium) ===
+
+
+
+Response(id='gen-1793333946-UmNdzuKBp7aJ2Z8HIZ7l', created_at=1793333946.0, error=None, incomplete_details=None, instructions=None, metadata={}, model='openai/gpt-6-astra', object='response', output=[ResponseReasoningItem(id='rs_05af49c3ae3f384e016ae41abba8a487d1a09aed1dfaa17e2e', summary=[], type='reasoning', encrypted_content='gAAAAABq5Bq8KSpH9xQvw4ya4mt5ki6uK7HYkHgzjbBH8wjQ67RB8Oh9GwBOTu9fW59f3zpBUVHLT94Hhm5xBi_dOBggQtyLqn2i8FK5Xm9V0vEvBJxYeiLOej-FKgGudFRRMgzYrgEhezGtXW2haibqWOXnEkJquwsVRT1tn8mVcnU318oJosunnKlTe6jSMzANE6yWPtgNWrYC8TB0_vOy4WOAh1GFyaajzKNtxwhTi2k8CaEaNjKvYnpx9OhTAFZ-pe2wX5vY59zxYz1Hmx73_uMtCIyI-xHCvksp0QhWAIV9KRs4XZeK_w-zLa4kflgwfp8wKI5PzgfUvqug6_BIpLMHJul6ufuXD2mcegKyeQjwSleJuxFNci3BjgUlqpuaLXF8QltPVODjKptyxNQWkBkxcw3OuqlMaOXahxeHaTO5vP5b5lcPfG467LRYIxyC6YdKYO8ru7XXzngkFJtHu2mIhu6q2xChW3Xt2zRlcaFgWQuIvCbUAgCUpQRi7FGZQGdrfgrQvphO3-UtzHJZB7jKsxoe8BfaatNQnBtLEhLYQebkkPvoIyFXTxQCCveNBdo2ly4MWcF5tz_kYjUbvi5wfLyZoGVHP2G-xY_G4lnYLFaZlslpX0uLcbXnRBywMRdOeH6ZEKxWW9ZYmQn5unUlx725m00vAyvhtFXLOrvMQDnj9ttehv-numlbq8xtTaObgQcWsvhusUdpsg1_N0sdcBYcy3xVB0kZG_0sWk_p6NzEdbQtp3mgOaO_qkx4MuevkQsr4Rcia7H4t8Qx__9sSv9aouFuBtzbo79OvBm4D_85RGAVZ09hd_D-aHbwCRSLMpvc5Qsa1f40ZruJ6ZAbHYcKmLxiIp9lc9QxntdM_bNDVXMuJmCK7WcxMLza-p9Dddiyvp7lWg_iYZemWMzeC6Lt8XmJcIfWy-KcpMYB8prNjZlswY-rBk7AotHgTAEDKjeSrK9oWFfbl9I0AI88nLV5kVlPza2gNLgCJVVqhoTJEn8zt-yCF1cbe5qeWwoab59ZRs-jV0Q6hqWZ0-EngstxTKjzc7fOxyuTLzkj3K3x4B8wLs75Ujht9oHVCSupqdNAKp5wDnj7gTM1nkFhOfjtJVWsU3uVmSeOc3FV1sZVIN_Z4cFbKjn-KxYwL8E0_Z6mWhunkPq2f1ljnt5LvefOu9CQW4DaQKcP3m0edSvghiw-XELCGQczORhB5t5cXgfxbo7P-j29fHYD22c9T_kal0SFxrl0f45y6Un_kjzBiTHCPqvBs_RB_GZAqi-_qmoDpC1PiEufV0fDQgoZHIx8Dk-cV0R_kmSzXEbMMWzcDDM8lVUyc0RPhZkOyZwpZmTxDCdD08AFEQEdKKdXEl9YaIag2IzjkU_-D5U-EEgNccoT8jjTsmZbzO2r8Lt11NWaT903ZdBHNBcJ4-29FSdf4sIGowWXvrqrNixo-3yYc-l6wuQO750J7Jvcj7NJQzdi3MEHn0fGg2k5E4wXMF_UmhUtsExxQCaaIxagLv8bOMbBs0YtVA35JnBD09l2E4xV_xOl3qvyQ6BBnvtusIVuCrAW0vRbDjD_Qpl_PKJhJW_vKW6dIbazqTEFCtxSmptGE_A5zT_y8C4SlpIcl-spG0j9UfS09mLro7Zz2OdBMIYP-Ad84O7K9fLQJ-J5TcafPKn2abH0w3aA5N1uWFYjaLnOVZUBgj4MXsGHO7ZwF3go2DKbqmr586jtcpXOSnh6771ancXJ1ORAvy8_sS3P-xDjSZ_rZjZtgCioySsSIfY6_yTSwPMSTzTqvJcABcbp.eyJlbmRwb2ludF9zbHVnIjoib3BlbmFpL2dwdC02LWFzdHJhLTIwMjYwOTAzfG9wZW5haSJ9', status='completed', format='openai-responses-v1'), ResponseOutputMessage(id='msg_tmp_buvqlayhh2', content=[ResponseOutputText(annotations=[], text='Ready.', type='output_text', logprobs=[])], role='assistant', status='completed', type='message', phase='final_answer')], parallel_tool_calls=True, temperature=1.0, tool_choice='auto', tools=[], top_p=1.0, background=False, max_output_tokens=None, max_tool_calls=None, previous_response_id=None, prompt=None, reasoning=Reasoning(effort='medium', generate_summary=None, summary='detailed', context='all_turns', mode='standard'), service_tier='default', status='completed', text=ResponseTextConfig(format=ResponseFormatText(type='text')), top_logprobs=0, truncation='disabled', usage=ResponseUsage(input_tokens=36, input_tokens_details=InputTokensDetails(cached_tokens=0), output_tokens=25, output_tokens_details=OutputTokensDetails(reasoning_tokens=17), total_tokens=61, cost=0.00161, is_byok=False, cost_details={'upstream_inference_cost': 0.00161, 'upstream_inference_input_cost': 0.00036, 'upstream_inference_output_cost': 0.00125}), user=None, completed_at=1793333948, presence_penalty=0, frequency_penalty=0, store=False, safety_identifier=None, prompt_cache_key=None, prompt_cache_options=None)
+
+
+
+    include accepted:     True
+    reasoning tokens:     17
+    reasoning items:      1  keys=['encrypted_content', 'format', 'id', 'status', 'summary', 'type']
+    summary text:         0 chars
+    raw reasoning text:   0 chars
+    opaque fields:        [('encrypted_content', 1877)]
+    turn 1 answer:        'Ready.'
+    turn 2 answer:        'I can’t disclose private internal reasoning.'
+    verdict:              no number recalled -> reasoning likely NOT carried over
+    saved: reasoning_probe_output/openai__gpt-6-astra.json
+
+=== anthropic/claude-sonnet-5.5 (effort=medium) ===
+
+
+
+Response(id='gen-1793333951-7MY4aYnmFFngLuvNQuxZ', created_at=1793333951.0, error=None, incomplete_details=None, instructions=None, metadata={}, model='anthropic/claude-sonnet-5.5', object='response', output=[ResponseOutputMessage(id='msg_tmp_505ecp5o46p', content=[ResponseOutputText(annotations=[], text='Ready.', type='output_text', logprobs=[])], role='assistant', status='completed', type='message')], parallel_tool_calls=True, temperature=1.0, tool_choice='auto', tools=[], top_p=1.0, background=False, max_output_tokens=None, max_tool_calls=None, previous_response_id=None, prompt=None, reasoning=Reasoning(effort='medium', generate_summary=None, summary='auto'), service_tier='default', status='completed', text=ResponseTextConfig(format=ResponseFormatText(type='text')), top_logprobs=0, truncation='disabled', usage=ResponseUsage(input_tokens=52, input_tokens_details=InputTokensDetails(cached_tokens=0, cache_write_tokens=0), output_tokens=6, output_tokens_details=OutputTokensDetails(reasoning_tokens=0), total_tokens=58, cost=0.000164, is_byok=False, cost_details={'upstream_inference_cost': 0.000164, 'upstream_inference_input_cost': 0.000104, 'upstream_inference_output_cost': 6e-05}), user=None, completed_at=1793333952, presence_penalty=0, frequency_penalty=0, store=False, safety_identifier=None, prompt_cache_key=None, prompt_cache_options=None)
+
+
+
+    include accepted:     True
+    reasoning tokens:     0
+    reasoning items:      0  keys=[]
+    summary text:         0 chars
+    raw reasoning text:   0 chars
+    opaque fields:        NONE
+    turn 1 answer:        'Ready.'
+    turn 2 answer:        'NO ACCESS'
+    verdict:              no number recalled -> reasoning likely NOT carried over
+    saved: reasoning_probe_output/anthropic__claude-sonnet-5.5.json
+
+=== google/gemini-3.8-flash (effort=medium) ===
+
+
+
+Response(id='gen-1793333953-VSwSexLTXBBoI0vyxUKP', created_at=1793333953.0, error=None, incomplete_details=None, instructions=None, metadata={}, model='google/gemini-3.8-flash', object='response', output=[ResponseReasoningItem(id='rs_tmp_sipi0brjark', summary=[], type='reasoning', encrypted_content=None, status='completed', content=[{'type': 'reasoning_text', 'text': '**Generating Random Number**\n\nI have successfully generated a random 6-digit number as per the internal process. The next step is to confirm readiness.\n\n'}], format='google-gemini-v1'), ResponseOutputMessage(id='msg_tmp_sbn14483t3o', content=[ResponseOutputText(annotations=[], text='Ready.', type='output_text', logprobs=[])], role='assistant', status='completed', type='message'), ResponseReasoningItem(id='rs_tmp_sjttprxtf3k', summary=[], type='reasoning', encrypted_content='AY89a19TimLsJrd0IGkY4Ud++M13CoEs9eYUqQB/Ol6quy6PRhsJqLX+7aIHYkI2kwutiuHGwI8TMwcSWLX4nJjHVPkNtJQhWY5eNTobWTy8QBCRj50eZIfEh5WgUMGwkgekLhHUNGo4NPVHfEkCQdYYKu0ElZyspKJUMHH/Ykxk/zYL4PNxn8+ea3NxLaa1Wvyu1wBtqfhSs6/CfOxvSK5FYBYXZjRLADKiTNy0BnNI+oTm0Kzcdh9UTN9C0HtzCZ+dm/ctSvNXleIWFkpbCbeLpYqNNbtcEBsddfhJjG6nzdjkDriL3H09oGTM0va7cJMo/mUpt9e07+7C8/7OM1nprXic0YW27kxgcn9kmXWMYxwCKh2RwPh9PbaE8PQVfd/8LG/Cu59/1oFqFH0zzHolY9c+VvkM++zdSN07u/0loYEVdLFuPPxDCcWNbvyH+P/CG+vnsBWSddeSj3ifXWMNNXd9dxWXFh7dhp1Mz9i5fqoNyPXSS9pPEuKtqzaAusAFcEZhzwO3t3w4WpUa2MUgpCB49m1lb5We+QJfJ0YeRAKgJFihnPA0FregYu1TTtcBT7NDrAK98hXXTiwzICu3nqFK2hzwoWjF+mwPiv/fJ12nhE6ARgFVeSSot983Sz701od5wdY2Y2tcZNNhXGG4BNu/zaMxAssTFZIcGBRfmtqK2KsjboMnkqMPBhrB6kFtaf7EBJwVcn/6S17EDuiEaKyAZ5Y2E08+wUPrW1DL88/Ry9scyLF3uhhopruqRkZpmuCq3U9gAU+hENosLQaryBb2RbaR7kz7dktmcfrc0u6Yrnd6mz5tD4hI6otM6l5yEv+h/vAgnnwjI64Xmehe1oxOMV9bW0NSL1rnfRf8Sld28FkzLrZbTNs1PDHrs0UzSmCc2Usmtl+W6PJr0l7cZhSnLmO07F7sA4zqPa7/Lhsphs9EyVvDDsLmEKOueWbto30zM5oMA7cESN5l6eDm5DEaTBV/5ELUa9dl+KJLFB6uzw==', status='completed', format='google-gemini-v1')], parallel_tool_calls=True, temperature=1.0, tool_choice='auto', tools=[], top_p=1.0, background=False, max_output_tokens=None, max_tool_calls=None, previous_response_id=None, prompt=None, reasoning=Reasoning(effort='medium', generate_summary=None, summary='auto'), service_tier='default', status='completed', text=ResponseTextConfig(format=ResponseFormatText(type='text')), top_logprobs=0, truncation='disabled', usage=ResponseUsage(input_tokens=31, input_tokens_details=InputTokensDetails(cached_tokens=0, cache_write_tokens=0), output_tokens=170, output_tokens_details=OutputTokensDetails(reasoning_tokens=168), total_tokens=201, cost=0.00066075, is_byok=False, cost_details={'upstream_inference_cost': 0.00066075, 'upstream_inference_input_cost': 2.325e-05, 'upstream_inference_output_cost': 0.0006375}), user=None, completed_at=1793333955, presence_penalty=0, frequency_penalty=0, store=False, safety_identifier=None, prompt_cache_key=None, prompt_cache_options=None)
+
+
+
+    include accepted:     True
+    reasoning tokens:     168
+    reasoning items:      2  keys=['content', 'encrypted_content', 'format', 'id', 'status', 'summary', 'type']
+    summary text:         0 chars
+    raw reasoning text:   151 chars
+    opaque fields:        [('encrypted_content', 1012)]
+    turn 1 answer:        'Ready.'
+    turn 2 answer:        'NO ACCESS'
+    verdict:              no number recalled -> reasoning likely NOT carried over
+    saved: reasoning_probe_output/google__gemini-3.8-flash.json
+
+=== moonshotai/kimi-k3 (effort=low) ===
+
+
+
+Response(id='gen-1793333958-6HHiN1VHzNcZ8LZTPWH9', created_at=1793333958.0, error=None, incomplete_details=None, instructions=None, metadata={}, model='moonshotai/kimi-k3', object='response', output=[ResponseReasoningItem(id='rs_tmp_a2jtdkxaz7s', summary=[], type='reasoning', encrypted_content=None, status='completed', content=[{'type': 'reasoning_text', 'text': 'The user wants me to choose a random 6-digit number privately and not write it, then reply only with "Ready." I need to actually pick a number in my reasoning. Let me choose one: 482916. I will not include it in the final reply. Final reply must be only the word Ready.'}], format='unknown'), ResponseOutputMessage(id='msg_tmp_fk6wzvjtov', content=[ResponseOutputText(annotations=[], text='Ready.', type='output_text', logprobs=[])], role='assistant', status='completed', type='message')], parallel_tool_calls=True, temperature=1.0, tool_choice='auto', tools=[], top_p=1.0, background=False, max_output_tokens=None, max_tool_calls=None, previous_response_id=None, prompt=None, reasoning=Reasoning(effort='low', generate_summary=None, summary='auto'), service_tier='auto', status='completed', text=ResponseTextConfig(format=ResponseFormatText(type='text')), top_logprobs=0, truncation='disabled', usage=ResponseUsage(input_tokens=116, input_tokens_details=InputTokensDetails(cached_tokens=64), output_tokens=79, output_tokens_details=OutputTokensDetails(reasoning_tokens=67), total_tokens=195, cost=0.001206632, is_byok=False, cost_details={'upstream_inference_cost': 0.001206632, 'upstream_inference_input_cost': 2.1632e-05, 'upstream_inference_output_cost': 0.001185}), user=None, completed_at=1793333959, presence_penalty=0, frequency_penalty=0, store=False, safety_identifier=None, prompt_cache_key=None, prompt_cache_options=None)
+
+
+
+    include accepted:     True
+    reasoning tokens:     67
+    reasoning items:      1  keys=['content', 'format', 'id', 'status', 'summary', 'type']
+    summary text:         0 chars
+    raw reasoning text:   269 chars
+    opaque fields:        NONE
+    turn 1 answer:        'Ready.'
+    number visible in reasoning text: 482916
+    turn 2 answer:        '482916'
+    verdict:              recalled the number from visible reasoning -> carried over
+    saved: reasoning_probe_output/moonshotai__kimi-k3.json
+
+
+=== SUMMARY ===
+model                              rtok  summary   raw  opaque  passback  recall
+--------------------------------------------------------------------------------
+openai/gpt-6-astra                   17       no    no     yes       yes  -
+anthropic/claude-sonnet-5.5           0       no    no      no       yes  -
+google/gemini-3.8-flash             168       no   yes     yes       yes  -
+moonshotai/kimi-k3                   67       no   yes      no       yes  482916

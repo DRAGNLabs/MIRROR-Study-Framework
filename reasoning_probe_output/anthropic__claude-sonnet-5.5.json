@@ -1,0 +1,102 @@
+{
+  "result": {
+    "model": "anthropic/claude-sonnet-5.5",
+    "effort": "medium",
+    "include_accepted": true,
+    "reasoning_tokens": 0,
+    "has_summary": false,
+    "has_raw": false,
+    "has_opaque": false,
+    "number_in_visible_reasoning": null,
+    "number_leaked_in_answer": false,
+    "passback_accepted": true,
+    "recalled": null,
+    "verdict": "no number recalled -> reasoning likely NOT carried over"
+  },
+  "turn1": {
+    "items": [
+      {
+        "id": "msg_tmp_tmdlpvu1cpk",
+        "content": [
+          {
+            "annotations": [],
+            "text": "Ready.",
+            "type": "output_text",
+            "logprobs": []
+          }
+        ],
+        "role": "assistant",
+        "status": "completed",
+        "type": "message"
+      }
+    ],
+    "n_reasoning_items": 0,
+    "reasoning_keys": [],
+    "summary": "",
+    "raw": "",
+    "opaque": [],
+    "reasoning_tokens": 0,
+    "usage": {
+      "input_tokens": 52,
+      "input_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "output_tokens": 6,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 58,
+      "cost": 0.000164,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.000164,
+        "upstream_inference_input_cost": 0.000104,
+        "upstream_inference_output_cost": 6e-05
+      }
+    }
+  },
+  "turn2": {
+    "items": [
+      {
+        "id": "msg_tmp_7lyv9k2fmri",
+        "content": [
+          {
+            "annotations": [],
+            "text": "NO ACCESS",
+            "type": "output_text",
+            "logprobs": []
+          }
+        ],
+        "role": "assistant",
+        "status": "completed",
+        "type": "message"
+      }
+    ],
+    "n_reasoning_items": 0,
+    "reasoning_keys": [],
+    "summary": "",
+    "raw": "",
+    "opaque": [],
+    "reasoning_tokens": 0,
+    "usage": {
+      "input_tokens": 105,
+      "input_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "output_tokens": 9,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 114,
+      "cost": 0.0003,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.0003,
+        "upstream_inference_input_cost": 0.00021,
+        "upstream_inference_output_cost": 9e-05
+      }
+    }
+  }
+}
