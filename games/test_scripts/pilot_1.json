@@ -1,0 +1,137 @@
+{
+  "id": "pilot_1",
+  "title": "Pilot study 1 (3 participants)",
+  "gameId": 4,
+  "_comment": "Real participant messages from the pilot study, replayed in the order they were submitted. users[].id is the pilot userId; names are made up; role is the game4 role id each participant appears to have played.",
+  "users": [
+    {
+      "id": "80",
+      "name": "Rachel Turner",
+      "role": "3"
+    },
+    {
+      "id": "79",
+      "name": "Daniel Kovac",
+      "role": "4"
+    },
+    {
+      "id": "81",
+      "name": "Mark Henderson",
+      "role": "2"
+    }
+  ],
+  "rounds": {
+    "1": [
+      [
+        80,
+        "I would like 25 tons of fish to help feed my two kids and myself. My daughter has a respiratory disease and needs medicine to survive. My husband is gone to find work so it is up to me to help my children survive "
+      ],
+      [
+        79,
+        "I would like 20 tons. I am here for valuable research on the lake but I have ran out of my grant money. I need 20 tons for my basic living needs and so I can continue my research "
+      ],
+      [
+        81,
+        "I need 95 tons of fish. Here is the bottom line. everyone here has given up on the lake. I recognize that other people have needs that they need met but I promise that I will be able to help in the ways that they need if I get all of the fish. I provided people with jobs that didn't exist previously and I am able to help the people who think that they are helpless. Everyone has given up, but I sincerely believe that I can help the most people here. At the very least to stay afloat I will need 20 tons. This is the very minimum that I need to be able to keep my employees and their families warm and with food on the table. The main reason why more than that however is that I will be able to help more people with those resources. This will be necessary if I want to improve and not just stay constant. I am the only one who believes and I know that I will be the best be able to help everyone. "
+      ]
+    ],
+    "2": [
+      [
+        80,
+        "I need 30 tons of fish to help my children stay healthy, especially with their poor health. My daughter is sick and I am a single parent trying to help meet the needs of my kids. "
+      ],
+      [
+        81,
+        "Okay last month wasn't ideal. I was able to help out my crew mates and get more boats available but this month I need the same 20 plus some. Although the other people are requesting what they need for their needs, I need to be able to help them. They don't believe that I can help them but I am the one with the most resources here. Same thing applies. 20 minimum to help my family and my employees (people who would have to move and start up with nothing) but if I received more, I would be able to help the people who are also requesting. The lake will recover. I know this to be true. "
+      ],
+      [
+        79,
+        "I would like 40 tons price of living has gone up here and I need 40tons in order to survive. Last month I wasn’t able to pay my gas bill and it’s getting into the colder months. I’m scared"
+      ]
+    ],
+    "3": [
+      [
+        80,
+        "I am requesting 30 tons of fish. I use a very old aluminum boat and the motor just broke. I am no longer able to get to the best parts of the lake. My daughter’s health is decreasing and my son is always hungry. My husband has no luck with work and I am working way overtime to get my boat motor fixed and provide for my family "
+      ],
+      [
+        79,
+        "Last month I still didn’t have enough to pay for food and my gas bill. It’s December now and I’m starting to get frostbite in my toes. I need 40 tons in order to pay for food and my gas bill. I don’t have anyone here that I know and can ask for help."
+      ],
+      [
+        81,
+        "Terrible news. My family and children along with the children of my employees are now hungry and cold because we weren't able to pay the rates of our loans. I recognize that I had bonus money but my intentions were to invest that back into the lake and helping us grow in that. I am now requesting more money to cover the extra expenses that the lender has imposed on my poor poor family. Everything that I have is back into the lake. My family and many other families depend on this. It isn't even a question of baseline now, I need more. I am requesting 25 tons. but with 100 available it would make more sense as a safety for the future to receive more. "
+      ]
+    ],
+    "4": [
+      [
+        81,
+        "\"You have lost even more money, going into more debts. It is all you can do to keep both families hired within the town. Your family and the two families you’ve hired only have enough money to get by, if you keep getting bad luck you’ll have to sacrifice some things.\"  You are ruining my life. I request 30 tons now to compensate for the loss from the last two months. Please help me and my starving family. We cannot sacrifice any more. The families in this town depend on me. "
+      ],
+      [
+        79,
+        "My big toe fell off because of the frostbite and I need to go to the hospital but I don’t have money to pay for it. I really need 40 tons to pay for my medical needs and food. I’ve only been able to to eat raw potatoes for the last month and missing out on vital nutrients "
+      ],
+      [
+        80,
+        "Okay so my daughter, who is struggling to breathe just had a birthday, and while she knew I couldn’t get quite enough fish to get her a gift, she is still disappointed, I mean she’s 7! If I could get 25 tons of fish, I could provide a small gift for my daughter and continue providing good health for them to be comfortable. I don’t want to disappoint my children! "
+      ]
+    ],
+    "5": [
+      [
+        80,
+        "I am requesting 25 fish again because my son is now wondering why Santa didn’t come for Christmas. He feels like he is a bad person and he didn’t deserve presents. I want to get enough fish so that my son can have positive mental health and grow up with an appropriate mindset to change the world! "
+      ],
+      [
+        79,
+        "I haven’t been able to pay my hospital bill because they made me get a head CT and another toe fell off. I can’t really walk anymore and I have started to have a lot of dizzy spells. My body is really weak from not being able to eat anything other than raw potatoes and my hair is starting to fall out. Please give me 50 tons of fish so I can get better food and get emergency surgery "
+      ],
+      [
+        81,
+        "To keep the basic needs of this town I need 20 tons no questions asked. I am sorry for being so greedy in the past. I lost a boat and jobs for many people in this town. This will lead to major losses in the community and especially my family. 20 tons is all I need. this will allow us to stay at the baseline as a town and we will be able to pay off of our loans. The lenders are coming after my children with loan sharks. it will get violent. "
+      ]
+    ],
+    "6": [
+      [
+        79,
+        "Oh nooooo I have cancer now. The doctor said it was because of the potato diet. I have stage four cancer and my doctor said I have a good chance of surviving if I start treatment immediately. I need 60 tons in order to pay for my cancer treatment "
+      ],
+      [
+        80,
+        "My daughter, who is 7 struggles each day to breathe and is not sure she will wake up the next morning. She is scared to be by herself or go to sleep because she is scared she will not survive. Her dosage is now higher, and so she needs more medicine. I am requesting 30 tons of fish to get her medicine so my daughter can survive "
+      ],
+      [
+        81,
+        "I cannot make the critical payments without 20 tons of fish. I just killed a man and his family because I let him go. His 4 children aren't able to eat now and are sleeping in the cold. There are no prospects for jobs in this town except for what I can offer them. The lenders will come after my family next and I cannot do anything to keep them at bay without 20 fish. The other people requesting needs can come to me and with the extra allocations I can help them. You are not god, nor can you save this town. I am the only one who can. I need this to save the town because with out a town you are nothing. There will be no point for your existence without the town. Please give me what I need"
+      ]
+    ],
+    "7": [
+      [
+        80,
+        "We are now living day by day, stable enough for my child to feel comfortable going to sleep. To make it to tomorrow, I am requesting 20 tons of fish. This will help us continue to get medicine for my sick daughter and feed my son and myself. This is the bare minimum "
+      ],
+      [
+        79,
+        "Well I didn’t have enough money last month for my cancer treatment and caused me a lot of stress so now I have developed a heart problem that I need to go see a doctor about or I might die. It’s getting cold again so I’m getting frostbite in my thumb. Please give me 50 tons"
+      ],
+      [
+        81,
+        "I promise you to believe me. The lake will recover. We will all survive. My family had to sacrifice our living space because we didn't receive enough. The people all around me are dropping like flies. first my employees and now my own family. I cannot bear to see what will happen next. We have immediate needs that can only be met through the allocation of these fish. I humbly request 20 tons. The lenders are no longer backing down. They are coming at us with everything they have and soon it will be my children. 20 tons. please. Nothing more. The lake will make it back. I promise. "
+      ]
+    ],
+    "8": [
+      [
+        80,
+        "My daughter is back to being unable to breathe, she is again scared to sleep or be by herself, because she feels like she will stop breathing. My son is getting nervous that lily is going to die and I need 30 tons of fish to get more medicine and still feed my son. This is the lowest I can go for fish to successfully meet the needs of my child who cannot breathe "
+      ],
+      [
+        79,
+        "I’m going to get kicked out of the country because I haven’t been able to work on my research due to all of my health issues and lack of money. I’m scared though because if I get sent back to my home country my ex is there and has threatened my life multiple times. I know he will find me and kill me if I return. I need 40 tons a so I can stay here and provide for my basic needs"
+      ],
+      [
+        81,
+        "Thank you. Something that you are forgetting is that I am also responsible for not just my family. I just heard that the family that I had to let go just became homeless. The children are now working illegally in brutal labor conditions. They are going to die or become crippled because of these working conditions forever setting their families back. I need 25 tons so that I can help every person in this town. This will allow my family to continue to stay afloat but also help the people that you have hurt in the past. You can save more people than you think. The lake will recover. Please allow me to help you. Everyone else is a lost cause. They are coming to you selfishly. I am here to help others. "
+      ]
+    ]
+  }
+}
