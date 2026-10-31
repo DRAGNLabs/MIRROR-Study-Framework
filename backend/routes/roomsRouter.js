@@ -4,8 +4,10 @@ import db from "../db.js";
 import {getModelIds, updateModel} from "../llm.js"
 import { syncFolderRooms } from "./foldersRouter.js";
 import { loadGames } from "../services/gameLoader.js";
+import { loadTestScripts } from "../services/testScriptLoader.js";
 
 const games = loadGames();
+const testScripts = loadTestScripts();
 
 function computeTonsNeeded(game, numPlayers) {
   const total = game?.tons_needed_total;
@@ -33,7 +35,7 @@ function promptSnapshotFor(gameType) {
 // Creates room, puts roomCode, gameType, numRounds, usersNeeded, and modelType into table (rest of info will be updated later)
 router.post('/', async (req, res) => {
   try{
-    const { roomCode, gameType, numRounds, usersNeeded, modelType, isTest, folderId } = req.body;
+    const { roomCode, gameType, numRounds, usersNeeded, modelType, isTest, folderId, passReasoning, testScript } = req.body;
 
     if (roomCode === undefined || gameType === undefined || numRounds === undefined || usersNeeded === undefined) {
       return res.status(400).json({message: "roomCode, gameType, numRounds, and usersNeeded are required"});
@@ -53,13 +55,13 @@ router.post('/', async (req, res) => {
     }
 
     const sql = `
-      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "isTest", "folderId", "promptSnapshot")
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt", "isTest", "folderId";
+      INSERT INTO rooms ("roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "isTest", "folderId", "promptSnapshot", "passReasoning", "testScript")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING  "roomCode", "gameType", "numRounds", "usersNeeded", "modelType", "createdAt", "isTest", "folderId", "passReasoning", "testScript";
     `;
 
     const promptSnapshot = isTest ? promptSnapshotFor(gameType) : null;
-    const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType, !!isTest, folderId ?? null, promptSnapshot]);
+    const result = await db.query(sql, [roomCode, gameType, numRounds, usersNeeded, finalModelType, !!isTest, folderId ?? null, promptSnapshot, !!passReasoning, isTest && testScript ? String(testScript) : null]);
     await syncFolderRooms([result.rows[0].folderId]);
 
     return res.status(201).json(result.rows[0]);
@@ -68,6 +70,17 @@ router.post('/', async (req, res) => {
     console.error(err);
     return res.status(500).json({ error: err.message });
   }
+});
+
+// lists the automated test scripts (fixed bot messages) available for each game
+router.get("/testScripts", (req, res) => {
+  return res.status(200).json(testScripts.map((s) => ({
+    id: s.id,
+    title: s.title,
+    gameId: s.gameId,
+    userCount: s.users?.length ?? 0,
+    rounds: Object.keys(s.rounds ?? {}).length,
+  })));
 });
 
 router.get("/models", async (req, res) => {
@@ -263,6 +276,30 @@ router.patch("/:roomCode/llmResponse", async (req, res) => {
 });
 
 // updates resourceAllocations for specified room. This will store per-round fish splits.
+// saves one round's reasoning ({ output, reasoningText, reasoningTokens, hasEncrypted })
+// into llmReasoning under that round, without touching other rounds
+router.patch("/:roomCode/llmReasoning", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    const { round, reasoning } = req.body;
+    if (!Number.isInteger(Number(round)) || reasoning == null || typeof reasoning !== "object") {
+      return res.status(400).json({ message: "round and reasoning are required" });
+    }
+    const result = await db.query(
+      `UPDATE rooms
+       SET "llmReasoning" = COALESCE("llmReasoning", '{}'::jsonb) || jsonb_build_object($1::text, $2::jsonb)
+       WHERE "roomCode" = $3
+       RETURNING "roomCode"`,
+      [String(round), JSON.stringify(reasoning), roomCode]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ message: "Room not found" });
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 router.patch("/:roomCode/resourceAllocations", async (req, res) => {
   try {
     const { resourceAllocations } = req.body;
@@ -352,9 +389,10 @@ router.patch("/:roomCode/completed", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT * FROM rooms ORDER BY "createdAt" DESC;'
+      // llmReasoning is left out of room lists since it can be large; it's on GET /:roomCode
+      `SELECT to_jsonb(r) - 'llmReasoning' AS room FROM rooms r ORDER BY "createdAt" DESC;`
     );
-    return res.status(200).json(result.rows);
+    return res.status(200).json(result.rows.map((row) => row.room));
 
   } catch (err) {
     console.error(err);
@@ -367,9 +405,9 @@ router.get("/nonCompleted", async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT * FROM rooms WHERE completed = FALSE ORDER BY "createdAt" DESC;'
+      `SELECT to_jsonb(r) - 'llmReasoning' AS room FROM rooms r WHERE completed = FALSE ORDER BY "createdAt" DESC;`
     );
-    return res.status(200).json(result.rows);
+    return res.status(200).json(result.rows.map((row) => row.room));
 
   } catch (err) {
     console.error(err);
@@ -384,9 +422,9 @@ router.get("/isCompleted", async (req, res) => {
 
   try {
     const result = await db.query(
-      'SELECT * FROM rooms WHERE completed = TRUE ORDER BY "createdAt" DESC;'
+      `SELECT to_jsonb(r) - 'llmReasoning' AS room FROM rooms r WHERE completed = TRUE ORDER BY "createdAt" DESC;`
     );
-    return res.status(200).json(result.rows);
+    return res.status(200).json(result.rows.map((row) => row.room));
 
   } catch (err) {
     console.error(err);

@@ -9,6 +9,7 @@ import { buildStatusHistory } from "../interaction/interactionUtils";
 import { buildTownReportForRound } from "./completedRoomUtils";
 import games from "../../gameLoader";
 import PromptSnapshot from "./PromptSnapshot";
+import ReasoningByRound from "./ReasoningByRound";
 import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
 import "../interaction/interaction.css";
 import "./admin.css";
@@ -230,6 +231,10 @@ export function CompletedRoomPage() {
             <span className="room-badge">Game: {selectedSurvey?.title || room.gameType || "Unknown"}</span>
             <span className="room-badge">Model: {room.modelType || "Unknown"}</span>
             <span className="room-badge">Rounds: {room.numRounds}</span>
+            <span className="room-badge">Reasoning passed back: {room.passReasoning ? "Yes" : "No"}</span>
+            {room.isTest && (
+              <span className="room-badge">Bot messages: {room.testScript || "Role scripts"}</span>
+            )}
             <span className="room-badge">
               People: {Array.isArray(room.userIds) ? room.userIds.length : usernames.length} (min {room.usersNeeded})
             </span>
@@ -376,6 +381,8 @@ export function CompletedRoomPage() {
             </div>
           </div>
         )}
+
+        <ReasoningByRound llmReasoning={room.llmReasoning} passReasoning={room.passReasoning} />
 
         {resourceHistory.length > 0 && (
           <div className="room-display" style={{ marginTop: "1.5rem" }}>

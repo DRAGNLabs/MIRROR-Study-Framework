@@ -85,6 +85,12 @@ function RoomCard({ room, users, folders, onView, onDelete, onMove }) {
         {room.isTest && (
           <span className="meta-item test-mode-badge">Automated Test</span>
         )}
+        {room.passReasoning && (
+          <span className="meta-item">Reasoning passed back</span>
+        )}
+        {room.testScript && (
+          <span className="meta-item">Bot messages: {room.testScript}</span>
+        )}
         <span className="meta-item"><strong>{gameTitle(room.gameType)}</strong></span>
         <span className="meta-item">
           Users: {Array.isArray(users) ? users.join(", ") : "No users"}

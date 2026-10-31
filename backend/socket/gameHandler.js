@@ -1,6 +1,6 @@
 import { loadGames } from "../services/gameLoader.js"
 import { streamLLM, callLLMJson } from "../llm.js";
-import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData, appendPracticeMessage } from "../services/roomsService.js";
+import { getRoom, appendLlmInstructions, updateLlmResponse, updateUserMessages, getSurveyStatus, roomCompleted, updateResourceAllocations, updateFishAmount, updateCurrRound, updatePracticeData, appendPracticeMessage, updateLlmReasoning } from "../services/roomsService.js";
 import { getUser, updateUserStatus } from "../services/usersService.js"
 import { jsonrepair } from "jsonrepair";
 
@@ -237,7 +237,15 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
         // messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, { fish_available: fish_amount[i], month: practice ? "0 (practice round)" : i, town_report: town_report })} \n ${formattedUserMessages}` });
         messages.push({"role": "user", "content": `${fillPrompt(responsePrompt, {fish_available: fish_amount[i], month: practice ? "0 (practice round)": i})} \n ${formattedUserMessages}`});
         if(!llmResponses[i]) break;
-        messages.push({ "role": "assistant", "content": llmResponses[i] });
+        // With passReasoning on, send back that round's full output (reasoning items +
+        // the memo) unchanged, which is what reasoning models like Kimi K3 expect.
+        // Otherwise (or if no output was saved for that round) just the memo text.
+        const savedOutput = room.llmReasoning?.[i]?.output;
+        if (!practice && room.passReasoning && Array.isArray(savedOutput) && savedOutput.length > 0) {
+            messages.push(...savedOutput);
+        } else {
+            messages.push({ "role": "assistant", "content": llmResponses[i] });
+        }
     }
 
     if(getInstructions) {
@@ -249,10 +257,20 @@ async function getLlmText(io, roomCode, getInstructions, getAllocation, { practi
 
     // console.log("messages: ", messages);
     let buffer = "";
-    await streamLLM(messages, token => {
+    const reasoning = await streamLLM(messages, token => {
         buffer += token;
         io.to(room.roomCode).emit("ai-token", token); // allows tokens to be appended to LLM message as they come
     }, room.modelType);
+
+    // Save this round's reasoning for every room (whether or not it's passed back),
+    // so it can be read on the completed room page. Practice rounds aren't saved.
+    if (getAllocation && !practice && reasoning) {
+        try {
+            await updateLlmReasoning(round, reasoning, room.roomCode);
+        } catch (err) {
+            console.error(`[Round ${round}] Saving reasoning failed:`, err);
+        }
+    }
     // lets interaciton and adminInteraciton know to reset everything since it has received the whole LLM message
     io.to(room.roomCode).emit("ai-end");
 

@@ -86,6 +86,21 @@ async function init() {
  * folderId is the room_folders id this room is filed in (null = unfiled). Deleting a folder just un-files its rooms
  * tons_needed is how many tons each player must be allocated in a round for something good to happen to them (otherwise something bad happens).
  *   Set when players are seated (PATCH /rooms/:roomCode/userIds), see computeTonsNeeded() in routes/roomsRouter.js. Defaults to 20, what every room used before this existed
+ * promptSnapshot is only set for automated test rooms (null otherwise), the game's prompt templates when the room was created:
+ *   {gameTitle, system_prompt, instruction_prompt, response_prompt, extraction_prompt}
+ * testScript is the id of the games/test_scripts file an automated test room replayed for its bot messages
+ *   (e.g. "pilot_1"), null when the bots used each role's initial/enter/exit_request text (or not a test room)
+ * passReasoning is boolean, when true each round's full model output (reasoning + memo) is sent back as history in later rounds instead of just the memo text
+ * llmReasoning is saved for every room (practice round not included), keyed by round like llmResponse:
+ *   {round#1: {output, reasoningText, reasoningTokens, hasEncrypted}, round#2: {...}, ...}
+ *   output: the model's output items exactly as the Responses API returned them, e.g.
+ *     [{type: "reasoning", id, summary: [{type, text}], content: [{type: "reasoning_text", text}], encrypted_content | signature, format},
+ *      {type: "message", role: "assistant", content: [{type: "output_text", text: "<the memo>"}], ...}]
+ *     which fields come back depends on the model: OpenAI -> summary + encrypted_content, Claude -> content text + signature,
+ *     Gemini -> content text in one item + encrypted_content in a second item, Kimi K3 -> raw content text only. No reasoning items for models without reasoning
+ *   reasoningText: the readable reasoning (summary and/or raw text joined together), "" if none
+ *   reasoningTokens: reasoning token count from the response's usage (0 if none)
+ *   hasEncrypted: true if any reasoning item had encrypted_content or a signature
  */
   await db.query(`
     CREATE TABLE IF NOT EXISTS rooms (
@@ -110,7 +125,10 @@ async function init() {
       "isTest" BOOLEAN NOT NULL DEFAULT FALSE,
       "folderId" INTEGER REFERENCES room_folders(id) ON DELETE SET NULL,
       tons_needed INTEGER NOT NULL DEFAULT 20,
-      "promptSnapshot" JSONB
+      "promptSnapshot" JSONB,
+      "passReasoning" BOOLEAN NOT NULL DEFAULT FALSE,
+      "llmReasoning" JSONB NOT NULL DEFAULT '{}'::jsonb,
+      "testScript" TEXT
     )
   `);
 
@@ -139,6 +157,23 @@ async function init() {
   await db.query(`
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "promptSnapshot" JSONB
+  `);
+  // passReasoning: when true, each round's full model output (reasoning included) is
+  // sent back as history in later rounds instead of just the memo text.
+  // llmReasoning: per-round reasoning saved for every room, keyed by round like llmResponse:
+  // { output, reasoningText, reasoningTokens, hasEncrypted }
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "passReasoning" BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "llmReasoning" JSONB NOT NULL DEFAULT '{}'::jsonb
+  `);
+  // testScript: id of the games/test_scripts file an automated test replayed (null = role scripts)
+  await db.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "testScript" TEXT
   `);
   // Tons each player needs per round (see Rooms Table above).
   await db.query(`

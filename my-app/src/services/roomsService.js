@@ -1,7 +1,7 @@
 import { API_BASE } from "../config.js";
 
 // creates new room in rooms table
-export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType, isTest=false, folderId=null){
+export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, modelType, isTest=false, folderId=null, passReasoning=false, testScript=null){
   const res = await fetch(`${API_BASE}/rooms`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -12,7 +12,9 @@ export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, model
       usersNeeded: Number(usersNeeded),
       ...(modelType ? { modelType } : {}),
       isTest: !!isTest,
-      folderId: folderId ?? null
+      folderId: folderId ?? null,
+      passReasoning: !!passReasoning,
+      testScript: testScript || null
     }), //do we need the Number() function, idk
   })
   if(!res.ok) throw new Error("Error creating room.");
@@ -20,6 +22,13 @@ export async function sendRoom(roomCode, gameType, numRounds, usersNeeded, model
   return res.json();
 }
 
+
+// automated test scripts (fixed bot messages, e.g. from a pilot study): [{id, title, gameId, userCount, rounds}]
+export async function getTestScripts() {
+  const response = await fetch(`${API_BASE}/rooms/testScripts`);
+  if (!response.ok) throw new Error("Can't get test scripts.");
+  return response.json();
+}
 
 // get room with specified roomCode
 export async function getRoom(roomCode) {

@@ -1,9 +1,30 @@
 import { loadGames } from "./gameLoader.js";
+import { loadTestScripts } from "./testScriptLoader.js";
 import { getUser, createUser, setUserRole } from "./usersService.js";
 import { getRoom, updateUserIds, updateStatus, roomCompleted } from "./roomsService.js";
 import { getLlmInstructions, submitUserMessages } from "../socket/gameHandler.js";
 
 const games = loadGames();
+const testScripts = loadTestScripts();
+
+// A test script user's message for this round. If the script has fewer rounds than
+// the room (or skips this user), they repeat their most recent message.
+function scriptedMessage(script, scriptUserId, round) {
+    for (let r = round; r >= 1; r--) {
+        const entry = (script.rounds?.[r] ?? []).find(([id]) => String(id) === String(scriptUserId));
+        if (entry) return entry[1];
+    }
+    return `Requesting fish for round ${round}.`;
+}
+
+// Order users submit in this round: the order the script lists them, then anyone missing
+function scriptedOrder(script, round, fakeUsers) {
+    const ids = (script.rounds?.[round] ?? []).map(([id]) => String(id));
+    return [...fakeUsers].sort((a, b) => {
+        const ai = ids.indexOf(a.scriptUserId), bi = ids.indexOf(b.scriptUserId);
+        return (ai === -1 ? Infinity : ai) - (bi === -1 ? Infinity : bi);
+    });
+}
 
 // Fills {{user_name}} and {{tons}} (tons each player needs this game) in role text
 function fillRoleText(template, userName, tons) {
@@ -62,13 +83,18 @@ export async function runAutomatedTest(io, roomCode, testUserCount) {
             throw new Error(`Game "${game.title}" has no role_prompt data (initial/enter/exit request text), so it can't be auto-played.`);
         }
 
+        // Rooms created with a test script replay its fixed messages (e.g. a pilot study's)
+        // instead of each role's request text, and seat exactly the script's users.
+        const script = room.testScript ? testScripts.find((s) => s.id === room.testScript) : null;
+        if (room.testScript && !script) throw new Error(`Test script "${room.testScript}" not found in games/test_scripts.`);
+
         let gameRoles = game.roles ?? [];
         if (gameRoles.length === 0) throw new Error(`Game "${game.title}" has no roles defined.`);
 
         // Testing 3-player rooms without the Desperate Fisher (role 3), since the LLM
         // tends to favor it: seat Legacy (1), Growth (2), and Rogue (5) instead.
         if (testUserCount === 3) {
-            const threePlayerRoleIds = ["1", "2", "5"];
+            const threePlayerRoleIds = ["1", "2", "3"];
             const picked = threePlayerRoleIds
                 .map(id => gameRoles.find(r => String(r?.id) === id))
                 .filter(Boolean);
@@ -79,7 +105,14 @@ export async function runAutomatedTest(io, roomCode, testUserCount) {
 
         const usedNames = new Set();
         const fakeUsers = [];
-        for (let i = 0; i < testUserCount; i++) {
+        if (script) {
+            for (const scriptUser of script.users ?? []) {
+                const created = await createUser(scriptUser.name, roomCode);
+                if (scriptUser.role != null) await setUserRole(created.userId, scriptUser.role);
+                fakeUsers.push({ userId: created.userId, userName: scriptUser.name, role: scriptUser.role, scriptUserId: String(scriptUser.id) });
+            }
+        }
+        for (let i = 0; !script && i < testUserCount; i++) {
             const roleObj = gameRoles[i % gameRoles.length];
             const roleId = roleObj?.id ?? roleObj?.role;
             let userName = roleObj?.role || `Test Bot ${i + 1}`;
@@ -119,8 +152,11 @@ export async function runAutomatedTest(io, roomCode, testUserCount) {
             // that the last submission" from a fresh DB read each time, and
             // concurrent calls racing that read is exactly the kind of bug
             // this whole feature set has already had to fix elsewhere.
-            for (const fakeUser of fakeUsers) {
-                const text = await pickRequestMessage(fakeUser, round, game, tonsNeeded);
+            const roundUsers = script ? scriptedOrder(script, round, fakeUsers) : fakeUsers;
+            for (const fakeUser of roundUsers) {
+                const text = script
+                    ? scriptedMessage(script, fakeUser.scriptUserId, round)
+                    : await pickRequestMessage(fakeUser, round, game, tonsNeeded);
                 await submitUserMessages(io, roomCode, fakeUser.userId, fakeUser.userName, text);
             }
         }
