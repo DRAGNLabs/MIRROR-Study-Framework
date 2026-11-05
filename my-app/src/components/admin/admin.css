@@ -1673,3 +1673,22 @@
 .reasoning-rounds {
   margin-top: 1rem;
 }
+
+/* Positive/Negative tag on survey conversation marks */
+.mark-feeling {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.mark-feeling--positive {
+  background: #16a34a;
+}
+
+.mark-feeling--negative {
+  background: #dc2626;
+}

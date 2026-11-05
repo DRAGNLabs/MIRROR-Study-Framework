@@ -27,11 +27,19 @@ function annotationsByMessageIndex(users, userSurveys) {
       if (!map[idx]) map[idx] = [];
       map[idx].push({
         commenter,
+        feeling: mark.feeling || "",
         note: typeof mark.note === "string" ? mark.note : "",
       });
     }
   }
   return map;
+}
+
+// Positive/Negative label from a survey conversation mark ("" for marks made before feelings existed)
+function feelingLabel(feeling) {
+  if (feeling === "positive") return "Positive";
+  if (feeling === "negative") return "Negative";
+  return feeling;
 }
 
 function conversationMessageSafeText(msg) {
@@ -286,6 +294,11 @@ export function CompletedRoomPage() {
                             >
                               <span className="message-survey-annotation-author">
                                 {a.commenter}
+                                {a.feeling && (
+                                  <span className={`mark-feeling mark-feeling--${a.feeling}`}>
+                                    {feelingLabel(a.feeling)}
+                                  </span>
+                                )}
                               </span>
                               <span className="message-survey-annotation-note">
                                 {a.note?.trim() ? a.note : "No note provided"}
@@ -333,7 +346,11 @@ export function CompletedRoomPage() {
                                 ) : Array.isArray(answer) ? (
                                   <ol className="survey-answer-list">
                                     {answer.map((item, index) => (
-                                      <li key={`${question.id}-${userKey}-${index}`}>{item}</li>
+                                      <li key={`${question.id}-${userKey}-${index}`}>
+                                        {question.type === "checkbox" && item === question.otherOption
+                                          ? `${item}: ${answers[`${question.id}-other`] || ""}`
+                                          : item}
+                                      </li>
                                     ))}
                                   </ol>
                                 ) : (
@@ -366,6 +383,11 @@ export function CompletedRoomPage() {
                             <div key={`mark-${userKey}-${index}`} className="survey-user-answer-row">
                               <span className="survey-user-name">
                                 Message {mark.messageIndex}:
+                                {mark.feeling && (
+                                  <span className={`mark-feeling mark-feeling--${mark.feeling}`}>
+                                    {feelingLabel(mark.feeling)}
+                                  </span>
+                                )}
                               </span>
                               <div className="survey-answer">
                                 {mark.note || "No note provided"}

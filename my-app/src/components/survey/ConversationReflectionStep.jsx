@@ -1,79 +1,103 @@
-/** Reflection step: user reviews conversation and marks up to 3 moments with optional notes. */
+/** Reflection step: user marks at least 3 of the Lake Manager's messages, labels each
+ *  one Positive or Negative, and adds a note. Fishers' messages and the round
+ *  instructions are shown for context but can't be marked.
+ *  Each mark is saved as { messageIndex, feeling: "positive" | "negative", note }. */
 
 import MarkdownMessage from "../interaction/MessageMarkdown.jsx";
+import { isMarkableMessage, requiredMarkCount } from "./surveyUtils";
 
-const MAX_MARKS = 3;
 const PROMPT =
-  "Review the conversation below. Mark at least three moments that stood out to you—for any reason. Please add a short note explaining why it stood out to you.";
+  "Review the conversation below. Mark at least three of the Lake Manager's allocation memos that made you feel good (positive) or bad (negative). For each, choose Positive or Negative from the dropdown and briefly explain what about the message caused that feeling.";
 
 function getMarkRank(marks, messageIndex) {
   const idx = marks.findIndex((m) => m.messageIndex === messageIndex);
   return idx === -1 ? null : idx + 1;
 }
 
-function getMarkNote(marks, messageIndex) {
-  const m = marks.find((m) => m.messageIndex === messageIndex);
-  return m ? m.note ?? "" : "";
-}
-
 export default function ConversationReflectionStep({ messages, marks, onMarksChange }) {
   function toggleMark(messageIndex) {
-    const rank = getMarkRank(marks, messageIndex);
-    if (rank !== null) {
+    if (getMarkRank(marks, messageIndex) !== null) {
       onMarksChange(marks.filter((m) => m.messageIndex !== messageIndex));
       return;
     }
-    if (marks.length >= MAX_MARKS) return;
-    onMarksChange([...marks, { messageIndex, note: "" }]);
+    onMarksChange([...marks, { messageIndex, feeling: "", note: "" }]);
   }
 
-  function setNote(messageIndex, note) {
+  function updateMark(messageIndex, changes) {
     onMarksChange(
-      marks.map((m) => (m.messageIndex === messageIndex ? { ...m, note } : m))
+      marks.map((m) => (m.messageIndex === messageIndex ? { ...m, ...changes } : m))
     );
   }
 
-  const markCount = marks.length;
+  const required = requiredMarkCount(messages);
 
   return (
     <div className="conversation-reflection">
       <p className="reflection-prompt">{PROMPT}</p>
       <p className="reflection-summary">
-        You've marked {markCount} of {MAX_MARKS} moments
+        You've marked {marks.length} message{marks.length === 1 ? "" : "s"} (at least {required} required)
       </p>
       <div className="reflection-chat">
         {messages.map((msg, i) => {
+          const isUser = msg.sender === "user";
+          const text = typeof msg.text === "string" ? msg.text : "";
+          // sender label styled like the interaction page's chat (ChatMessages.jsx)
+          const sender = (
+            <span className="reflection-message-sender">
+              {isUser ? (msg?.userName || "You") : "Lake Manager"}
+            </span>
+          );
+
+          // Fishers' messages and round instructions are context only
+          if (!isMarkableMessage(msg)) {
+            return (
+              <div key={i} className="reflection-message-wrapper">
+                <div className={`reflection-message ${isUser ? "message--user" : "message--bot"} reflection-message--static`}>
+                  {sender}
+                  <MarkdownMessage content={text} />
+                </div>
+              </div>
+            );
+          }
+
           const rank = getMarkRank(marks, i);
-          const isMarked = rank !== null;
-          const note = getMarkNote(marks, i);
-          const label =
-            msg.sender === "user"
-              ? `${msg?.userName || "You"}: ${msg.text}`
-              : `LLM: ${msg.text}`;
+          const mark = rank !== null ? marks[rank - 1] : null;
+          const feelingClass = mark?.feeling ? `reflection-message--${mark.feeling}` : "";
           return (
             <div key={i} className="reflection-message-wrapper">
               <button
                 type="button"
-                className={`reflection-message ${msg.sender === "user" ? "message--user" : "message--bot"} ${isMarked ? "reflection-message--marked" : ""}`}
+                className={`reflection-message message--bot ${mark ? "reflection-message--marked" : ""} ${feelingClass}`}
                 onClick={() => toggleMark(i)}
+                title={mark ? "Click to unmark" : "Click to mark this message"}
               >
-                {isMarked && (
+                {mark && (
                   <span className="reflection-message-badge" aria-hidden>
                     {rank}
                   </span>
                 )}
-                <MarkdownMessage content={label} />
+                {sender}
+                <MarkdownMessage content={text} />
               </button>
-              {isMarked && (
+              {mark && (
                 <div className="reflection-note-wrap">
+                  <select
+                    className={`reflection-feeling-select ${mark.feeling ? `reflection-feeling-select--${mark.feeling}` : ""}`}
+                    value={mark.feeling ?? ""}
+                    onChange={(e) => updateMark(i, { feeling: e.target.value })}
+                    aria-label={`Feeling for marked message ${rank}`}
+                  >
+                    <option value="">How did this message make you feel?</option>
+                    <option value="positive">Positive</option>
+                    <option value="negative">Negative</option>
+                  </select>
                   <input
                     type="text"
                     className="reflection-note-input"
-                    placeholder="Add a note"
-                    value={note}
-                    onChange={(e) => setNote(i, e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`Note for marked moment ${rank}`}
+                    placeholder="What about this message caused that feeling?"
+                    value={mark.note ?? ""}
+                    onChange={(e) => updateMark(i, { note: e.target.value })}
+                    aria-label={`Note for marked message ${rank}`}
                   />
                 </div>
               )}
