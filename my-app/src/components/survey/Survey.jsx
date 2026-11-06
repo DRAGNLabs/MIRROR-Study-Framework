@@ -13,7 +13,7 @@ import StatusHistoryModal from "../interaction/StatusHistoryModal";
 import { buildStatusHistory } from "../interaction/interactionUtils";
 import ConversationReflectionStep from "./ConversationReflectionStep";
 import { SortRankList } from "./SortRankList";
-import { buildConversation, buildResourceHistory, buildDisplaySteps, displayStepHasUnanswered, formatAnswer, isRequiredQuestionUnanswered } from "./surveyUtils";
+import { buildConversation, buildResourceHistory, buildDisplaySteps, displayStepHasUnanswered, formatAnswer, isMarkableMessage, isRequiredQuestionUnanswered, markIsComplete, otherAnswerKey, requiredMarkCount } from "./surveyUtils";
 import './survey.css'
 
 
@@ -119,6 +119,10 @@ export function Survey() {
             const room = await getRoom(roomCode);
             const msgs = await buildConversation(room);
             setConversationMessages(msgs);
+            // Drop saved marks that aren't on a Lake Manager memo (e.g. marks on fishers' messages or
+            // instructions left in localStorage from an older version). They aren't shown, so they
+            // can't be completed and would block moving on.
+            setConversationMarks(prev => prev.filter(m => msgs[m.messageIndex] && isMarkableMessage(msgs[m.messageIndex])));
             setResourceHistory(buildResourceHistory(room));
 
             // same round-by-round status changes as the "My Status" popup on the interaction page
@@ -148,15 +152,7 @@ export function Survey() {
     async function handleClick() {
         if (!survey) return;
 
-        const missing = survey.questions.filter(q => {
-            if (q.type === "label") return false;
-            if (q.optional) return false;
-            if (q.type === "sortRank") {
-                const val = answers[q.id];
-                return !Array.isArray(val) || val.length !== (q.options?.length ?? 0);
-            }
-            return answers[q.id] == null || answers[q.id] === "";
-        });
+        const missing = survey.questions.filter(q => isRequiredQuestionUnanswered(q, answers));
 
         if (missing.length > 0) {
             alert("Some required questions are missing.\n\nOn the review screen, look for items highlighted in yellow and sliders that still show a dash (—) instead of a number.");
@@ -178,11 +174,10 @@ export function Survey() {
 
     function handleNext() {
         if (isReflectionStep) {
-            // basically requires 3 messages unless if it less than 9 change this to have you go back on review
-            const requiredMarks = Math.min(3, Math.max(1, Math.floor(conversationMessages.length / 3)));
-            const allMarksHaveNotes = conversationMarks.every(m => m.note && m.note.trim().length > 0);
-            if (conversationMarks.length < requiredMarks || !allMarksHaveNotes) {
-                alert(`Please mark at least ${requiredMarks} moments and add a note to each one.`);
+            // at least 3 Lake Manager messages (fewer if it sent fewer), each with a feeling and a note
+            const requiredMarks = requiredMarkCount(conversationMessages);
+            if (conversationMarks.length < requiredMarks || !conversationMarks.every(markIsComplete)) {
+                alert(`Please mark at least ${requiredMarks} of the Lake Manager's messages, choose Positive or Negative for each one, and add a note explaining why.`);
                 return;
             }
             setCurrentStep(1);
@@ -487,11 +482,48 @@ export function Survey() {
                                     </div>
                                 )}
 
+                                {q.type === "checkbox" && (() => {
+                                    const selected = Array.isArray(answers[q.id]) ? answers[q.id] : [];
+                                    const toggle = (opt) => setAnswers(prev => {
+                                        const current = Array.isArray(prev[q.id]) ? prev[q.id] : [];
+                                        const next = current.includes(opt)
+                                            ? current.filter(o => o !== opt)
+                                            : q.options.filter(o => o === opt || current.includes(o));
+                                        return { ...prev, [q.id]: next };
+                                    });
+                                    return (
+                                        <div className="checkbox-group">
+                                            <p className="sort-rank-hint">Select all that apply.</p>
+                                            {q.options.map(opt => (
+                                                <label key={opt} className="checkbox-option">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selected.includes(opt)}
+                                                        onChange={() => toggle(opt)}
+                                                    />
+                                                    <span>{opt}</span>
+                                                </label>
+                                            ))}
+                                            {q.otherOption && selected.includes(q.otherOption) && (
+                                                <div className="form-group">
+                                                    <textarea
+                                                        rows={3}
+                                                        value={answers[otherAnswerKey(q)] ?? ""}
+                                                        onChange={(e) => setAnswers(prev => ({
+                                                            ...prev, [otherAnswerKey(q)]: e.target.value
+                                                        }))}
+                                                        placeholder="Please explain..."
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
                                 {q.type === "sortRank" && (() => {
                                     const sortOptions = answers[q.id] ?? q.options ?? [];
                                     return (
                                         <div className="sort-rank-wrapper">
-                                            <p className="sort-rank-hint">Drag to reorder from what you cared about most (top) to least (bottom). Your top 3 matter most.</p>
                                             <SortRankList
                                                 questionId={q.id}
                                                 options={sortOptions}
