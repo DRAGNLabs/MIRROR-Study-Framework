@@ -66,9 +66,7 @@ function allocationSchema(userNames) {
     };
 }
 
-// Returns { [userName]: tons allocated this round }. Tries up to EXTRACTION_ATTEMPTS
-// times, logging the extractor's raw reply whenever it can't be used, and throws
-// if every attempt fails.
+// extraction onw returns { [userName]: tons allocated }. 
 async function extractAllocations(extractionMessages, userNames, modelType, round) {
     const schema = allocationSchema(userNames);
     let lastError;

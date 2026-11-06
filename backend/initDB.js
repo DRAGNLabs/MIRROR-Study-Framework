@@ -84,8 +84,7 @@ async function init() {
  * I believe resoureAllocations is {"round_num": {"userName": "Allocation", "userName": "Allocation"}} -- Khaleel if you could update this
  * fish_amount: {round#1: <amount of fish>, round#2: <amount of fish>, ...}
  * folderId is the room_folders id this room is filed in (null = unfiled). Deleting a folder just un-files its rooms
- * tons_needed is how many tons each player must be allocated in a round for something good to happen to them (otherwise something bad happens).
- *   Set when players are seated (PATCH /rooms/:roomCode/userIds), see computeTonsNeeded() in routes/roomsRouter.js. Defaults to 20, what every room used before this existed
+ * tons_needed is how many tons each player must be allocated in a round for something good to happen to them (otherwise something bad happens). (default is 20)
  * promptSnapshot is only set for automated test rooms (null otherwise), the game's prompt templates when the room was created:
  *   {gameTitle, system_prompt, instruction_prompt, response_prompt, extraction_prompt}
  * testScript is the id of the games/test_scripts file an automated test room replayed for its bot messages

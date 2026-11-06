@@ -15,8 +15,7 @@ function computeTonsNeeded(game, numPlayers) {
   return Math.ceil(total / numPlayers);
 }
 
-// The prompt templates (placeholders unfilled) that gameHandler will use for this game.
-// Saved on automated test rooms only, so different prompt versions can be compared.
+// saves prompts when running automated tests
 function promptSnapshotFor(gameType) {
   const game = games.find((g) => parseInt(g.id) === Number(gameType));
   const prompts = game?.prompts?.[0];
@@ -275,9 +274,7 @@ router.patch("/:roomCode/llmResponse", async (req, res) => {
 
 });
 
-// updates resourceAllocations for specified room. This will store per-round fish splits.
-// saves one round's reasoning ({ output, reasoningText, reasoningTokens, hasEncrypted })
-// into llmReasoning under that round, without touching other rounds
+// saves llmReasoning for one round ({ output, reasoningText, reasoningTokens, hasEncrypted })
 router.patch("/:roomCode/llmReasoning", async (req, res) => {
   try {
     const { roomCode } = req.params;
@@ -300,6 +297,7 @@ router.patch("/:roomCode/llmReasoning", async (req, res) => {
   }
 });
 
+// updates resourceAllocations for specified room. This will store per-round fish splits.
 router.patch("/:roomCode/resourceAllocations", async (req, res) => {
   try {
     const { resourceAllocations } = req.body;
