@@ -188,6 +188,35 @@ function rewriteAllocations(allocations, replaceNames, labelByFoldedName) {
   return out;
 }
 
+function renameAllocationKeys(allocations, replaceNames, labelByFoldedName) {
+  if (!allocations || typeof allocations !== "object" || Array.isArray(allocations)) {
+    return mapStrings(allocations, replaceNames);
+  }
+
+  const renamed = {};
+  for (const [name, allocation] of Object.entries(allocations)) {
+    const label = labelByFoldedName.get(foldedName(name));
+    setOwn(renamed, label ?? name, mapStrings(allocation, replaceNames));
+  }
+  return renamed;
+}
+
+function rewritePracticeData(practiceData, replaceNames, labelByFoldedName) {
+  if (!practiceData || typeof practiceData !== "object" || Array.isArray(practiceData)) {
+    return mapStrings(practiceData, replaceNames);
+  }
+
+  const out = {};
+  for (const [key, value] of Object.entries(practiceData)) {
+    if (key === "allocations") {
+      setOwn(out, key, renameAllocationKeys(value, replaceNames, labelByFoldedName));
+      continue;
+    }
+    setOwn(out, key, mapStrings(value, replaceNames));
+  }
+  return out;
+}
+
 export function buildPreviewExport({ room, users, surveys }) {
   const sourceRoom = room ?? {};
   const sourceUsers = users ?? [];
@@ -203,6 +232,13 @@ export function buildPreviewExport({ room, users, surveys }) {
     replaceNames,
     labelByFoldedName
   );
+  if (Object.hasOwn(exportedRoom, "practiceData")) {
+    exportedRoom.practiceData = rewritePracticeData(
+      exportedRoom.practiceData,
+      replaceNames,
+      labelByFoldedName
+    );
+  }
 
   return {
     preview: true,
@@ -233,7 +269,13 @@ export function buildDeidentificationData({ room, users, surveys }) {
   const { redactText } = buildDeidentificationTransform(sourceUsers, categoryCounts);
   const redactedRoom = structuredClone(sourceRoom);
 
-  for (const key of ["llmResponse", "llmInstructions", "userMessages", "resourceAllocations"]) {
+  for (const key of [
+    "llmResponse",
+    "llmInstructions",
+    "userMessages",
+    "resourceAllocations",
+    "practiceData",
+  ]) {
     if (Object.hasOwn(redactedRoom, key)) {
       redactedRoom[key] = mapRedactedStrings(redactedRoom[key], redactText);
     }

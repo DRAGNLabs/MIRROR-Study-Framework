@@ -48,13 +48,15 @@ export async function persistRoomDeidentification(
        SET "llmResponse" = $1::jsonb,
            "llmInstructions" = $2::jsonb,
            "userMessages" = $3::jsonb,
-           "resourceAllocations" = $4::jsonb
-       WHERE "roomCode" = $5 AND completed = TRUE`,
+           "resourceAllocations" = $4::jsonb,
+           "practiceData" = $5::jsonb
+       WHERE "roomCode" = $6 AND completed = TRUE`,
       [
         JSON.stringify(redacted.room.llmResponse ?? {}),
         JSON.stringify(redacted.room.llmInstructions ?? {}),
         JSON.stringify(redacted.room.userMessages ?? {}),
         JSON.stringify(redacted.room.resourceAllocations ?? {}),
+        JSON.stringify(redacted.room.practiceData ?? {}),
         roomCode,
       ]
     );

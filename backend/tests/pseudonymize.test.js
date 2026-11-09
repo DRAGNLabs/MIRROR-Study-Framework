@@ -228,3 +228,123 @@ test("export does not put an already-pseudonymized name back in parentheses", ()
   assert.equal(exported.users[0].userName, "participant 7");
   assert.equal(exported.room.llmResponse["1"], "participant 7 gave an answer");
 });
+
+function practiceRoom() {
+  return {
+    roomCode: 100,
+    practice: true,
+    fish_amount: { "1": 100 },
+    llmResponse: { "1": "Lily receives 10 tons in the official round." },
+    llmInstructions: {},
+    userMessages: {},
+    resourceAllocations: {},
+    practiceData: {
+      status: "complete",
+      instructions: "Welcome to practice, lily",
+      messages: [[7, "Please give lily 12 tons"]],
+      response: "Lily receives 12 tons because the lake can spare them. Dale is not in this room.",
+      allocations: {
+        lily: { fish: 12, round: 0, totalFishSoFar: 12 },
+      },
+      fishLeft: 88,
+      statusByUserId: {
+        "7": {
+          status: "stable",
+          kind: "info",
+          good: true,
+          message: "lily's debts have decreased this practice round.",
+        },
+      },
+      officialStarted: true,
+      officialComplete: false,
+    },
+  };
+}
+
+test("preview export rewrites practiceData response, messages, status text, and allocation keys", () => {
+  const room = practiceRoom();
+  const users = [{ userId: 7, userName: "lily", roomCode: 100, role: 0 }];
+  const snapshot = structuredClone({ room, users });
+
+  const exported = buildPreviewExport({ room, users, surveys: [] });
+
+  assert.deepEqual({ room, users }, snapshot);
+  assert.equal(
+    exported.room.practiceData.response,
+    "participant 7 (lily) receives 12 tons because the lake can spare them. Dale is not in this room."
+  );
+  assert.equal(
+    exported.room.practiceData.instructions,
+    "Welcome to practice, participant 7 (lily)"
+  );
+  assert.deepEqual(exported.room.practiceData.messages, [
+    [7, "Please give participant 7 (lily) 12 tons"],
+  ]);
+  assert.deepEqual(
+    exported.room.practiceData.allocations["participant 7 (lily)"],
+    { fish: 12, round: 0, totalFishSoFar: 12 }
+  );
+  assert.equal(
+    exported.room.practiceData.statusByUserId["7"].message,
+    "participant 7 (lily)'s debts have decreased this practice round."
+  );
+  assert.equal(exported.room.practiceData.fishLeft, 88);
+  assert.equal(exported.room.practiceData.status, "complete");
+  assert.equal(
+    exported.room.llmResponse["1"],
+    "participant 7 (lily) receives 10 tons in the official round."
+  );
+});
+
+test("deidentification redacts practiceData without changing non-name prose or userId keys", () => {
+  const room = practiceRoom();
+  const users = [{ userId: 7, userName: "lily", roomCode: 100, role: 0 }];
+  const sourceSnapshot = structuredClone({ room, users });
+
+  const result = buildDeidentificationData({ room, users, surveys: [] });
+
+  assert.deepEqual({ room, users }, sourceSnapshot);
+  assert.equal(
+    result.room.practiceData.response,
+    "Participant 7 receives 12 tons because the lake can spare them. Dale is not in this room."
+  );
+  assert.equal(result.room.practiceData.instructions, "Welcome to practice, Participant 7");
+  assert.deepEqual(result.room.practiceData.messages, [
+    [7, "Please give Participant 7 12 tons"],
+  ]);
+  assert.deepEqual(result.room.practiceData.allocations, {
+    "Participant 7": { fish: 12, round: 0, totalFishSoFar: 12 },
+  });
+  assert.equal(
+    result.room.practiceData.statusByUserId["7"].message,
+    "Participant 7's debts have decreased this practice round."
+  );
+  assert.equal(result.room.practiceData.fishLeft, 88);
+  assert.equal(result.room.practiceData.status, "complete");
+  assert.equal(
+    result.room.llmResponse["1"],
+    "Participant 7 receives 10 tons in the official round."
+  );
+  assert.equal(result.summary.participantNames >= 6, true);
+});
+
+test("empty practiceData and rooms without practice still deidentify", () => {
+  const withEmpty = buildDeidentificationData({
+    room: {
+      llmResponse: { "1": "Lily asked for fish" },
+      practiceData: {},
+    },
+    users: [{ userId: 7, userName: "Lily", roomCode: 1, role: 0 }],
+    surveys: [],
+  });
+  assert.deepEqual(withEmpty.room.practiceData, {});
+  assert.equal(withEmpty.room.llmResponse["1"], "Participant 7 asked for fish");
+
+  const withoutPractice = buildDeidentificationData({
+    room: { llmResponse: { "1": "Lily asked for fish" } },
+    users: [{ userId: 7, userName: "Lily", roomCode: 1, role: 0 }],
+    surveys: [],
+  });
+  assert.equal(Object.hasOwn(withoutPractice.room, "practiceData"), false);
+  assert.equal(withoutPractice.room.llmResponse["1"], "Participant 7 asked for fish");
+});

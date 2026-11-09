@@ -51,6 +51,23 @@ function roomData() {
   };
 }
 
+function roomDataWithPractice() {
+  const data = roomData();
+  data.room.practice = true;
+  data.room.practiceData = {
+    status: "complete",
+    messages: [[8, "Lily needs practice fish"]],
+    response: "Lily receives 5 tons in practice.",
+    allocations: {
+      Lily: { fish: 5, round: 0, totalFishSoFar: 5 },
+    },
+    statusByUserId: {
+      "8": { status: "stable", message: "Lily stayed afloat." },
+    },
+  };
+  return data;
+}
+
 test("persists all redacted data in one transaction", async () => {
   const client = fakeClient();
   const data = roomData();
@@ -72,6 +89,7 @@ test("persists all redacted data in one transaction", async () => {
   const queries = client.calls.map(({ sql }) => sql.replace(/\s+/g, " ").trim());
   assert.equal(queries[0], "BEGIN");
   assert.match(queries[1], /^UPDATE rooms SET/);
+  assert.match(queries[1], /"practiceData" = \$5::jsonb/);
   assert.equal(
     queries[2],
     'UPDATE users SET "userName" = $1 WHERE "userId" = $2 AND "roomCode" = $3'
@@ -92,8 +110,34 @@ test("persists all redacted data in one transaction", async () => {
     JSON.parse(client.calls[1].params[0])["1"],
     "Participant 8 emailed [REDACTED EMAIL]"
   );
+  assert.deepEqual(JSON.parse(client.calls[1].params[4]), {});
+  assert.equal(client.calls[1].params[5], 5);
   assert.equal(client.calls[2].params[0], "Participant 8");
   assert.equal(JSON.parse(client.calls[3].params[0]).note, "Call [REDACTED PHONE]");
+});
+
+test("persists redacted practiceData alongside official round fields", async () => {
+  const client = fakeClient();
+  const data = roomDataWithPractice();
+  const previewToken = deidentificationPreviewToken(
+    buildDeidentificationData(data)
+  );
+  const summary = await persistRoomDeidentification(
+    client,
+    5,
+    async () => data,
+    previewToken
+  );
+
+  const practiceData = JSON.parse(client.calls[1].params[4]);
+  assert.equal(practiceData.response, "Participant 8 receives 5 tons in practice.");
+  assert.deepEqual(practiceData.messages, [[8, "Participant 8 needs practice fish"]]);
+  assert.deepEqual(practiceData.allocations, {
+    "Participant 8": { fish: 5, round: 0, totalFishSoFar: 5 },
+  });
+  assert.equal(practiceData.statusByUserId["8"].message, "Participant 8 stayed afloat.");
+  assert.equal(practiceData.status, "complete");
+  assert.equal(summary.participantNames >= 5, true);
 });
 
 test("rolls back when any related record cannot be updated", async () => {
