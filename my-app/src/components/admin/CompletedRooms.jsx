@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { setRoomFolder } from "../../services/roomsService";
 import { createFolder, updateFolder, deleteFolder } from "../../services/foldersService";
 import games from "../../gameLoader";
+import DeidentifyRoomModal from "./DeidentifyRoomModal";
 
 function formatDate(value) {
   if (value == null || value === "") return "—";
@@ -66,7 +67,7 @@ function TestFolderMarker() {
   );
 }
 
-function RoomCard({ room, users, folders, onView, onDelete, onMove }) {
+function RoomCard({ room, users, folders, onView, onDelete, onMove, onDeidentify }) {
   return (
     <div className="room-display">
       <div className="room-display-header">
@@ -106,6 +107,7 @@ function RoomCard({ room, users, folders, onView, onDelete, onMove }) {
 
       <div className="room-actions">
         <button className="btn-primary-admin" onClick={() => onView(room)}>View</button>
+        <button className="btn-secondary-admin" onClick={() => onDeidentify(room)}>Deidentify</button>
         <button className="btn-secondary-admin" onClick={() => onDelete(room)}>Delete</button>
       </div>
     </div>
@@ -224,10 +226,13 @@ export function CompletedRooms({
   setOpenFolderId,
   onView,
   onDelete,
+  onDeidentified,
 }) {
   // null = closed, "new" = creating, otherwise the folder being edited
   const [folderForm, setFolderForm] = useState(null);
   const [folderPendingDelete, setFolderPendingDelete] = useState(null);
+  const [roomToDeidentify, setRoomToDeidentify] = useState(null);
+  const [deidentifyMessage, setDeidentifyMessage] = useState("");
 
   const openFolder = folders.find((f) => f.id === openFolderId) ?? null;
 
@@ -259,6 +264,21 @@ export function CompletedRooms({
     } catch (error) {
       console.error("Error moving room:", error);
     }
+  }
+
+  function startDeidentify(room) {
+    setDeidentifyMessage("");
+    setRoomToDeidentify(room);
+  }
+
+  function finishDeidentify(result) {
+    const room = roomToDeidentify;
+    setRoomToDeidentify(null);
+    setDeidentifyMessage(
+      `Room ${room.roomCode}: ${result.message} Replaced ${result.summary.participantNames} participant-name occurrences, ${result.summary.emails} email addresses, ${result.summary.phoneNumbers} phone numbers, and ${result.summary.locations} location patterns.`
+    );
+    // Usernames on the card changed, so reload them
+    onDeidentified?.(room);
   }
 
   async function saveFolder({ name, description, roomCodes }) {
@@ -309,6 +329,7 @@ export function CompletedRooms({
               onView={onView}
               onDelete={onDelete}
               onMove={moveRoom}
+              onDeidentify={startDeidentify}
             />
           ))
         ) : (
@@ -320,6 +341,13 @@ export function CompletedRooms({
 
   const modals = (
     <>
+      {roomToDeidentify && (
+        <DeidentifyRoomModal
+          roomCode={roomToDeidentify.roomCode}
+          onClose={() => setRoomToDeidentify(null)}
+          onDone={finishDeidentify}
+        />
+      )}
       {folderForm && (
         <FolderFormModal
           folder={folderForm === "new" ? null : folderForm}
@@ -393,6 +421,7 @@ export function CompletedRooms({
         </div>
 
         <h3 className="rooms-section-title folder-section-heading">Rooms in this folder</h3>
+        {deidentifyMessage && <p className="deidentify-success" role="status">{deidentifyMessage}</p>}
         {renderRooms(rooms, "No rooms in this folder yet. Use the Folder dropdown on a room to move it here.")}
         {modals}
       </div>
@@ -439,6 +468,7 @@ export function CompletedRooms({
       <h3 className="rooms-section-title folder-section-heading">
         {folders.length > 0 ? "Unfiled rooms" : "Rooms"}
       </h3>
+      {deidentifyMessage && <p className="deidentify-success" role="status">{deidentifyMessage}</p>}
       {renderRooms(unfiledRooms, "No unfiled completed rooms.")}
       {modals}
     </div>

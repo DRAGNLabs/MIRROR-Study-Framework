@@ -549,6 +549,7 @@ return (
         setOpenFolderId={setOpenFolderId}
         onView={(room) => navigate(`/admin/completed-room/${room.roomCode}`)}
         onDelete={(room) => setRoomPendingDelete(room)}
+        onDeidentified={loadUsersForRoom}
       />
     )
     }

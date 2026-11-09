@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getRoom } from "../../services/roomsService";
+import { exportCompletedRoom, getRoom } from "../../services/roomsService";
 import { getUser } from "../../services/usersService";
 import { getUsersSurvey } from "../../services/surveyService";
 import { getFolders } from "../../services/foldersService";
@@ -9,6 +9,7 @@ import { buildStatusHistory } from "../interaction/interactionUtils";
 import { buildTownReportForRound } from "./completedRoomUtils";
 import games from "../../gameLoader";
 import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
+import DeidentifyRoomModal from "./DeidentifyRoomModal";
 import "../interaction/interaction.css";
 import "./admin.css";
 
@@ -62,52 +63,81 @@ export function CompletedRoomPage() {
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(true);
   const [folder, setFolder] = useState(null);
+  const [exportError, setExportError] = useState("");
+  const [deidentifyOpen, setDeidentifyOpen] = useState(false);
+  const [deidentificationMessage, setDeidentificationMessage] = useState("");
+
+  async function exportRoom() {
+    setExportError("");
+    try {
+      await exportCompletedRoom(roomCode);
+    } catch (error) {
+      setExportError(error.message || "Can't export room.");
+    }
+  }
+
+  // Kept outside the effect so it can be called again after deidentifying,
+  // since that rewrites names in the room, users, and surveys
+  const loadRoomData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const roomData = await getRoom(roomCode);
+      setRoom(roomData);
+
+      if (roomData?.folderId != null) {
+        getFolders()
+          .then((folders) => setFolder(folders.find((f) => f.id === roomData.folderId) ?? null))
+          .catch((error) => console.error("Failed to load folder:", error));
+      } else {
+        setFolder(null);
+      }
+
+      const userIds = roomData?.userIds ?? [];
+
+      if (userIds.length > 0) {
+        const loadedUsers = await Promise.all(userIds.map((id) => getUser(id)));
+        setUsers(loadedUsers);
+        setUsernames(loadedUsers.map(displayNameFor));
+
+        // Bots don't take a survey — skip fetching entirely for test rooms.
+        if (!roomData.isTest) {
+          const surveys = await Promise.all(
+            userIds.map(async (id) => {
+              try {
+                return [id, await getUsersSurvey(id)];
+              } catch {
+                return [id, null];
+              }
+            })
+          );
+          setUserSurveys(Object.fromEntries(surveys));
+        } else {
+          setUserSurveys({});
+        }
+      } else {
+        setUsers([]);
+        setUsernames([]);
+        setUserSurveys({});
+      }
+      setConversation(await buildConversation(roomData));
+    } catch (error) {
+      console.error("Failed to load completed room:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [roomCode]);
 
   useEffect(() => {
-    async function loadRoom() {
-      try {
-        const roomData = await getRoom(roomCode);
-        setRoom(roomData);
+    loadRoomData();
+  }, [loadRoomData]);
 
-        if (roomData?.folderId != null) {
-          getFolders()
-            .then((folders) => setFolder(folders.find((f) => f.id === roomData.folderId) ?? null))
-            .catch((error) => console.error("Failed to load folder:", error));
-        }
-
-        const userIds = roomData?.userIds ?? [];
-
-        if (userIds.length > 0) {
-          const users = await Promise.all(userIds.map((id) => getUser(id)));
-          setUsers(users);
-          setUsernames(users.map(displayNameFor));
-
-          // Bots don't take a survey — skip fetching entirely for test rooms.
-          if (!roomData.isTest) {
-            const surveys = await Promise.all(
-              userIds.map(async (id) => {
-                try {
-                  const survey = await getUsersSurvey(id);
-                  return [id, survey];
-                } catch {
-                  return [id, null];
-                }
-              })
-            );
-            setUserSurveys(Object.fromEntries(surveys));
-          }
-        }
-        const msgs = await buildConversation(roomData);
-        setConversation(msgs);
-      } catch (error) {
-        console.error("Failed to load completed room:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadRoom();
-  }, [roomCode]);
+  async function finishDeidentify(result) {
+    setDeidentifyOpen(false);
+    setDeidentificationMessage(
+      `${result.message} Replaced ${result.summary.participantNames} participant-name occurrences, ${result.summary.emails} email addresses, ${result.summary.phoneNumbers} phone numbers, and ${result.summary.locations} location patterns.`
+    );
+    await loadRoomData();
+  }
 
   const messageAnnotations = useMemo(
     () => annotationsByMessageIndex(users, userSurveys),
@@ -202,14 +232,34 @@ export function CompletedRoomPage() {
   return (
     <div className="admin-container admin-dashboard completed-room-page">
       <div className="rooms-grid">
-        <button
-          className="btn-secondary-admin completed-room-back"
-          onClick={() =>
-            navigate("/admin", { state: { showCompletedRooms: true, folderId: room.folderId ?? null } })
-          }
-        >
-          Back
-        </button>
+        <div className="room-actions completed-room-back">
+          <button
+            className="btn-secondary-admin"
+            onClick={() =>
+              navigate("/admin", { state: { showCompletedRooms: true, folderId: room.folderId ?? null } })
+            }
+          >
+            Back
+          </button>
+          <button className="btn-secondary-admin" onClick={exportRoom}>
+            Export
+          </button>
+          <button
+            className="btn-secondary-admin"
+            onClick={() => {
+              setDeidentificationMessage("");
+              setDeidentifyOpen(true);
+            }}
+          >
+            Deidentify room
+          </button>
+        </div>
+        {exportError && <p className="deidentify-error" role="alert">{exportError}</p>}
+        {deidentificationMessage && (
+          <p className="deidentify-success" role="status">
+            {deidentificationMessage}
+          </p>
+        )}
 
         <div className="room-display completed-room-summary">
           <h2 className="room-section-title">
@@ -489,6 +539,13 @@ export function CompletedRoomPage() {
           </div>
         )}
       </div>
+      {deidentifyOpen && (
+        <DeidentifyRoomModal
+          roomCode={roomCode}
+          onClose={() => setDeidentifyOpen(false)}
+          onDone={finishDeidentify}
+        />
+      )}
     </div>
   );
 }
