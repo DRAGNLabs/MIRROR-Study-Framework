@@ -20,7 +20,7 @@ function sortRankItemId(questionId, option) {
     return `${questionId}|||${encodeURIComponent(option)}`;
 }
 
-function SortableRow({ id, index, label, isGreyed }) {
+function SortableRow({ id, index, label }) {
     const {
         attributes,
         listeners,
@@ -39,7 +39,7 @@ function SortableRow({ id, index, label, isGreyed }) {
         <li
             ref={setNodeRef}
             style={style}
-            className={`sort-rank-item ${isGreyed ? "sort-rank-item--greyed" : ""} ${isDragging ? "sort-rank-item--dragging" : ""}`}
+            className={`sort-rank-item ${isDragging ? "sort-rank-item--dragging" : ""}`}
             {...attributes}
             {...listeners}
         >
@@ -88,14 +88,10 @@ export function SortRankList({ questionId, options, onOrderChange }) {
                             id={sortRankItemId(questionId, option)}
                             index={index}
                             label={option}
-                            isGreyed={index >= 3}
                         />
                     ))}
                 </ul>
             </SortableContext>
-            <div className="sort-rank-anchor" aria-hidden>
-                <span className="sort-rank-anchor-inner">&nbsp;</span>
-            </div>
         </DndContext>
     );
 }

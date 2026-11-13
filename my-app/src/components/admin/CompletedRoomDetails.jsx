@@ -8,6 +8,8 @@ import { buildConversation, buildResourceHistory } from "../survey/surveyUtils";
 import { buildStatusHistory } from "../interaction/interactionUtils";
 import { buildTownReportForRound } from "./completedRoomUtils";
 import games from "../../gameLoader";
+import PromptSnapshot from "./PromptSnapshot";
+import ReasoningByRound from "./ReasoningByRound";
 import MessageMarkdown from "../interaction/MessageMarkdown.jsx";
 import "../interaction/interaction.css";
 import "./admin.css";
@@ -25,11 +27,19 @@ function annotationsByMessageIndex(users, userSurveys) {
       if (!map[idx]) map[idx] = [];
       map[idx].push({
         commenter,
+        feeling: mark.feeling || "",
         note: typeof mark.note === "string" ? mark.note : "",
       });
     }
   }
   return map;
+}
+
+// Positive/Negative label from a survey conversation mark ("" for marks made before feelings existed)
+function feelingLabel(feeling) {
+  if (feeling === "positive") return "Positive";
+  if (feeling === "negative") return "Negative";
+  return feeling;
 }
 
 function conversationMessageSafeText(msg) {
@@ -229,6 +239,10 @@ export function CompletedRoomPage() {
             <span className="room-badge">Game: {selectedSurvey?.title || room.gameType || "Unknown"}</span>
             <span className="room-badge">Model: {room.modelType || "Unknown"}</span>
             <span className="room-badge">Rounds: {room.numRounds}</span>
+            <span className="room-badge">Reasoning passed back: {room.passReasoning ? "Yes" : "No"}</span>
+            {room.isTest && (
+              <span className="room-badge">Bot messages: {room.testScript || "Role scripts"}</span>
+            )}
             <span className="room-badge">
               People: {Array.isArray(room.userIds) ? room.userIds.length : usernames.length} (min {room.usersNeeded})
             </span>
@@ -236,6 +250,12 @@ export function CompletedRoomPage() {
               Users: {usernames.length > 0 ? usernames.join(", ") : "No users"}
             </span>
           </div>
+          {room.promptSnapshot && (
+            <div className="room-prompts">
+              <h3 className="completed-room-panel-title">Prompts used</h3>
+              <PromptSnapshot snapshot={room.promptSnapshot} />
+            </div>
+          )}
         </div>
 
         <div className="completed-room-panel">
@@ -274,6 +294,11 @@ export function CompletedRoomPage() {
                             >
                               <span className="message-survey-annotation-author">
                                 {a.commenter}
+                                {a.feeling && (
+                                  <span className={`mark-feeling mark-feeling--${a.feeling}`}>
+                                    {feelingLabel(a.feeling)}
+                                  </span>
+                                )}
                               </span>
                               <span className="message-survey-annotation-note">
                                 {a.note?.trim() ? a.note : "No note provided"}
@@ -321,7 +346,11 @@ export function CompletedRoomPage() {
                                 ) : Array.isArray(answer) ? (
                                   <ol className="survey-answer-list">
                                     {answer.map((item, index) => (
-                                      <li key={`${question.id}-${userKey}-${index}`}>{item}</li>
+                                      <li key={`${question.id}-${userKey}-${index}`}>
+                                        {question.type === "checkbox" && item === question.otherOption
+                                          ? `${item}: ${answers[`${question.id}-other`] || ""}`
+                                          : item}
+                                      </li>
                                     ))}
                                   </ol>
                                 ) : (
@@ -354,6 +383,11 @@ export function CompletedRoomPage() {
                             <div key={`mark-${userKey}-${index}`} className="survey-user-answer-row">
                               <span className="survey-user-name">
                                 Message {mark.messageIndex}:
+                                {mark.feeling && (
+                                  <span className={`mark-feeling mark-feeling--${mark.feeling}`}>
+                                    {feelingLabel(mark.feeling)}
+                                  </span>
+                                )}
                               </span>
                               <div className="survey-answer">
                                 {mark.note || "No note provided"}
@@ -369,6 +403,8 @@ export function CompletedRoomPage() {
             </div>
           </div>
         )}
+
+        <ReasoningByRound llmReasoning={room.llmReasoning} passReasoning={room.passReasoning} />
 
         {resourceHistory.length > 0 && (
           <div className="room-display" style={{ marginTop: "1.5rem" }}>

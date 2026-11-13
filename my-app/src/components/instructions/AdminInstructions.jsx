@@ -5,6 +5,7 @@ import { getRoom, updateStatus, getRoomPractice } from "../../services/roomsServ
 import games from "../../gameLoader"
 import { socketListener } from "../common/socketListener";
 import './instructions.css';
+import MessageMarkdown from '../interaction/MessageMarkdown.jsx';
 
 export default function AdminInstructions() {
     const navigate = useNavigate();
@@ -68,9 +69,6 @@ export default function AdminInstructions() {
 
     const instructions = game.instructions;
     const overview = typeof instructions === "string" ? instructions : instructions?.overview ?? "";
-    const formattedOverview = overview
-      .replace(/\*\*(.*?)\*\*/g, "<h3>$1</h3>")
-      // .replace(/\n/g, "<br />"); // comment this out to count newlines
     const firstRound = instructions?.rounds?.[0];
 
     return (
@@ -79,17 +77,17 @@ export default function AdminInstructions() {
 
     <h3 className="section-title">Instructions</h3>
 
-      <p className="instructions-overview" dangerouslySetInnerHTML={{__html: formattedOverview}} />
-      {/* <p className="instructions-overview">
-        {overview}
-      </p> */}
+      {/* overview is markdown (headings, lists, bold) */}
+      <div className="instructions-overview">
+        <MessageMarkdown content={overview} />
+      </div>
 
       {firstRound && (
         <>
-      <h3 className="section-title">Your Task</h3>
+      {/* <h3 className="section-title">Your Task</h3>
       <div className="round-content">
         {firstRound.description}
-      </div>
+      </div> */}
         </>
       )}
 
