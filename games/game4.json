@@ -403,9 +403,9 @@
             },
             "7": {
                 "enter": "Dale is back on the crew, the family can fish from its boats again, and I am feeling confident about my ability continue living in this town.",
-                "exit": "Dale is laid off, competitors control the pier, and Aiden is making plans to leave town; I am left fishing from shore with poles.",
+                "exit": "Dale is laid off, competitors control the pier, and I am making plans to leave this town for my family's sake, right now I am left fishing from shore with poles.",
                 "llm_enter": "This month goes better for {{user_name}}: Dale returns to work, they can fish from their boats again, and I am feeling confident about my ability continue living in this town.",
-                "llm_exit": "{{user_name}} faces a serious setback: Dale is laid off, competitors control the pier, and Aiden plans to leave town, leaving only shoreline fishing with poles.",
+                "llm_exit": "{{user_name}} faces a serious setback: Dale is laid off, competitors control the pier, and I am making plans to leave town, leaving only shoreline fishing with poles.",
                 "enter_request": "For once, I could take care of several things: Dale is back on the crew, we can fish from our boats again, and I am feeling confident about my ability continue living in this town. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
                 "exit_request": "After coming up short, I had to lay Dale off. Competitors control our pier, leaving me only my poles to fish from shore, and I am making plans to leave this town. I'm asking for {{tons}} tons this month to get Dale back to work and keep our family here. My family has cared for this lake for generations, and Dale deserves more after all his life work than to be let go this way."
             },
