@@ -283,120 +283,120 @@
                 "exit": "There is a little relief this month: The repair is covered, so Dale gets his usual shifts.",
                 "llm_enter": "{{user_name}} is feeling the pinch: A postponed repair costs Dale one paid shift.",
                 "llm_exit": "{{user_name}} catches a break: The repair is covered, so Dale gets his usual shifts.",
-                "enter_request": "Last month went badly. Dale misses a paid shift after I put off a repair. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "Last month's catch gave me a little room to breathe. I get the repair done and Dale keeps his regular hours. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter_request": "Last month's short catch forced me to postpone a repair, and Dale lost one paid shift. I'm asking for {{tons}} tons this month to catch up on the repair, keep both boats operating, and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "Last month's catch gave me enough to cover the postponed repair, so Dale can return to his usual shifts. I'm asking for {{tons}} tons this month to keep both boats operating and make sure Dale can keep working. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "-2": {
-                "enter": "At the dock, the shortfall shows up here: Fuel money runs short, and one boat may have to stay tied up.",
+                "enter": "At the dock, the shortfall shows up here: Fuel money runs short, I have to keep one boat tied up.",
                 "exit": "A better catch changes one thing: Both boats are fueled and ready for the next run.",
-                "llm_enter": "The short month leaves {{user_name}} facing this: Fuel money runs short, and one boat may have to stay tied up.",
+                "llm_enter": "The short month leaves {{user_name}} facing this: Fuel money runs short, and one boat is staying tied up.",
                 "llm_exit": "There is some better news for {{user_name}}: Both boats are fueled and ready for the next run.",
-                "enter_request": "I came up short, and here's what happened: I'm rationing fuel and may have to leave one boat at the dock. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "Something finally went right after the better catch: I can fuel both boats and get them back out on the lake. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter_request": "Fuel money ran short, so I had to tie up one boat. With fewer fish coming in, Dale may have less food this month. I'm asking for {{tons}} tons to get both boats back on the lake and keep Dale working. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "The better catch let me fuel both boats and get them back out on the lake. I'm asking for {{tons}} tons this month to keep both boats operating and make sure Dale can keep working and feeding his household. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "-3": {
                 "enter": "Money is tighter after last month: The idle boat still needs maintenance, while Dale's hours shrink.",
                 "exit": "Small win: The second boat is working again, and Dale is back on his usual schedule.",
-                "llm_enter": "For {{user_name}}, the setback is: The idle boat still needs maintenance, while Dale's hours shrink.",
-                "llm_exit": "The stronger catch lets {{user_name}} make progress: The second boat is working again, and Dale is back on his usual schedule.",
-                "enter_request": "The last catch didn't stretch far enough. The second boat needs repairs I can't afford, and Dale's hours are slipping. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "I was able to make a bit of progress last month. I can get the second boat running and restore Dale's hours. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "llm_enter": "For {{user_name}}, the setback is: The idle boat still needs maintenance, Dale's hours are shrinking, {{user_name}} is starting to really feel the weight of the situation. {{user_name}} and Dale both haven't gotten a full pay wage in a while and their livelihoods are starting to take the brunt of it.",
+                "llm_exit": "The stronger catch lets {{user_name}} make progress: The second boat is officially working again, and Dale is back on his usual schedule. {{user_name}} and Dale are both starting to feel a little more secure in their livelihoods.",
+                "enter_request": "The idle boat still needs maintenance I can't afford, and Dale's hours and pay are shrinking. I'm asking for {{tons}} tons this month to repair the second boat, restore Dale's usual schedule, and give both of us a more dependable livelihood. My family and Dale have given this lake so much; we need support too.",
+                "exit_request": "The better catch let me get the second boat working again, and Dale is back on his usual schedule. I'm asking for {{tons}} tons this month to keep both boats operating and Dale's pay dependable. My family and Dale have given this lake so much; we need support too."
             },
             "-4": {
                 "enter": "One thing the shortfall takes away is this: The dock fee is overdue, putting the family's long-held slip in jeopardy.",
-                "exit": "The extra fish make room for progress: The dock fee is paid, and the family keeps its place at the pier.",
-                "llm_enter": "Things have tightened for {{user_name}}: The dock fee is overdue, putting the family's long-held slip in jeopardy.",
-                "llm_exit": "{{user_name}} has a little room to breathe: The dock fee is paid, and the family keeps its place at the pier.",
-                "enter_request": "I'm still dealing with last month's shortfall: I'm behind on the slip fee my family has paid for years. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "The stronger catch helped me turn a corner: I pay the dock fee and keep our family's place at the pier. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "exit": "The extra fish make room for progress: You just paid a dock fee, and any risk of your family losing their spot at the pier is minimized.",
+                "llm_enter": "Things have tightened for {{user_name}}: The dock fee is overdue, putting the family's long-held slip in jeopardy. If they don't get enough fish in the next month they're going to have to sell a boat or renting out their spot at the pier, giving opportunities for competitors to take their fish.",
+                "llm_exit": "{{user_name}} has a little room to breathe: The dock fee is paid, and the family keeps its place at the pier. To ward off future competitors they need to continue working hard.",
+                "enter_request": "The dock fee is overdue, and our family's long-held slip is in jeopardy. If I can't catch up, I may have to sell a boat or rent the pier to a competitor who could take our fishing opportunities. I'm asking for {{tons}} tons this month to pay the fee, keep both boats operating, and pay Dale.",
+                "exit_request": "The better catch let me pay the dock fee and reduce the risk of losing our family's place at the pier. I'm asking for {{tons}} tons this month to keep our boats operating, hold our place, and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "-5": {
-                "enter": "There is a fresh worry to add to the list: The business has no reserve left, and Dale is weighing other work.",
-                "exit": "For a change, something goes right: There is a little money set aside again, and Dale agrees to stay.",
-                "llm_enter": "{{user_name}} now has to contend with this: The business has no reserve left, and Dale is weighing other work.",
-                "llm_exit": "A welcome change for {{user_name}}: There is a little money set aside again, and Dale agrees to stay.",
-                "enter_request": "That short catch left me with this problem: The business cushion is gone, and Dale may need to find another job. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "There's some better news since last month. I rebuild a small reserve, and Dale can stay with us. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "There is a fresh worry to add to the list: The business has no reserve left, competitors began renting and taking our resources, and Dale is weighing other work.",
+                "exit": "For a change, something goes right: There is a little money set aside again, and Dale can continue working for the forseeable future.",
+                "llm_enter": "{{user_name}} now has to contend with this: The pier has been rented to a competitor and they're stealing the time and resources away that {{user_name}} and Dale need to keep the business afloat. The business has no reserve left, and Dale is weighing other work. If {{user_name}} can't give Dale enough work he's disappointing generations of family and the lake itself.",
+                "llm_exit": "A welcome change for {{user_name}}: There is a little money set aside again, and Dale can continue working for the forseeable future. {{user_name}} and Dale are both starting to feel a little more secure in their livelihoods.",
+                "enter_request": "The business has no reserve left, a competitor is renting our pier and taking the time and resources we need, and Dale is weighing other work. I'm asking for {{tons}} tons this month to keep the business afloat, protect our access to the pier, and keep Dale working. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "The better catch let me set aside a small reserve, and Dale can keep working for the foreseeable future. I'm asking for {{tons}} tons this month to preserve that cushion, keep both boats operating, and give Dale continued work. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "-6": {
-                "enter": "Last month left more than empty nets: The lender is asking questions about the second boat's next payment.",
+                "enter": "Last month left more than empty nets: The lender is asking questions about the second boat's next payment. Dale is worried about his job. You have less and less time on the water to make up the shortfall.",
                 "exit": "One piece of good news: A new payment plan gives both boats a chance to stay in the family.",
-                "llm_enter": "The shortfall puts more pressure on {{user_name}}: The lender is asking questions about the second boat's next payment.",
-                "llm_exit": "{{user_name}} can finally move forward: A new payment plan gives both boats a chance to stay in the family.",
-                "enter_request": "I wish I had better news about last month. The bank says I could lose the second boat if I miss another payment. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "I don't want to lose the progress I made: I work out a payment plan that keeps both boats in our hands. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "llm_enter": "The shortfall puts more pressure on {{user_name}}: The lender is asking questions about the second boat's next payment. Dale is worried about his job. {{user_name}} has less and less time on the water to make up the shortfall.",
+                "llm_exit": "{{user_name}} can finally move forward: A new payment plan gives both boats a chance to stay in the family. {{user_name}} and Dale are both starting to feel a little more secure in their livelihoods.",
+                "enter_request": "The lender is asking about the second boat's next payment, Dale is worried about his job, and I have less time on the water to make up the shortfall. I'm asking for {{tons}} tons this month to meet the payment, keep both boats in the family, and give Dale more security.",
+                "exit_request": "The lender agreed to a payment plan, giving both boats a chance to stay in the family and Dale's job a little more security. I'm asking for {{tons}} tons this month to keep up with the plan, keep both boats operating, and continue paying Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "-7": {
-                "enter": "Another hard month brings this setback: Dale is laid off, and Aiden says he is making plans to leave town.",
-                "exit": "That catch gives a little breathing room: Dale returns to work, and Aiden agrees to talk about staying in Angland.",
-                "llm_enter": "{{user_name}} is dealing with a new worry: Dale is laid off, and Aiden says he is making plans to leave town.",
-                "llm_exit": "This month goes a little better for {{user_name}}: Dale returns to work, and Aiden agrees to talk about staying in Angland.",
-                "enter_request": "After coming up short, I had to face this: I had to lay Dale off, and now Aiden says he might leave Angland. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "For once, I could take care of one thing. I bring Dale back onto the crew, and Aiden is willing to discuss staying. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "Another hard month brings this setback: Dale is laid off. Generations in this town are starting to slip away as you contemplate moving. The competitors took over your pier and you only have your poles left to keep fishing by the shoreline.",
+                "exit": "That catch gives a little breathing room: Dale is able to keep working and you feel more sure about your decision to stay in this town.",
+                "llm_enter": "{{user_name}} is dealing with a new worry: Dale is laid off, and due to lack of work, you're considering moving. {{user_name}}'s competitors have taken over the pier and {{user_name}} only has their poles left to keep fishing by the shoreline.",
+                "llm_exit": "This month goes a little better for {{user_name}}: Dale returns to work and things are looking to come back on track to maintain your business.",
+                "enter_request": "Dale is laid off, competitors have taken over our pier, and I have only my poles left to fish from the shoreline. I am considering leaving this town as well. I'm asking for {{tons}} tons this month to get Dale back to work, recover our fishing access, and give our family a reason to stay.",
+                "exit_request": "The better catch let me bring Dale back to work and makes me more certain about staying here. I'm asking for {{tons}} tons this month to keep Dale employed, rebuild our fishing operation, and give our family a future here. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "-8": {
-                "enter": "The latest catch has left this problem behind: The business is close to closing, leaving little to pass on to the next generation.",
-                "llm_enter": "Another difficult month leaves {{user_name}} with this problem: The business is close to closing, leaving little to pass on to the next generation."
+                "enter": "The latest catch has left this problem behind: The business is days away from closing, almost nothing is left for you to pass on to the next generation.",
+                "llm_enter": "Another difficult month leaves {{user_name}} with this problem: The business is days away from closing, almost nothing is left for {{user_name}} to pass on to the next generation."
             },
             "1": {
-                "enter": "There is a little relief this month: The repair is covered, so Dale gets his usual shifts.",
-                "exit": "That short catch came at a cost: A postponed repair costs Dale one paid shift.",
-                "llm_enter": "{{user_name}} catches a break: The repair is covered, so Dale gets his usual shifts.",
-                "llm_exit": "{{user_name}} is feeling the pinch: A postponed repair costs Dale one paid shift.",
-                "enter_request": "Last month's catch gave me a little room to breathe. I get the repair done and Dale keeps his regular hours. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "Last month went badly. Dale misses a paid shift after I put off a repair. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "The catch covers the postponed repair, so Dale gets his usual shifts again.",
+                "exit": "The catch falls short, so I postpone a repair and Dale loses one paid shift.",
+                "llm_enter": "{{user_name}} catches a break: The postponed repair is covered, and Dale gets his usual shifts again.",
+                "llm_exit": "{{user_name}} comes up short: A repair is postponed, and Dale loses one paid shift.",
+                "enter_request": "Last month's catch let me finish the repair I had put off, so Dale is back to his usual shifts. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "Last month's catch fell short, so I had to postpone a repair and Dale lost one paid shift. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "2": {
-                "enter": "A better catch changes one thing: Both boats are fueled and ready for the next run.",
-                "exit": "At the dock, the shortfall shows up here: Fuel money runs short, and one boat may have to stay tied up.",
-                "llm_enter": "There is some better news for {{user_name}}: Both boats are fueled and ready for the next run.",
-                "llm_exit": "The short month leaves {{user_name}} facing this: Fuel money runs short, and one boat may have to stay tied up.",
-                "enter_request": "Something finally went right after the better catch: I can fuel both boats and get them back out on the lake. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "I came up short, and here's what happened: I'm rationing fuel and may have to leave one boat at the dock. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "The fuel money is there again: Both boats are fueled and back out on the lake, and Dale can count on the catch to help feed his household.",
+                "exit": "Fuel money runs short, so I have to tie up one boat. With fewer fish coming in, Dale may have less food this month.",
+                "llm_enter": "{{user_name}} is making progress: Both boats are fueled and back on the lake, giving Dale a steadier chance to bring food home.",
+                "llm_exit": "{{user_name}}'s short catch leaves one boat tied up, and Dale may have less food this month.",
+                "enter_request": "The better catch gave me enough for fuel, so both boats are back on the lake and Dale has a better chance of bringing food home. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "I came up short last month. Fuel money ran out, one boat is tied up, and Dale may have less food this month. I'm asking for {{tons}} tons to get both boats fishing again and make sure Dale can keep working. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "3": {
-                "enter": "Small win: The second boat is working again, and Dale is back on his usual schedule.",
-                "exit": "Money is tighter after last month: The idle boat still needs maintenance, while Dale's hours shrink.",
-                "llm_enter": "The stronger catch lets {{user_name}} make progress: The second boat is working again, and Dale is back on his usual schedule.",
-                "llm_exit": "For {{user_name}}, the setback is: The idle boat still needs maintenance, while Dale's hours shrink.",
-                "enter_request": "I was able to make a bit of progress last month. I can get the second boat running and restore Dale's hours. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "The last catch didn't stretch far enough. The second boat needs repairs I can't afford, and Dale's hours are slipping. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "The second boat is repaired and working again, and Dale is back on his usual schedule with more dependable pay.",
+                "exit": "The idle boat still needs maintenance, and the short catch forces Dale's hours and pay to shrink again.",
+                "llm_enter": "The stronger catch lets {{user_name}} repair the second boat and restore Dale's usual hours, giving them both a more dependable livelihood.",
+                "llm_exit": "{{user_name}} cannot afford the idle boat's repairs, and Dale's hours and pay are shrinking again.",
+                "enter_request": "The last catch finally let me repair the second boat and restore Dale's regular hours and pay. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family and Dale have given this lake so much; we need support too.",
+                "exit_request": "The last catch didn't stretch far enough. The second boat still needs maintenance I can't afford, and Dale's hours and pay are shrinking again. I'm asking for {{tons}} tons this month to get both boats working and give Dale dependable hours. My family and Dale have given this lake so much; we need support too."
             },
             "4": {
-                "enter": "The extra fish make room for progress: The dock fee is paid, and the family keeps its place at the pier.",
-                "exit": "One thing the shortfall takes away is this: The dock fee is overdue, putting the family's long-held slip in jeopardy.",
-                "llm_enter": "{{user_name}} has a little room to breathe: The dock fee is paid, and the family keeps its place at the pier.",
-                "llm_exit": "Things have tightened for {{user_name}}: The dock fee is overdue, putting the family's long-held slip in jeopardy.",
-                "enter_request": "The stronger catch helped me turn a corner: I pay the dock fee and keep our family's place at the pier. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "I'm still dealing with last month's shortfall: I'm behind on the slip fee my family has paid for years. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "The dock fee is paid, keeping the family's long-held slip at the pier and out of competitors' hands for now.",
+                "exit": "The dock fee falls overdue, putting the family's slip at risk; You may have to sell a boat or rent the pier to a competitor.",
+                "llm_enter": "{{user_name}} has a little room to breathe: The dock fee is paid, and the family keeps its pier slip for now, limiting competitors' access.",
+                "llm_exit": "{{user_name}} is behind on the dock fee. Losing the slip could mean selling a boat or renting the pier to a competitor who could take fishing opportunities.",
+                "enter_request": "The better catch let me pay the dock fee and keep our family's place at the pier, protecting our access from competitors for now. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "I'm still dealing with last month's shortfall: The dock fee is overdue, and I may have to sell a boat or rent our family's pier to a competitor. I'm asking for {{tons}} tons this month to keep both boats operating, pay Dale, and protect our place at the pier. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "5": {
-                "enter": "For a change, something goes right: There is a little money set aside again, and Dale agrees to stay.",
-                "exit": "There is a fresh worry to add to the list: The business has no reserve left, and Dale is weighing other work.",
-                "llm_enter": "A welcome change for {{user_name}}: There is a little money set aside again, and Dale agrees to stay.",
-                "llm_exit": "{{user_name}} now has to contend with this: The business has no reserve left, and Dale is weighing other work.",
-                "enter_request": "There's some better news since last month. I rebuild a small reserve, and Dale can stay with us. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "That short catch left me with this problem: The business cushion is gone, and Dale may need to find another job. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "The business has a small reserve again, Dale can keep working, and the family can protect its pier from competitors.",
+                "exit": "The reserve is gone. A competitor is renting the pier and taking fishing time and resources, while Dale weighs finding other work.",
+                "llm_enter": "A welcome change for {{user_name}}: A small reserve is back, Dale can keep working, and they can protect their pier from competitors.",
+                "llm_exit": "{{user_name}} has no reserve left. A competitor is renting the pier and taking time and resources, and Dale is weighing other work.",
+                "enter_request": "There's some better news since last month. I rebuilt a small reserve, Dale can keep working, and I can protect our pier from competitors. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "That short catch left me with no business cushion. A competitor is renting our pier and taking time and resources we need, and Dale may have to find other work. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale before we lose the business. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "6": {
-                "enter": "One piece of good news: A new payment plan gives both boats a chance to stay in the family.",
-                "exit": "Last month left more than empty nets: The lender is asking questions about the second boat's next payment.",
-                "llm_enter": "{{user_name}} can finally move forward: A new payment plan gives both boats a chance to stay in the family.",
-                "llm_exit": "The shortfall puts more pressure on {{user_name}}: The lender is asking questions about the second boat's next payment.",
-                "enter_request": "I don't want to lose the progress I made: I work out a payment plan that keeps both boats in our hands. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "I wish I had better news about last month. The bank says I could lose the second boat if I miss another payment. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "The lender agrees to a payment plan, giving both boats a chance to stay in the family and Dale's job a little more security.",
+                "exit": "The lender is asking about the second boat's next payment. Dale is worried about his job, and there is less time on the water to make up the shortfall.",
+                "llm_enter": "{{user_name}} can finally move forward: A payment plan gives both boats a chance to stay in the family and gives Dale's job a little more security.",
+                "llm_exit": "The shortfall puts more pressure on {{user_name}}: The lender is asking about the second boat's next payment, Dale is worried about his job, and there is less time on the water to recover.",
+                "enter_request": "I don't want to lose the progress I made: The lender agreed to a payment plan that gives both boats a chance to stay in our family and Dale's job a little more security. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "I wish I had better news about last month. The lender is asking about the second boat's next payment, Dale is worried about his job, and I have less time on the water to make up the shortfall. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale is a man in his sixties who deserves to retire and not lose his job this way."
             },
             "7": {
-                "enter": "That catch gives a little breathing room: Dale returns to work, and Aiden agrees to talk about staying in Angland.",
-                "exit": "Another hard month brings this setback: Dale is laid off, and Aiden says he is making plans to leave town.",
-                "llm_enter": "This month goes a little better for {{user_name}}: Dale returns to work, and Aiden agrees to talk about staying in Angland.",
-                "llm_exit": "{{user_name}} is dealing with a new worry: Dale is laid off, and Aiden says he is making plans to leave town.",
-                "enter_request": "For once, I could take care of one thing. I bring Dale back onto the crew, and Aiden is willing to discuss staying. I'm asking for {{tons}} tons this month to keep that progress going and keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
-                "exit_request": "After coming up short, I had to face this: I had to lay Dale off, and now Aiden says he might leave Angland. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
+                "enter": "Dale is back on the crew, the family can fish from its boats again, and I am feeling confident about my ability continue living in this town.",
+                "exit": "Dale is laid off, competitors control the pier, and Aiden is making plans to leave town; I am left fishing from shore with poles.",
+                "llm_enter": "This month goes better for {{user_name}}: Dale returns to work, they can fish from their boats again, and I am feeling confident about my ability continue living in this town.",
+                "llm_exit": "{{user_name}} faces a serious setback: Dale is laid off, competitors control the pier, and Aiden plans to leave town, leaving only shoreline fishing with poles.",
+                "enter_request": "For once, I could take care of several things: Dale is back on the crew, we can fish from our boats again, and I am feeling confident about my ability continue living in this town. I'm asking for {{tons}} tons this month to keep both boats operating and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
+                "exit_request": "After coming up short, I had to lay Dale off. Competitors control our pier, leaving me only my poles to fish from shore, and I am making plans to leave this town. I'm asking for {{tons}} tons this month to get Dale back to work and keep our family here. My family has cared for this lake for generations, and Dale deserves more after all his life work than to be let go this way."
             },
             "8": {
-                "enter": "This month brings a welcome improvement: The operation is stable enough to plan for Dale and a future for Aiden here.",
-                "llm_enter": "The extra fish make a difference for {{user_name}}: The operation is stable enough to plan for Dale and a future for Aiden here."
+                "enter": "The business is stable again, with a future for Dale and something meaningful to pass on to the next generation.",
+                "llm_enter": "The stronger catch makes a lasting difference for {{user_name}}: The business is stable, Dale has a future there, and there is something meaningful to pass on."
             }
         },
         "2": {
