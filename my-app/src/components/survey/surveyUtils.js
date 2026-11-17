@@ -12,6 +12,7 @@ export async function buildConversation(room) {
         if (llmInstructions[round]) {
             messages.push({
                 sender: "llm",
+                isInstructions: true,
                 text: llmInstructions[round]
             });
         }
@@ -62,6 +63,12 @@ export function buildDisplaySteps(questions) {
     for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
 
+        // "groupWithPrevious": true in the game file shows a question on the same page as the one before it
+        if (q.groupWithPrevious && steps.length > 0) {
+            steps[steps.length - 1].questions.push(q);
+            continue;
+        }
+
         // Group scale + optional justification on one page (game4.json order).
         if (q.id === "compensation" && questions[i + 1]?.id === "compensation-explanation") {
             steps.push({ questions: [q, questions[i + 1]] });
@@ -91,7 +98,18 @@ export function isRequiredQuestionUnanswered(q, answers) {
         const val = answers[q.id];
         return !Array.isArray(val) || val.length !== (q.options?.length ?? 0);
     }
+    if (q.type === "checkbox") {
+        const val = answers[q.id];
+        if (!Array.isArray(val) || val.length === 0) return true;
+        // picking the "Other" option also requires its text explanation
+        return Boolean(q.otherOption) && val.includes(q.otherOption) && !answers[otherAnswerKey(q)]?.trim();
+    }
     return answers[q.id] == null || answers[q.id] === "";
+}
+
+// Checkbox questions keep the "Other" explanation under its own answer key
+export function otherAnswerKey(q) {
+    return `${q.id}-other`;
 }
 
 export function displayStepHasUnanswered(step, answers) {
@@ -107,5 +125,30 @@ export function formatAnswer(q, answers) {
     if (q.type === "sortRank" && Array.isArray(val)) {
         return val.map((opt, i) => `${i + 1}. ${opt}`).join(", ");
     }
+    if (q.type === "checkbox" && Array.isArray(val)) {
+        if (val.length === 0) return "(No response)";
+        return val.map(opt =>
+            opt === q.otherOption ? `${opt}: ${answers[otherAnswerKey(q)] || ""}` : opt
+        ).join("; ");
+    }
     return String(val);
+}
+
+// Conversation reflection step (ConversationReflectionStep.jsx)
+export const MIN_MARKS = 3;
+
+// How many marks the user must make (fewer if the Lake Manager sent fewer than 3 messages)
+export function requiredMarkCount(messages) {
+  const markableCount = messages.filter(isMarkableMessage).length;
+  return Math.min(MIN_MARKS, Math.max(1, markableCount));
+}
+
+// Only the Lake Manager's allocation memos can be marked (not fishers' messages or round instructions)
+export function isMarkableMessage(msg) {
+  return msg.sender !== "user" && !msg.isInstructions;
+}
+
+export function markIsComplete(mark) {
+  return (mark.feeling === "positive" || mark.feeling === "negative") &&
+    Boolean(mark.note && mark.note.trim());
 }

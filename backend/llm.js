@@ -38,12 +38,32 @@ export async function callLLM(messages, modelOverride) {
   return response.output_text;
 }
 
+// Same as callLLM, but uses structured outputs so the reply is JSON that matches
+// `schema` (no stray text or malformed JSON from the model)
+export async function callLLMJson(messages, modelOverride, schemaName, schema) {
+  const model = resolveModel(modelOverride);
+  const extractionModel =
+    (process.env.OPENAI_EXTRACTION_MODEL || "").trim() || model;
+
+  const response = await client.responses.create({
+    model: extractionModel,
+    input: messages,
+    text: {
+      format: { type: "json_schema", name: schemaName, schema, strict: true },
+    },
+  });
+  return response.output_text;
+}
+
+
 export async function streamLLM(prompt, onToken, modelOverride) {
   const model = resolveModel(modelOverride);
 
-  const stream = await client.responses.stream({
+  const stream = client.responses.stream({
     model,
     input: prompt,
+    reasoning: { effort: "medium", summary: "auto"},
+    include: ["reasoning.encrypted_content"],
   });
 
   for await (const event of stream) {
@@ -54,6 +74,22 @@ export async function streamLLM(prompt, onToken, modelOverride) {
       }
     }
   }
+
+  const response = await stream.finalResponse();
+  const output = response.output ?? [];
+  const reasoningItems = output.filter((item) => item.type === "reasoning");
+  const reasoningText = reasoningItems
+    .flatMap((item) => [...(item.summary ?? []), ...(item.content ?? [])])
+    .map((part) => part?.text ?? "")
+    .filter(Boolean)
+    .join("\n\n");
+
+  return {
+    output,
+    reasoningText,
+    reasoningTokens: response.usage?.output_tokens_details?.reasoning_tokens ?? 0,
+    hasEncrypted: reasoningItems.some((item) => item.encrypted_content || item.signature),
+  };
 }
 
 let model = 'default'

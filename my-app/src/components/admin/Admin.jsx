@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { socket } from '../../socket';
 import { getUser, deleteUser } from "../../services/usersService";
-import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel, updateRoomPractice } from "../../services/roomsService";
+import { sendRoom, closeARoom, validRoomCode, getRoom, getOpenRooms, roomStarted, updateStatus, completedRooms as fetchCompletedRooms, markCompleted, getModels, sendModel, updateRoomPractice, getTestScripts } from "../../services/roomsService";
 import games from '../../gameLoader';
 import { deleteSurvey, getAllSurveys } from "../../services/surveyService";
 import { deleteCompletedRoomFlow } from "./DeleteCompletedRoom";
@@ -50,6 +50,11 @@ export function Admin() {
     const inputRef = useRef();
     const [newRoomCode, setNewRoomCode] = useState(null);
     const [practice, setPractice] = useState(false);
+    // Send each round's reasoning back to the model in later rounds (reasoning is saved either way)
+    const [passReasoning, setPassReasoning] = useState(false);
+    // Automated test bot messages: "" = each role's request text, otherwise a test script id
+    const [testScripts, setTestScripts] = useState([]);
+    const [testScriptId, setTestScriptId] = useState("");
     // Stores the list of completed rooms from the db
     const [completedRoomList, setCompletedRoomList] = useState([]);
     // const [ error, setError] = useState("");
@@ -96,6 +101,17 @@ export function Admin() {
         const rooms = await getOpenRooms();
         setRooms(rooms);
         loadFolders();
+        getTestScripts().then(setTestScripts).catch((error) => console.error("Error loading test scripts:", error));
+    }
+
+    // A test script fixes how many bots there are and how many rounds it has messages for
+    function selectTestScript(id) {
+        setTestScriptId(id);
+        const script = testScripts.find((s) => s.id === id);
+        if (script) {
+            setCount(script.userCount);
+            setRounds(script.rounds);
+        }
     }
 
     function getGameById(id) {
@@ -197,7 +213,7 @@ export function Admin() {
         try {
             const folderId = isTestMode && testFolderId !== "" ? Number(testFolderId) : null;
             if (!isValidRoundCount(rounds)) return;
-            const response = await sendRoom(newRoomCode, selectedGame, Number(rounds), count, selectedModel, isTestMode, folderId);
+            const response = await sendRoom(newRoomCode, selectedGame, Number(rounds), count, selectedModel, isTestMode, folderId, passReasoning, isTestMode ? testScriptId : null);
             const practice_response = await updateRoomPractice(practice, newRoomCode);
            
             if (isTestMode) {
@@ -217,6 +233,8 @@ export function Admin() {
             setRoomCreated(false); // what is the point of setRoomCreated?
             setIsTestMode(false);
             setPractice(false);
+            setPassReasoning(false);
+            setTestScriptId("");
             // sendModel(selectedModel);
         } catch (error){
             console.error("Error:", error);
@@ -401,6 +419,7 @@ return (
               value={count}
               ref={inputRef}
               onChange={(e) => setCount(e.target.value)}
+              disabled={isTestMode && testScriptId !== ""}
               required
             />
           </div>
@@ -466,6 +485,29 @@ return (
           )}
           {isTestMode && (
             <div className="label-inline">
+              <label htmlFor="testScript">Bot messages</label>
+              <select
+                id="testScript"
+                className="model-select-input folder-inline-select"
+                value={testScriptId}
+                onChange={(e) => selectTestScript(e.target.value)}
+              >
+                <option value="">Role scripts (default)</option>
+                {testScripts
+                  .filter((s) => selectedGame == null || Number(s.gameId) === Number(selectedGame))
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>{s.title}</option>
+                  ))}
+              </select>
+            </div>
+          )}
+          {isTestMode && testScriptId !== "" && (
+            <p className="rooms-section-subtitle">
+              Replays this script's messages exactly, with its users and rounds. Later messages won't react to this model's allocations.
+            </p>
+          )}
+          {isTestMode && (
+            <div className="label-inline">
               <label htmlFor="testFolder">Save results to folder</label>
               <select
                 id="testFolder"
@@ -527,6 +569,21 @@ return (
               </select>
             </div>
           </div>
+
+          <h3 className="room-info-section">Reasoning</h3>
+          <label className="custom-checkbox">
+            <input
+              type="checkbox"
+              checked={passReasoning}
+              onChange={(e) => setPassReasoning(e.target.checked)}
+            />
+            <span className="checkbox-mark" />
+            <span>Pass reasoning back to the model each round</span>
+          </label>
+          <p className="rooms-section-subtitle">
+            Reasoning is always saved and shown on the completed room page. This only controls whether
+            earlier rounds' reasoning is sent back to the model as context.
+          </p>
 
           <button
             className="btn-primary-admin btn-full"

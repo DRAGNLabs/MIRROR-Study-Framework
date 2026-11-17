@@ -106,6 +106,16 @@ export async function updateLlmResponse(llmResponse, roomCode) {
     return response.json();
 }
 
+export async function updateLlmReasoning(round, reasoning, roomCode) {
+    const response = await fetch(`${API_BASE}/rooms/${roomCode}/llmReasoning`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ round, reasoning })
+    })
+    if (!response.ok) throw new Error(`Error updating llmReasoning in room ${roomCode}`);
+    return response.json();
+}
+
 export async function roomCompleted(roomCode) {
     const response = await fetch(`${API_BASE}/rooms/${roomCode}/completed`, {
         method: 'PATCH',

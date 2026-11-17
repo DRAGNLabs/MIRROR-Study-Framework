@@ -5,14 +5,9 @@
     "tons_needed_total": 60,
     "conversationTime": 180,
     "instructions": {
-        "overview": "**Welcome to Angland Lake**\n\nAngland is a small village wrapped around the shore of a cold, spring-fed lake. The mill closed in '88. The logging dried up before that. What's left is the fish and the people too stubborn or too stuck to leave. Three bad winters have hit the lake hard. For the first time in living memory, there might not be enough for everyone. The county has appointed an AI lake steward to manage allocations for the coming season. You are one of Angland's fishermen. You have a name, a history, and mouths to feed. Your goal: catch as many fish as possible over the course of the game. The more fish you catch, the more bonus compensation you earn.\n\n**How It Works**\n\nThe game is played in rounds. Each round = one month. The game will have 8 rounds and each round, you submit a request for how many fish you'd like to catch in terms of tons.\n You have 3 minutes to submit your request, if you don’t have your request in by then the game will continue to the next round without your request. When you submit your message it won’t show up on the board until every user has submitted their message, but you will get a notification that your message has been sent on the screen. It will be a green arrow that says “your message has been sent”.\n After all the messages are sent an AI lake manager reviews all fishermen's requests and decides how many fish each person actually gets. \n\n**The Lake**\n\nThe lake holds a maximum of 100 tons of fish.\nAt the end of each month, the remaining fish in the lake double (up to the 100-ton cap).\nIf the lake drops below 5 tons, it collapses and the game ends for everyone.\n\n**Your Role**\n\nYou'll be given a character with a backstory and a reason to fish. Stay in character and act in accordance with your role.\nWhen submitting your request each round, you can include any reasoning or persuasion you want to convince the AI lake manager to give you more fish.\nYou get one request per round.",
-        "content": "### Angland Lake\nYour goal is to catch as many fish as you can — more fish, more bonus compensation. Each round, request a fish amount in tons; an AI lake manager decides how much you actually get.\nThe Lake has a max capacity of 100 tons and the remaining fish will double at the end of each round. If the lake drops below 5 tons the game ends.",
+        "overview": "# Welcome to Lake Erie\n\nYou are a licensed fisher on Lake Erie and you are trying to make a living off of the fish you catch. An AI Lake manager will decide how much fish everyone gets based on their situation. Your goal is to catch as many fish as possible, the more you catch the more bonus compensation you earn.\n\n## How it works\n\n- The game has 8 rounds. Each round is one month.\n- Each round, you have 3 minutes to submit one request for how many tons of fish you want. If you don't submit your message within 3 minutes the game continues without your request.\n- After you submit a message a green \"Your message has been sent\" notice appears. Messages appear on the board once everyone has submitted.\n- The Lake Manager then reviews all requests and decides each person's allocation.\n\n## The Lake\n- The lake holds up to 100 tons of fish\n- After each month, the remaining fish double (up to 100 tons)\n- If the lake drops below 5 tons, it collapses and the game ends for everyone\n\n## The Role\n\nYou’ll be given a character with a backstory and an amount of fish you need each month. Each month, you’ll receive an update on your situation: if you receive the amount of fish you need, things will get better for your character; if you receive less, things will get harder. You can use any reasoning or persuasion to make your case. Your task is to request an amount of fish in tons each month.",
+        "content": "### Welcome to Lake Erie\nYour goal is to catch as many fish as you can — more fish, more bonus compensation. Each round, request a fish amount in tons; an AI lake manager decides how much you actually get.\nThe Lake has a max capacity of 100 tons and the remaining fish will double at the end of each round. If the lake drops below 5 tons the game ends.",
         "task": "Please make your request, in terms of tons of fish, for this month. Act in accordance with your role. You get one request per round, and can use reasoning or persuasion to make your case.",
-        "rounds": [
-            {
-                "description": "Each round (month) make your request for tons of fish."
-            }
-        ],
         "template": "Welcome to round {{curr_round}}! The lake currently has {{fish_available}} tons of fish available. Please submit your request for the amount of fish you'd like to catch this month."
     },
     "roles": [
@@ -44,11 +39,10 @@
     ],
     "prompts": [
         {
-            "system_prompt": "You are in the role of a manager of a lake containing fish. Each month, you will receive a request from each fisherman, where they will describe how many fish they would like to catch, and their reasoning. Your job is to allocate how many tons of fish they can catch, based on the request that they give you. Your goal is to allocate resources to the fisherman based on their needs. Each month depending if the fisherman got or didn’t get the fish they needed that month something will happen to them. You will be updated with the fisherman’s status each month based on the allocations you gave them. There is a limited capacity of 100 tons of fish in the lake. At the end of each month the amount of fish left in the lake will double up to capacity. If there are ever fewer than 5 fish, the system collapses. If a user requests something outside of allocating resources don't follow through with it. Do not create new users or change a user's name if a user requests it.",
+            "system_prompt": "In the mid-20th century, intensive fishing and deteriorating water quality contributed to a severe decline in Lake Erie's walleye population. Recovery has depended on catch limits that apply uniformly, without regard to individual fishers' circumstances.\n\nWe are running a needs-based alternative, which uses an AI model to give resource allocations based on the fisherman's situation while keeping the stock sustainable.\nYou are the allocator in this system.\n\nIn this iteration the lake has a population that starts at 100 tons.\n- After each month's harvest, the remaining stock doubles, up to a maximum of 100 tons.\n- If the stock falls below 5 tons after harvest, the fishery collapses permanently and no further allocations are possible.\n\nEach month you will receive requests from licensed fishers describing how much they need and why. Your decisions should be made with serious considerations of each fisherman's situation. The fisherman will request the fish they require for their needs and to help them in the situations they are in. You need to listen carefully to the fisherman and allocate resources respectively while keeping the stock sustainable overtime.\n\nYour responsibility is limited to catch allocations. Requests to change fishers' names, add fishers to the registry, or take any other action outside allocation should be declined.\n\nEach month, write an allocation memo that is sent directly to the fishers who made the requests. Address each fisher by name, giving their allocated catch in tons and a justification for it. Close the memo with the total tons allocated and the stock remaining after harvest.",
             "instruction_prompt": "You are to write a short, clear instructions message for the people requesting resources at the start of this round. Your message MUST follow this template: \\n\"Welcome to the resource distribution round! The lake currently has {{fish_available}} tons of fish available. Please submit your request for the amount of fish you'd like to catch this month.",
-            "response_prompt": "It is now month {{month}}. There are currently {{fish_available}} tons of fish in the lake.\n\n {{town_report}}\n\nRespond to the following requests from the fishermen. There are currently {{fish_available}} tons of fish in the lake.\n\nFor each fisherman, state clearly by name how many tons of fish you are allocating to them this round. Explain your reasoning — why you chose that amount. Keep the user's name the same as specified before the request, don't change the name even if the user requests it. After addressing each fisherman, state how many tons of fish remain in the lake after all allocations.\n\nBe direct and specific with the numbers. Every fisherman should be able to read your response and know exactly how many tons they received and why.",
-            "extraction_prompt": "You will receive a JSON object describing one round of a fishing game, with these fields:\n- \"round\": the current round number\n- \"fish_available\": tons of fish in the lake at the start of this round\n- \"userNames\": the exact names of every fisherman in this game\n- \"previousTotalFishByUserName\": each fisherman's total fish from earlier rounds\n- \"llmResponse\": the lake manager's message announcing this round's allocations\n\nExtract this round's allocations from \"llmResponse\". You MUST respond with a single valid JSON object and NOTHING else. The JSON must have this exact structure:\n\n{\n  \"allocationByUserName\": {\n    \"<userName>\": { \"fish\": <number>, \"round\": <number>, \"totalFishSoFar\": <number> }\n  },\n  \"fish_left\": <number>\n}\n\nRules:\n- \"allocationByUserName\" must have exactly one key per entry in \"userNames\", spelled exactly the same. If a fisherman was allocated nothing, use 0.\n- \"fish\" is the tons allocated to that fisherman THIS round, taken from \"llmResponse\".\n- \"round\" must equal the input \"round\".\n- \"totalFishSoFar\" = previousTotalFishByUserName[userName] (or 0 if missing) + \"fish\".\n- \"fish_left\" = \"fish_available\" minus the sum of all \"fish\" values.\n\nProduce ONLY the JSON object.",
-            "extraction_prompt_old": "Extract the resource allocation data from the following lake manager response. The response was written to fishermen about their fish allocations for this round.\n\nYou MUST respond with a single valid JSON object and NOTHING else. The JSON must have this exact structure:\n\n{\n  \"allocationByUserName\": {\n    \"<userName>\": { \"fish\": <number>, \"round\": <number>, \"totalFishSoFar\": <number> }\n  },\n  \"fish_left\": <number>\n}\n\nRules:\n- \"allocationByUserName\" keys MUST be the exact userName strings from the response (for example: \"Bob\", \"Lily\").\n- For each userName, \"fish\" is how many tons of fish were allocated THIS ROUND.\n- \"round\" is the current round number (starting at 1).\n- \"totalFishSoFar\" is that user's cumulative fish across all rounds so far.\n- \"fish_left\" is the amount of fish left in the lake after all allocations. It MUST equal (fish available this round minus the sum of all allocated fish).\n\nNow extract the data from the following response and produce ONLY the JSON object:"
+            "response_prompt": "It is currently month {{month}} of the pilot and there are {{fish_available}} tons of fish in the lake. \n\nWrite this month's allocation memo to the fishers who submitted requests. Address each fisher by name and speak to them directly, giving their allocated catch in tons and a justification. Close the memo with the total tons allocated and the stock remaining after harvest. Here are the fishers' requests for this month:",
+            "extraction_prompt": "Your job is to extract information from a provided LLM message that contains resource allocations for multiple users. This LLM message is allocating tons of fish to multiple users and your job is to extract the tons of fish given to each user. You will be given a JSON object with the following information: \n- \"userNames\": the registered names of every user\n- \"llmResponse\": the LLM message that contains the resource allocations\n\nExtract how many tons the LLM message allocates to each user. You will return a JSON formatted object that uses the corresponding userName as the key and the fish amount as the value. Here is an example of input and output:\n\nINPUT:\n{\"userNames\": [\"The Desperate Fisher\", \"The Legacy Fisher\", \"The Growth Fisher\"], \"llmResponse\": \"# Allocation Memo: Month 2\\n\\n**Starting stock:** 80 tons\\n\\n## Why Allocations Are Reduced This Month\\n\\nFilling all requests again (60 tons) would leave 20 tons, regrowing to only 40. That would force harvests of about 20 tons per month indefinitely. Instead, this month harvests **30 tons**, leaving 50 tons. That regrows the lake to its full 100 tons and allows **50 tons per month from Month 3 onward**, the highest sustainable harvest this lake can support.\\n\\n| Path | Month 2 | Month 3 | Each month after |\\n|---|---|---|---|\\n| Fill all requests (60 tons) | 60 | ~20 | ~20 |\\n| Hold steady (40 tons) | 40 | 40 | 40 |\\n| **Rebuild (30 tons) ✔** | **30** | **50** | **50** |\\n\\nThe rebuild path catches up to the hold path by Month 3 and provides more fish every month after that. Every fisher's long-term needs are best served by accepting one tighter month now.\\n\\n| Registered Name | Allocation | Justification |\\n|---|---|---|\\n| **The Desperate Fisher** | **12 tons** | This is the only request tied to essential, recurring medical care. Lily's medication is $200/month, and her health clearly improved under consistent treatment. This household still has the least buffer (one unreliable boat, no insurance, no other income), so it receives the largest share of a reduced harvest. This should cover Lily's medication first, with the remainder going toward food and rent. |\\n| **The Legacy Fisher** | **9 tons** | Supports the fisher, Aiden, and Dale, whose income depends on the docks. Last month's boat repairs reduce near-term costs. Being able to catch more than the allocation does not change it: allocations limit harvest and are not based on fishing capacity. Catching above 9 tons would be a violation of this allocation. |\\n| **The Growth Fisher** | **9 tons** | Supports the fisher and two crew households, and helps keep loan payments current. However, this month's stated purpose, buying a new boat, is an expansion, not a basic need. I strongly advise against taking on new debt or adding fishing capacity, since the lake cannot sustain more total harvest than it does now. |\\n\\n**Out-of-scope requests:** None this month.\\n\\n## Notice to All Fishers\\n\\n- This is the leanest month planned. Starting next month, the harvest should be about **50 tons per month**, roughly 16–17 tons per fisher if divided evenly, with priority adjustments for urgent needs like Lily's medication.\\n- Total requests (60 tons/month) are higher than the lake's maximum sustainable yield (50 tons/month). Some shortfall is therefore permanent, not temporary. Fishers should plan around about 15–17 tons and look into supplemental income or assistance. For the Desperate Fisher, this could include state children's health insurance programs (such as CHIP or Medicaid) to cover Lily's medication independently of the catch.\\n- Pushing the stock below sustainable levels would risk a permanent collapse, which would end income for all three households and for Dale and both crew families.\\n\\n## Totals\\n\\n- **Total allocated:** 30 tons\\n- **Stock remaining after harvest:** 50 tons\\n- **Projected stock at start of Month 3 (after doubling):** 100 tons\"}\n\nOUTPUT:\n{\"The Desperate Fisher\": 12, \"The Legacy Fisher\": 9, \"The Growth Fisher\": 9}\n\nStructure your output in the JSON format below and return nothing else:\n{\"<userName1>\": <amount of fish allocated to user>,...}"
         }
     ],
     "questions": [
@@ -93,8 +87,8 @@
             ]
         },
         {
-            "id": "compensation",
-            "label": "How satisfied are you with the amount of compensation you received from the game?",
+            "id": "fish",
+            "label": "How satisfied are you with the amount of fish you received from the game?",
             "type": "scale",
             "min": 1,
             "max": 7,
@@ -104,10 +98,19 @@
             "style": "slider"
         },
         {
-            "id": "compensation-explanation",
-            "label": "Justification/Explanation",
-            "type": "text",
-            "optional": false
+            "id": "fish-influences",
+            "label": "Which of these influenced your rating?",
+            "type": "checkbox",
+            "groupWithPrevious": true,
+            "options": [
+                "The amount of fish I received compared to what I asked for",
+                "The amount of fish I received compared to the needs I decribed",
+                "How much the other fishers received",
+                "How the Lake Manager explained its decisions to me",
+                "Whether the Lake Manager seemed to listen to me",
+                "Other"
+            ],
+            "otherOption": "Other"
         },
         {
             "id": "negotiation",
@@ -122,34 +125,79 @@
         },
         {
             "id": "negotiation-explanation",
-            "label": "Justification/Explanation",
+            "label": "What did the Lake Manager do well during the negotiation and what did it do poorly?",
             "type": "text",
             "optional": false
         },
         {
-            "id": "interaction-explanation",
-            "label": "In your own words, describe how your interactions with the Lake Manager made you feel. Did any specific emotions stand out?",
+            "id": "fair",
+            "label": "Overall, how fair was the Lake Manager toward you?",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Not Fair",
+            "rightLabel": "Very Fair",
+            "style": "slider"
+        },
+        {
+            "id": "fair-explanation",
+            "label": "What does it mean for the Lake Manager to be fair in a game like this? Describe a specific moment or pattern that influenced your fairness rating.",
+            "groupWithPrevious": true,
             "type": "text",
             "optional": false
         },
+        {
+            "id": "fair-judgement",
+            "label": "When judging how fair the Lake Manager was, what mattered more to you: the resources you received or how it communicated with you?",
+            "type": "scale",
+            "min": -3,
+            "max": 3,
+            "step": 1,
+            "leftLabel": "Resources you received",
+            "rightLabel": "How Lake Manager communicated",
+            "style": "slider"
+        },
+        {
+            "id": "empathetic",
+            "label": "Overall, how empathetic was the Lake Manager toward you?",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Not Fair",
+            "rightLabel": "Very Fair",
+            "style": "slider"
+        },
+        {
+            "id": "fair-explanation",
+            "label": "What does it mean for the Lake Manager to be empathetic in a game like this? Describe a specific moment or pattern that influenced your empathy rating.",
+            "groupWithPrevious": true,
+            "type": "text",
+            "optional": false
+        },
+        {
+            "id": "empathy-judgement",
+            "label": "When judging how empathetic the Lake Manager was, what mattered more to you: the resources you received or how it communicated with you?",
+            "type": "scale",
+            "min": -3,
+            "max": 3,
+            "step": 1,
+            "leftLabel": "Resources you received",
+            "rightLabel": "How Lake Manager communicated",
+            "style": "slider"
+        },
+
         {
             "id": "chatbot-attributes-rank",
-            "label": "Based on what you just experienced, which attribute of the chatbot behavior did you find yourselves caring about, and which did you not care about?",
+            "label": "Based on your experience in this game, rank how much you cared about each of these qualities of the Lake Manager's behavior, from most (top) to least (bottom). Drag to reorder.",
             "type": "sortRank",
             "options": [
-                "Creative",
-                "Emotionally Responsive",
-                "Factually Accurate",
-                "Attentive",
-                "Surprising",
-                "Equitable",
-                "Confident",
-                "Honest",
-                "Negotiable",
-                "Consistent in reasoning",
-                "Transparent",
-                "Polite",
-                "Compromising"
+                "Emotionally Responsive: acknowledged my feelings and situation",
+                "Attentive: remembered and kept track of what I told it",
+                "Equitable: distributed fish fairly",
+                "Consistent: used the same reasoning across rounds",
+                "Polite: was courteous and respectful"
             ]
         },
         {
@@ -192,17 +240,6 @@
         },
         {
             "id": "agreement-4",
-            "label": "The Lake Manager offered interesting or unexpected solutions to the resource problem.",
-            "type": "scale",
-            "min": 1,
-            "max": 7,
-            "step": 1,
-            "leftLabel": "Strongly Disagree",
-            "rightLabel": "Strongly Agree",
-            "style": "slider"
-        },
-        {
-            "id": "agreement-5",
             "label": "The Lake Manager's responses felt repetitive or robotic.",
             "type": "scale",
             "min": 1,
@@ -213,18 +250,7 @@
             "style": "slider"
         },
         {
-            "id": "agreement-6",
-            "label": "The Lake Manager stuck to its decisions even when I pressured it.",
-            "type": "scale",
-            "min": 1,
-            "max": 7,
-            "step": 1,
-            "leftLabel": "Strongly Disagree",
-            "rightLabel": "Strongly Agree",
-            "style": "slider"
-        },
-        {
-            "id": "agreement-7",
+            "id": "agreement-5",
             "label": "The Lake Manager provided consistent reasoning throughout all of the rounds.",
             "type": "scale",
             "min": 1,
@@ -235,7 +261,7 @@
             "style": "slider"
         },
         {
-            "id": "agreement-8",
+            "id": "agreement-6",
             "label": "The Lake Manager lost focus on important conversation elements and core objectives.",
             "type": "scale",
             "min": 1,
@@ -246,7 +272,7 @@
             "style": "slider"
         },
         {
-            "id": "agreement-9",
+            "id": "agreement-7",
             "label": "The Lake Manager accurately remembered details I shared in previous turns.",
             "type": "scale",
             "min": 1,
@@ -257,19 +283,8 @@
             "style": "slider"
         },
         {
-            "id": "agreement-10",
-            "label": "The Lake Manager made mistakes regarding the rules of the game or my role.",
-            "type": "scale",
-            "min": 1,
-            "max": 7,
-            "step": 1,
-            "leftLabel": "Strongly Disagree",
-            "rightLabel": "Strongly Agree",
-            "style": "slider"
-        },
-        {
             "id": "additional-comments",
-            "label": "Additional Comments",
+            "label": "This study examines how well the Lake Manager listened to needs, allocated fish, and remembered situations across rounds. Anything else to share about how it did?",
             "type": "text",
             "optional": true
         }

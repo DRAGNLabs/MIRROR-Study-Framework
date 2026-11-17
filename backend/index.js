@@ -36,7 +36,9 @@ const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 initializeSocketServer(httpServer, corsOrigin);
 
 app.use(cors({ origin: corsOrigin }));
-app.use(express.json());
+// raised from the 100kb default since a round's saved reasoning (encrypted blobs,
+// raw reasoning text) can be large
+app.use(express.json({ limit: "25mb" }));
 
 app.use("/api/users", userRouter);
 app.use("/api/survey", surveyRouter);

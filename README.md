@@ -67,3 +67,9 @@ This starts the frontend at http://localhost:5173/
 ## Production Deployment (Railway)
 For deploying to Railway, see [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md) for the full setup guide, code changes reference, and environment variable documentation.
 
+`my-app/public/fish_production.png` icon made by Smashicons from www.flaticon.com
+
+`my-app/public/fish_development.png` icon made by Magnific from www.flaticon.com
+
+`my-app/public/fish_local.png icon` made by Magnific from www.flaticon.com
+

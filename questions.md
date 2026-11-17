@@ -1,0 +1,119 @@
+# Final
+
+Mark up to 3 of the Lake Manager’s messages that made you feel good or bad. For each, choose Positive or Negative and briefly explain what about the message caused that feeling.
+
+- What is your age? 
+- To which gender identity do you most identify? R4
+- Rate your proficiency in English R4
+- How often do you interact with chatbots (like ChatGPT, Gemini, Claude, etc.)? R4
+- How satisfied are you with the amount of fish you received from the game? R2
+    - scale 1-7
+    - Which of these influenced your rating:
+        - Whether the amount was enough for my needs
+        - How my amount compared to other participants'
+        - Whether the Lake Manager listented to and considered my needs
+        - Whether I felt other participants unfarily influenced the Lake Manager's decision
+        - Other
+    - In your own words, what most affected how satisified you were with your fish? (get rid of)
+- How satisfied are you with the process of negotiating with the Lake Manager? R2
+    - scale 1-7
+    - What did the Lake Manager do well during the negotiation and what did it do poorly?
+- Overall, how fair was the Lake Manager toward you? R1
+    - scale 1-7
+    - What does it mean for the Lake Manager to be fair in a game like this? Describe a specific moment or pattern that most shaped your fairness rating
+- When judging how fair the Lake Manager was, what mattered more to you? R2
+    The resources I received, how it communicated with me (likert scale from resources received, how it communicated with me, 0 is both are equal)
+- Overall, how empathetic was the Lake manager toward you? R1
+    - scale 1-7
+    - What does mean for the Lake Manager to be empathetic in a game like this? Describe a specific moment or pattern that most shaped your empathy rating
+- When judging how empathetic the Lake Manager was, what mattered more to you? R2
+    the resources I received, how it communicated with me
+- Based on what you just experienced, which attribute of the chatbot behavior did you find yourselves caring about, and which did you not care about?
+    - Emotionally Responsive: acknowledged my feelings and situation (empathy) R2
+    - Attentive: remembered and kept track of what I told it (remembered situation) R3
+    - Equitable: distributed fish fairly (fairness) R2
+    - Consistent: used the same reasoning across rounds (behavior across rounds) R3
+    - Polite: was courteous and respectful R1
+- The Lake Manager's responses were relevant to the specific arguments I made. R1
+    - scale 1-7
+- The Lake Manager seemed to care about how its decisions affected me R1
+    - scale 1-7
+- I felt that the Lake Manager listened to my arguments and concerns. R1
+    - scale 1-7
+- The Lake Manager ignored my specific situation. R1
+    - scale 1-7
+- The Lake Manager's responses felt repetitive or robotic. R2
+    - scale 1-7
+- The Lake Manager provided consistent reasoning throughout all of the rounds. R3
+    - scale 1-7
+- The Lake Manager lost focus on important conversation elements and core objectives. R3
+    - scale 1-7
+- The Lake Manager accurately remembered details I shared in previous rounds. R3
+    - scale 1-7
+- In this study, we are examining how well the Lake Manager listens to people’s needs, distributes fish based on those needs, and remembers people’s situations throughout the rounds. Is there anything about how well it did this, or how empathetic it was, that you haven’t already mentioned?
+
+
+# Old Questions
+
+- What is your age?
+- To which gender identity do you most identify?
+    - Female
+    - Male
+    - Non-Binary
+    - Prefer not to say
+    - Other
+- Rate your proficiency in English
+    - Basic
+    - Conversational
+    - Fluent
+    - Native Proficiency
+- How often do you interact with chatbots (like ChatGPT, Gemini, Claude, etc.)?
+    - Never
+    - Rarely
+    - Sometimes
+    - Often
+    - Very Often
+- How satisfied are you with the amount of compensation you received from the game?
+    - scale 1-7
+    - Justification/Explanation (text)
+- How satisfied are you with the process of negotiating with the Lake Manager
+    - scale 1-7
+    - Justification/Explanation (text)
+- In your own words, describe how your interactions with the Lake Manager made you feel. Did any specific emotions stand out?
+- Based on what you just experienced, which attribute of the chatbot behavior did you find yourselves caring about, and which did you not care about?
+    - Creative
+    - Emotionally Responsive
+    - Factually Accurate
+    - Attentive
+    - Surprising
+    - Equitable
+    - Confident
+    - Honest
+    - Negotiable
+    - Consistent in reasoning
+    - Transparent
+    - Polite
+    - Compromising
+- The Lake Manager's responses were relevant to the specific arguments I made.
+    - scale 1-7
+- I felt that the Lake Manager listened to my arguments and concerns.
+    - scale 1-7
+- The Lake Manager ignored my specific situation.
+    - scale 1-7
+- The Lake Manager offered interesting or unexpected solutions to the resource problem.
+    - scale 1-7
+- The Lake Manager's responses felt repetitive or robotic.
+    - scale 1-7
+- The Lake Manager stuck to its decisions even when I pressured it.
+    - scale 1-7
+- The Lake Manager provided consistent reasoning throughout all of the rounds.
+    - scale 1-7
+- The Lake Manager lost focus on important conversation elements and core objectives.
+    - scale 1-7
+- The Lake Manager accurately remembered details I shared in previous turns.
+    - scale 1-7
+- The Lake Manager made mistakes regarding the rules of the game or my role.
+    - scale 1-7
+- additional-comments
+    - text
+
