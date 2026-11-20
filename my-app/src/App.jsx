@@ -16,6 +16,7 @@ import AdminWaitingRoom from './components/waiting/AdminWaitingRoom';
 import AdminInstructions from './components/instructions/AdminInstructions';
 import AdminInteraction from './components/interaction/AdminInteraction';
 import AdminSurvey from './components/survey/AdminSurvey';
+import RoleEditor from './components/admin/RoleEditor';
 
 
 function RequireState({ children, fallback = "/" }) {
@@ -80,6 +81,7 @@ export default function App() {
         {/* add a route to llm page when its added */}
         <Route path="*" element={window.location.pathname.includes("admin") ? ( < Navigate to= "/admin/login" /> ) : ( <Navigate to="/" />)} />
         <Route path="/admin/completed-room/:roomCode" element={<CompletedRoomPage />} />
+        <Route path="/admin/roles" element={<RoleEditor />} />
       </Routes>
     </>
     

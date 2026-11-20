@@ -327,6 +327,9 @@ return (
       <button className="btn-primary-admin" onClick={createRoom}>
         Create Room
       </button>
+      <button className="btn-primary-admin" onClick={() => navigate("/admin/roles")}>
+        Roles
+      </button>
       
     </div>
 

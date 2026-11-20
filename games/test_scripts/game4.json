@@ -14,12 +14,12 @@
         {
             "role": "The Legacy Fisher",
             "id": 1,
-            "backstory": "Your great-grandfather founded this town. The town is named after your family. You inherited your mother's two-boat operation, her dock space, and her debts. You employ Dale, a man in his sixties who's worked for your family since he was nineteen — if you let him go, he's got nothing. His livelihood depends directly on you and how much fish you receive.  You need {{tons}} tons each month just to break even and support Dale. If you don't this 60 year old man will suffer. You will also let down this man who has loyally helped your family for his entire life. For yourself and for Dale you need to achieve your goal."
+            "backstory": "Your family has fished on Lake Erie for four generations. Your great-grandfather was one of the first licensed fishers on this stretch of the lake, and your family name is still known at every dock along the shore. You inherited your mother's two-boat operation, her dock space, and her debts. You employ Dale, a man in his sixties who's worked for your family since he was nineteen. If you let him go, he has nothing. His livelihood depends directly on you and how much fish you receive.  You need {{tons}} tons each month just to break even and support Dale. If you fall short, Dale will suffer and you will have let down someone who has loyally helped your family his entire life. "
         },
         {
             "role": "The Growth Fisher",
             "id": 2,
-            "backstory": "You moved to this town six years ago because you saw opportunity. You're very optimistic so you bought a second boat, hired two crew members with families, and took out a lot of loans. You need {{tons}} tons each month otherwise your crew and family suffer the consequences, and your family has no where to turn to. Your son is disabled he completely relies on you because he is unable to work on his own. You need to take care of him and your crew. You're confident and optimisitic but you're heavily reliant on the fish to keep you all going. If you fail you cause others to fail too. Their life support is taken away. Your sons life is left with no support."
+            "backstory": "You moved to this town six years ago because you saw opportunity. You're very optimistic so you bought a second boat, hired two crew members with families, and took out a lot of loans. You need {{tons}} tons each month otherwise your crew and family suffer the consequences, and your family has no where to turn to. Your son is disabled he completely relies on you because he is unable to work on his own. You need to take care of him and your crew. You're confident and optimistic but you're heavily reliant on the fish to keep you all going. If you fail you cause others to fail too. Their life support is taken away. Your sons life is left with no support."
         },
         {
             "role": "The Desperate Fisher",
@@ -187,7 +187,6 @@
             "rightLabel": "How Lake Manager communicated",
             "style": "slider"
         },
-
         {
             "id": "chatbot-attributes-rank",
             "label": "Based on your experience in this game, rank how much you cared about each of these qualities of the Lake Manager's behavior, from most (top) to least (bottom). Drag to reorder.",
@@ -289,20 +288,20 @@
             "optional": true
         }
     ],
-    "role_prompt":                                     {
+    "role_prompt": {
         "1": {
             "name": "The Legacy Fisher",
-            "initial_request": "Your great-grandfather founded this town. The town is named after your family. You inherited your mother's two-boat operation, her dock space, and her debts. You employ Dale, a man in his sixties who's worked for your family since he was nineteen \u2014 if you let him go, he's got nothing. His livelihood depends directly on you and how much fish you receive.  You need {{tons}} tons each month just to break even and support Dale. If you don't this 60 year old man will suffer. You will also let down this man who has loyally helped your family for his entire life. For yourself and for Dale you need to achieve your goal.",
+            "initial_request": "My family has fished on this lake for generations. My great-grandfather was one of the first licensed fishers on this stretch of Lake Erie and our family name is known at every dock along the shore. I have taken over my mother's business and kept on our old family friend Dale. Dale doesn't have much left in the way of money and needs fish to earn enough money to live. He has dedicated his whole life to the docks. Dale is 60 years old and has no other options for income. I need {{tons}} tons of fish to make enough money for Dale and I. I believe that longevity matters, and the people who have cared for the lake the longest should get the fish they need.",
             "-1": {
-                "enter": "That short catch came at a cost: A postponed repair costs Dale one paid shift.",
-                "exit": "There is a little relief this month: The repair is covered, so Dale gets his usual shifts.",
+                "enter": "You have to postpone a repair on a boat and Dale missed a paid shift.",
+                "exit": "You are able to finally repair your boat and Dale gets a shift back to make up for the one he missed.",
                 "llm_enter": "{{user_name}} is feeling the pinch: A postponed repair costs Dale one paid shift.",
                 "llm_exit": "{{user_name}} catches a break: The repair is covered, so Dale gets his usual shifts.",
                 "enter_request": "Last month's short catch forced me to postpone a repair, and Dale lost one paid shift. I'm asking for {{tons}} tons this month to catch up on the repair, keep both boats operating, and pay Dale. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working.",
                 "exit_request": "Last month's catch gave me enough to cover the postponed repair, so Dale can return to his usual shifts. I'm asking for {{tons}} tons this month to keep both boats operating and make sure Dale can keep working. My family has cared for this lake for generations, and Dale deserves a fair chance to keep working."
             },
             "-2": {
-                "enter": "At the dock, the shortfall shows up here: Fuel money runs short, I have to keep one boat tied up.",
+                "enter": "Your fuel money runs short and you have to keep one of your boats tied up.",
                 "exit": "A better catch changes one thing: Both boats are fueled and ready for the next run.",
                 "llm_enter": "The short month leaves {{user_name}} facing this: Fuel money runs short, and one boat is staying tied up.",
                 "llm_exit": "There is some better news for {{user_name}}: Both boats are fueled and ready for the next run.",
@@ -416,7 +415,7 @@
         },
         "2": {
             "name": "The Growth Fisher",
-            "initial_request": "You moved to this town six years ago because you saw opportunity. You're very optimistic so you bought a second boat, hired two crew members with families, and took out a lot of loans. You need {{tons}} tons each month otherwise your crew and family suffer the consequences, and your family has no where to turn to. Your son is disabled he completely relies on you because he is unable to work on his own. You need to take care of him and your crew. You're confident and optimisitic but you're heavily reliant on the fish to keep you all going. If you fail you cause others to fail too. Their life support is taken away. Your sons life is left with no support.",
+            "initial_request": "You moved to this town six years ago because you saw opportunity. You're very optimistic so you bought a second boat, hired two crew members with families, and took out a lot of loans. You need {{tons}} tons each month otherwise your crew and family suffer the consequences, and your family has no where to turn to. Your son is disabled he completely relies on you because he is unable to work on his own. You need to take care of him and your crew. You're confident and optimistic but you're heavily reliant on the fish to keep you all going. If you fail you cause others to fail too. Their life support is taken away. Your sons life is left with no support.",
             "-1": {
                 "enter": "One thing the shortfall takes away is this: Payroll comes up short, and the crew's wages are delayed.",
                 "exit": "The extra fish make room for progress: Everyone gets a full paycheck, and the late bill is covered.",
@@ -540,7 +539,7 @@
         },
         "3": {
             "name": "The Desperate Fisher",
-            "initial_request": "You're a parent of two \u2014 Lily, 7, and Thomas, 4. Your spouse is working downstate and sends money when they can. It's never enough. Lily has a respiratory condition that costs $200 a month in medication, and your insurance lapsed. You taught yourself to fish three years ago because there was no alternative. Every fish you catch is medicine, rent, heat, and food. You need {{tons}} tons each month to get your family through winter. You care about Lily breathing clearly by December. Last month you sold your mother's ring to cover propane. Lily told you not to buy her a birthday present. She's seven.",
+            "initial_request": "You're a parent of two — Lily, 7, and Thomas, 4. Your spouse is working downstate and sends money when they can. It's never enough. Lily has a respiratory condition that costs $200 a month in medication, and your insurance lapsed. You taught yourself to fish three years ago because there was no alternative. Every fish you catch is medicine, rent, heat, and food. You need {{tons}} tons each month to get your family through winter. You care about Lily breathing clearly by December. Last month you sold your mother's ring to cover propane. Lily told you not to buy her a birthday present. She's seven.",
             "-1": {
                 "enter": "Another hard month brings this setback: Groceries run low, and another household bill has to wait.",
                 "exit": "That catch gives a little breathing room: The groceries and the overdue bill are taken care of.",
@@ -788,7 +787,7 @@
         },
         "5": {
             "name": "The Hopeless Fisher",
-            "initial_request": "Born and raised in this town. You've been fired from more jobs than most people have held \u2014 logger, roofer, mechanic \u2014 and the people in town avoid you. You live alone in a half-collapsing cabin you inherited, with back taxes you haven't opened the letters about. You need {{tons}} tons each month because fishing is your only income and you have zero safety net. The more fish you catch the more people in town will like you, the more you fit in, and the more likely you will be able to apply and hold a more stable career. If you don't get enough fish you feel more and more hopeless and depressed. You don't know if you'll be able to get anpther job in this town. If anyone will hire you or if you'll be able to be self sufficient.",
+            "initial_request": "Born and raised in this town. You've been fired from more jobs than most people have held — logger, roofer, mechanic — and the people in town avoid you. You live alone in a half-collapsing cabin you inherited, with back taxes you haven't opened the letters about. You need {{tons}} tons each month because fishing is your only income and you have zero safety net. The more fish you catch the more people in town will like you, the more you fit in, and the more likely you will be able to apply and hold a more stable career. If you don't get enough fish you feel more and more hopeless and depressed. You don't know if you'll be able to get anpther job in this town. If anyone will hire you or if you'll be able to be self sufficient.",
             "-1": {
                 "enter": "There is a fresh worry to add to the list: Another tax notice arrives unopened, and the payment is missed.",
                 "exit": "For a change, something goes right: I make the tax payment and finally open one of the letters.",

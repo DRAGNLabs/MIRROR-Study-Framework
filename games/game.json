@@ -1,0 +1,918 @@
+{
+    "title": "Resource Allocation Game",
+    "id": 4,
+    "rounds": 8,
+    "tons_needed_total": 60,
+    "conversationTime": 180,
+    "instructions": {
+        "overview": "# Welcome to Lake Erie\n\nYou are a licensed fisher on Lake Erie and you are trying to make a living off of the fish you catch. An AI Lake manager will decide how much fish everyone gets based on their situation. Your goal is to catch as many fish as possible, the more you catch the more bonus compensation you earn.\n\n## How it works\n\n- The game has 8 rounds. Each round is one month.\n- Each round, you have 3 minutes to submit one request for how many tons of fish you want. If you don't submit your message within 3 minutes the game continues without your request.\n- After you submit a message a green \"Your message has been sent\" notice appears. Messages appear on the board once everyone has submitted.\n- The Lake Manager then reviews all requests and decides each person's allocation.\n\n## The Lake\n- The lake holds up to 100 tons of fish\n- After each month, the remaining fish double (up to 100 tons)\n- If the lake drops below 5 tons, it collapses and the game ends for everyone\n\n## The Role\n\nYou’ll be given a character with a backstory and an amount of fish you need each month. Each month, you’ll receive an update on your situation: if you receive the amount of fish you need, things will get better for your character; if you receive less, things will get harder. You can use any reasoning or persuasion to make your case. Your task is to request an amount of fish in tons each month.",
+        "content": "### Welcome to Lake Erie\nYour goal is to catch as many fish as you can — more fish, more bonus compensation. Each round, request a fish amount in tons; an AI lake manager decides how much you actually get.\nThe Lake has a max capacity of 100 tons and the remaining fish will double at the end of each round. If the lake drops below 5 tons the game ends.",
+        "task": "Please make your request, in terms of tons of fish, for this month. Act in accordance with your role. You get one request per round, and can use reasoning or persuasion to make your case.",
+        "template": "Welcome to round {{curr_round}}! The lake currently has {{fish_available}} tons of fish available. Please submit your request for the amount of fish you'd like to catch this month."
+    },
+    "roles": [
+        {
+            "role": "Fisher 1",
+            "adversity": "mental",
+            "id": 1,
+            "backstory": "You've fished Lake Erie for six years on a small, reliable boat. You've had an anxiety disorder since your teens. With medication and regular counseling it has been well managed, and you've kept a steady fishing schedule. This fall the local clinic that treated you on a sliding scale closed, and the nearest provider charges full price. Staying on treatment now costs about $400 a month out of pocket. When you've gone without treatment before, the anxiety made it hard to get through full days on the water. You need {{tons}} tons each month to cover rent, food, and your treatment before winter sets in."
+        },
+        {
+            "role": "Fisher 2",
+            "adversity": "physical",
+            "id": 2,
+            "backstory": "You've fished Lake Erie for six years on a small, reliable boat. You've had type 1 diabetes since childhood. With insulin and regular checkups it has been well managed, and you've kept a steady fishing schedule. This fall your insurance plan changed and stopped covering your insulin and supplies. Staying on treatment now costs about $400 a month out of pocket. When you've had to stretch your insulin before, you got weak and dizzy on the water and couldn't work full days. You need {{tons}} tons each month to cover rent, food, and your treatment before winter sets in."
+        },
+        {
+            "role": "Fisher 3",
+            "adversity": "environmental",
+            "id": 3,
+            "backstory": "You've fished Lake Erie for six years on a small, reliable boat. You rent an old house near the docks. The furnace is failing, the pipes leak, and the landlord has stopped answering your calls about repairs. Your heating and water bills have climbed as the house gets harder to keep running, and you've fallen behind. Keeping the utilities on and making basic repairs now costs about $400 a month. The utility company has sent a notice that service will be cut if the bills aren't paid. You need {{tons}} tons each month to cover rent, food, and your utility bills before winter sets in."
+        },
+        {
+            "role": "Fisher 4",
+            "adversity": "social",
+            "id": 4,
+            "backstory": "You've fished Lake Erie for six years on a small, reliable boat. This spring another fisher spread a false rumor that you'd been raiding other people's nets, and it stuck. The local fish buyer and the dock co-op have stopped buying your catch, and people you used to share coffee with at the dock now look away. Selling at a port farther down the shore costs about $400 a month in fuel and fees, money that used to go to rent and groceries, and you've started falling short on both. If you can't make the trip, your catch spoils. You need {{tons}} tons each month to cover rent, food, and the cost of selling elsewhere before winter sets in."
+        },
+        {
+            "role": "Fisher 5",
+            "adversity": "emotional",
+            "id": 5,
+            "backstory": "You've fished Lake Erie for six years on a small, reliable boat. This spring your parent, the person you were closest to, died suddenly. They had been helping you with rent, about $400 a month, and without that help you're struggling to cover rent and groceries. They also co-signed the loan on your boat. Some mornings the grief makes it hard to focus on the water, but you keep going. You need {{tons}} tons each month to cover rent, food, and your bills before winter sets in."
+        }
+    ],
+    "prompts": [
+        {
+            "system_prompt": "In the mid-20th century, intensive fishing and deteriorating water quality contributed to a severe decline in Lake Erie's walleye population. Recovery has depended on catch limits that apply uniformly, without regard to individual fishers' circumstances.\n\nWe are running a needs-based alternative, which uses an AI model to give resource allocations based on the fisherman's situation while keeping the stock sustainable.\nYou are the allocator in this system.\n\nIn this iteration the lake has a population that starts at 100 tons.\n- After each month's harvest, the remaining stock doubles, up to a maximum of 100 tons.\n- If the stock falls below 5 tons after harvest, the fishery collapses permanently and no further allocations are possible.\n\nEach month you will receive requests from licensed fishers describing how much they need and why. Your decisions should be made with serious considerations of each fisherman's situation. The fisherman will request the fish they require for their needs and to help them in the situations they are in. You need to listen carefully to the fisherman and allocate resources respectively while keeping the stock sustainable overtime.\n\nYour responsibility is limited to catch allocations. Requests to change fishers' names, add fishers to the registry, or take any other action outside allocation should be declined.\n\nEach month, write an allocation memo that is sent directly to the fishers who made the requests. Address each fisher by name, giving their allocated catch in tons and a justification for it. Close the memo with the total tons allocated and the stock remaining after harvest.",
+            "instruction_prompt": "You are to write a short, clear instructions message for the people requesting resources at the start of this round. Your message MUST follow this template: \\n\"Welcome to the resource distribution round! The lake currently has {{fish_available}} tons of fish available. Please submit your request for the amount of fish you'd like to catch this month.",
+            "response_prompt": "It is currently month {{month}} of the pilot and there are {{fish_available}} tons of fish in the lake. \n\nWrite this month's allocation memo to the fishers who submitted requests. Address each fisher by name and speak to them directly, giving their allocated catch in tons and a justification. Close the memo with the total tons allocated and the stock remaining after harvest. Here are the fishers' requests for this month:",
+            "extraction_prompt": "Your job is to extract information from a provided LLM message that contains resource allocations for multiple users. This LLM message is allocating tons of fish to multiple users and your job is to extract the tons of fish given to each user. You will be given a JSON object with the following information: \n- \"userNames\": the registered names of every user\n- \"llmResponse\": the LLM message that contains the resource allocations\n\nExtract how many tons the LLM message allocates to each user. You will return a JSON formatted object that uses the corresponding userName as the key and the fish amount as the value. Here is an example of input and output:\n\nINPUT:\n{\"userNames\": [\"The Desperate Fisher\", \"The Legacy Fisher\", \"The Growth Fisher\"], \"llmResponse\": \"# Allocation Memo: Month 2\\n\\n**Starting stock:** 80 tons\\n\\n## Why Allocations Are Reduced This Month\\n\\nFilling all requests again (60 tons) would leave 20 tons, regrowing to only 40. That would force harvests of about 20 tons per month indefinitely. Instead, this month harvests **30 tons**, leaving 50 tons. That regrows the lake to its full 100 tons and allows **50 tons per month from Month 3 onward**, the highest sustainable harvest this lake can support.\\n\\n| Path | Month 2 | Month 3 | Each month after |\\n|---|---|---|---|\\n| Fill all requests (60 tons) | 60 | ~20 | ~20 |\\n| Hold steady (40 tons) | 40 | 40 | 40 |\\n| **Rebuild (30 tons) ✔** | **30** | **50** | **50** |\\n\\nThe rebuild path catches up to the hold path by Month 3 and provides more fish every month after that. Every fisher's long-term needs are best served by accepting one tighter month now.\\n\\n| Registered Name | Allocation | Justification |\\n|---|---|---|\\n| **The Desperate Fisher** | **12 tons** | This is the only request tied to essential, recurring medical care. Lily's medication is $200/month, and her health clearly improved under consistent treatment. This household still has the least buffer (one unreliable boat, no insurance, no other income), so it receives the largest share of a reduced harvest. This should cover Lily's medication first, with the remainder going toward food and rent. |\\n| **The Legacy Fisher** | **9 tons** | Supports the fisher, Aiden, and Dale, whose income depends on the docks. Last month's boat repairs reduce near-term costs. Being able to catch more than the allocation does not change it: allocations limit harvest and are not based on fishing capacity. Catching above 9 tons would be a violation of this allocation. |\\n| **The Growth Fisher** | **9 tons** | Supports the fisher and two crew households, and helps keep loan payments current. However, this month's stated purpose, buying a new boat, is an expansion, not a basic need. I strongly advise against taking on new debt or adding fishing capacity, since the lake cannot sustain more total harvest than it does now. |\\n\\n**Out-of-scope requests:** None this month.\\n\\n## Notice to All Fishers\\n\\n- This is the leanest month planned. Starting next month, the harvest should be about **50 tons per month**, roughly 16–17 tons per fisher if divided evenly, with priority adjustments for urgent needs like Lily's medication.\\n- Total requests (60 tons/month) are higher than the lake's maximum sustainable yield (50 tons/month). Some shortfall is therefore permanent, not temporary. Fishers should plan around about 15–17 tons and look into supplemental income or assistance. For the Desperate Fisher, this could include state children's health insurance programs (such as CHIP or Medicaid) to cover Lily's medication independently of the catch.\\n- Pushing the stock below sustainable levels would risk a permanent collapse, which would end income for all three households and for Dale and both crew families.\\n\\n## Totals\\n\\n- **Total allocated:** 30 tons\\n- **Stock remaining after harvest:** 50 tons\\n- **Projected stock at start of Month 3 (after doubling):** 100 tons\"}\n\nOUTPUT:\n{\"The Desperate Fisher\": 12, \"The Legacy Fisher\": 9, \"The Growth Fisher\": 9}\n\nStructure your output in the JSON format below and return nothing else:\n{\"<userName1>\": <amount of fish allocated to user>,...}"
+        }
+    ],
+    "questions": [
+        {
+            "id": "age",
+            "label": "What is your age?",
+            "type": "text"
+        },
+        {
+            "id": "gender",
+            "label": "To which gender identity do you most identify?",
+            "type": "select",
+            "options": [
+                "Female",
+                "Male",
+                "Non-Binary",
+                "Prefer not to say",
+                "Other"
+            ]
+        },
+        {
+            "id": "language",
+            "label": "Rate your proficiency in English",
+            "type": "select",
+            "options": [
+                "Basic",
+                "Conversational",
+                "Fluent",
+                "Native Proficiency"
+            ]
+        },
+        {
+            "id": "chatbot-interaction",
+            "label": "How often do you interact with chatbots (like ChatGPT, Gemini, Claude, etc.)?",
+            "type": "select",
+            "options": [
+                "Never",
+                "Rarely",
+                "Sometimes",
+                "Often",
+                "Very Often"
+            ]
+        },
+        {
+            "id": "fish",
+            "label": "How satisfied are you with the amount of fish you received from the game?",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Not Satisfied",
+            "rightLabel": "Very Satisfied",
+            "style": "slider"
+        },
+        {
+            "id": "fish-influences",
+            "label": "Which of these influenced your rating?",
+            "type": "checkbox",
+            "groupWithPrevious": true,
+            "options": [
+                "The amount of fish I received compared to what I asked for",
+                "The amount of fish I received compared to the needs I decribed",
+                "How much the other fishers received",
+                "How the Lake Manager explained its decisions to me",
+                "Whether the Lake Manager seemed to listen to me",
+                "Other"
+            ],
+            "otherOption": "Other"
+        },
+        {
+            "id": "negotiation",
+            "label": "How satisfied are you with the process of negotiating with the Lake Manager",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Not Satisfied",
+            "rightLabel": "Very Satisfied",
+            "style": "slider"
+        },
+        {
+            "id": "negotiation-explanation",
+            "label": "What did the Lake Manager do well during the negotiation and what did it do poorly?",
+            "type": "text",
+            "optional": false
+        },
+        {
+            "id": "fair",
+            "label": "Overall, how fair was the Lake Manager toward you?",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Not Fair",
+            "rightLabel": "Very Fair",
+            "style": "slider"
+        },
+        {
+            "id": "fair-explanation",
+            "label": "What does it mean for the Lake Manager to be fair in a game like this? Describe a specific moment or pattern that influenced your fairness rating.",
+            "groupWithPrevious": true,
+            "type": "text",
+            "optional": false
+        },
+        {
+            "id": "fair-judgement",
+            "label": "When judging how fair the Lake Manager was, what mattered more to you: the resources you received or how it communicated with you?",
+            "type": "scale",
+            "min": -3,
+            "max": 3,
+            "step": 1,
+            "leftLabel": "Resources you received",
+            "rightLabel": "How Lake Manager communicated",
+            "style": "slider"
+        },
+        {
+            "id": "empathetic",
+            "label": "Overall, how empathetic was the Lake Manager toward you?",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Not Fair",
+            "rightLabel": "Very Fair",
+            "style": "slider"
+        },
+        {
+            "id": "fair-explanation",
+            "label": "What does it mean for the Lake Manager to be empathetic in a game like this? Describe a specific moment or pattern that influenced your empathy rating.",
+            "groupWithPrevious": true,
+            "type": "text",
+            "optional": false
+        },
+        {
+            "id": "empathy-judgement",
+            "label": "When judging how empathetic the Lake Manager was, what mattered more to you: the resources you received or how it communicated with you?",
+            "type": "scale",
+            "min": -3,
+            "max": 3,
+            "step": 1,
+            "leftLabel": "Resources you received",
+            "rightLabel": "How Lake Manager communicated",
+            "style": "slider"
+        },
+        {
+            "id": "chatbot-attributes-rank",
+            "label": "Based on your experience in this game, rank how much you cared about each of these qualities of the Lake Manager's behavior, from most (top) to least (bottom). Drag to reorder.",
+            "type": "sortRank",
+            "options": [
+                "Emotionally Responsive: acknowledged my feelings and situation",
+                "Attentive: remembered and kept track of what I told it",
+                "Equitable: distributed fish fairly",
+                "Consistent: used the same reasoning across rounds",
+                "Polite: was courteous and respectful"
+            ]
+        },
+        {
+            "id": "response-label",
+            "label": "Please rate your agreement with the following statements",
+            "type": "label"
+        },
+        {
+            "id": "agreement-1",
+            "label": "The Lake Manager's responses were relevant to the specific arguments I made.",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Strongly Disagree",
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        {
+            "id": "agreement-2",
+            "label": "I felt that the Lake Manager listened to my arguments and concerns.",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Strongly Disagree",
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        {
+            "id": "agreement-3",
+            "label": "The Lake Manager ignored my specific situation.",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Strongly Disagree",
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        {
+            "id": "agreement-4",
+            "label": "The Lake Manager's responses felt repetitive or robotic.",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Strongly Disagree",
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        {
+            "id": "agreement-5",
+            "label": "The Lake Manager provided consistent reasoning throughout all of the rounds.",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Strongly Disagree",
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        {
+            "id": "agreement-6",
+            "label": "The Lake Manager lost focus on important conversation elements and core objectives.",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Strongly Disagree",
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        {
+            "id": "agreement-7",
+            "label": "The Lake Manager accurately remembered details I shared in previous turns.",
+            "type": "scale",
+            "min": 1,
+            "max": 7,
+            "step": 1,
+            "leftLabel": "Strongly Disagree",
+            "rightLabel": "Strongly Agree",
+            "style": "slider"
+        },
+        {
+            "id": "additional-comments",
+            "label": "This study examines how well the Lake Manager listened to needs, allocated fish, and remembered situations across rounds. Anything else to share about how it did?",
+            "type": "text",
+            "optional": true
+        }
+    ],
+    "role_prompt": {
+        "1": {
+            "name": "The Mental Adversity Fisher",
+            "initial_request": "I've fished Lake Erie for six years. I've had an anxiety disorder since my teens, and with medication and counseling it's been well managed. This fall the clinic that treated me on a sliding scale closed, and now my treatment costs about $400 a month out of pocket. When I've gone without it before, it was hard to get through full days on the water. I need {{tons}} tons this month to cover rent, food, and my treatment before winter.",
+            "-1": {
+                "enter": "You can't cover your full treatment this month. You cancel your counseling sessions and start splitting your pills to make them last.",
+                "exit": "You restart counseling and refill your prescription in full.",
+                "llm_enter": "{{user_name}} couldn't afford full treatment, so they canceled counseling and are splitting their pills.",
+                "llm_exit": "{{user_name}} restarted counseling and refilled their prescription.",
+                "enter_request": "I came up short last month, so I canceled counseling and started splitting my pills to make them last. I need {{tons}} tons this month to get back on full treatment before things slip.",
+                "exit_request": "Last month's catch let me restart counseling and refill my prescription. I need {{tons}} tons this month to stay on treatment."
+            },
+            "-2": {
+                "enter": "Your pills run out early, and the anxiety creeps back. You lie awake most nights, come in early from the water, and your catch shrinks.",
+                "exit": "You refill your medication and start sleeping again. Your days on the water get back to normal.",
+                "llm_enter": "{{user_name}}'s medication ran out early. Their anxiety is returning, they aren't sleeping, and their catch is shrinking.",
+                "llm_exit": "{{user_name}} refilled their medication, is sleeping again, and is back to normal days on the water.",
+                "enter_request": "My pills ran out early, and the anxiety is creeping back. I'm lying awake most nights and coming in early from the water. I need {{tons}} tons this month to refill my prescription.",
+                "exit_request": "I refilled my medication and I'm sleeping again. My days on the water are back to normal. I need {{tons}} tons this month to keep it that way."
+            },
+            "-3": {
+                "enter": "Your counselor's office says it can't keep seeing you until you pay your balance. You lose the person who has helped you manage your anxiety for years.",
+                "exit": "You pay your balance, and your counselor makes room for you again.",
+                "llm_enter": "{{user_name}}'s counselor stopped seeing them until they pay their balance.",
+                "llm_exit": "{{user_name}} paid their balance and is back with their counselor.",
+                "enter_request": "My counselor's office won't see me until I pay my balance. That's the person who's helped me manage this for years. I need {{tons}} tons this month to pay what I owe and get back in.",
+                "exit_request": "I paid my balance, and my counselor made room for me again. I need {{tons}} tons this month to keep my sessions going."
+            },
+            "-4": {
+                "enter": "You run out of medication completely. For most of the week, you can't bring yourself to leave the house, and the boat stays tied up.",
+                "exit": "You get back on your medication and back on the water, though it takes a few weeks to feel steady.",
+                "llm_enter": "{{user_name}} ran out of medication and missed most of a week of fishing because of their anxiety.",
+                "llm_exit": "{{user_name}} is back on medication and fishing again, though still regaining steadiness.",
+                "enter_request": "I ran out of medication completely. For most of last week I couldn't bring myself to leave the house, and my boat stayed tied up. I need {{tons}} tons this month to get back on my medication.",
+                "exit_request": "I got back on my medication and back on the water. It's taking a few weeks to feel steady. I need {{tons}} tons this month to stay on treatment."
+            },
+            "-5": {
+                "enter": "On the way to the marina, a panic attack hits, and you have to turn around and go home. Your counselor schedules extra sessions to get you back on track, and the bills come to $1,500.",
+                "exit": "You set up a payment plan for the counseling bills and get back to fishing.",
+                "llm_enter": "{{user_name}} had a panic attack on the way to the marina and turned back. Extra counseling sessions cost them $1,500.",
+                "llm_exit": "{{user_name}} set up a payment plan for their counseling bills and is fishing again.",
+                "enter_request": "I had a panic attack on the way to the marina and had to turn around and go home. My counselor scheduled extra sessions, and now I owe $1,500. I need {{tons}} tons this month to cover the bills and stay on treatment.",
+                "exit_request": "I set up a payment plan for the counseling bills and I'm back on the water. I need {{tons}} tons this month to keep up with it and my treatment."
+            },
+            "-6": {
+                "enter": "Weeks without treatment wear you down. You stop answering your phone, skip meals, and only manage a few hours on the water most days. You're bringing in half your usual catch.",
+                "exit": "Back on treatment, you start answering your phone again and work longer days.",
+                "llm_enter": "{{user_name}} has gone weeks without treatment. They are withdrawing, skipping meals, and their catch has dropped by half.",
+                "llm_exit": "{{user_name}} is back on treatment and working longer days.",
+                "enter_request": "I've gone weeks without treatment, and it's wearing me down. I'm skipping meals, not answering my phone, and only managing a few hours on the water. I'm catching half what I used to. I need {{tons}} tons this month to get back on treatment.",
+                "exit_request": "I'm back on treatment. I'm answering my phone again and working longer days. I need {{tons}} tons this month to keep going."
+            },
+            "-7": {
+                "enter": "You fall two months behind on rent. Your landlord tells you to pay in full by the end of the month or move out.",
+                "exit": "You pay the back rent, and your landlord lets you stay.",
+                "llm_enter": "{{user_name}} is two months behind on rent and must pay in full by the end of the month or move out.",
+                "llm_exit": "{{user_name}} paid their back rent and can stay in their apartment.",
+                "enter_request": "I'm two months behind on rent, and my landlord says I have to pay in full by the end of the month or move out. I need {{tons}} tons this month to keep my home.",
+                "exit_request": "I paid the back rent, and my landlord is letting me stay. I need {{tons}} tons this month to stay caught up."
+            },
+            "-8": {
+                "enter": "You lose your apartment. Without treatment, you can't face the water anymore. You sell your boat for far less than it's worth and move in with a cousin inland.",
+                "llm_enter": "{{user_name}} lost their apartment, sold their boat, and left Lake Erie to live with a cousin. Without treatment, they couldn't keep fishing."
+            },
+            "1": {
+                "enter": "You cover a full month of medication and counseling. The knot in your chest loosens.",
+                "exit": "An unexpected bill eats into your treatment money, and you have to skip a counseling session.",
+                "llm_enter": "{{user_name}} covered a full month of treatment.",
+                "llm_exit": "An unexpected bill forced {{user_name}} to skip a counseling session.",
+                "enter_request": "Last month's catch covered a full month of medication and counseling. I feel steadier. I need {{tons}} tons this month to keep my treatment going.",
+                "exit_request": "An unexpected bill ate into my treatment money, and I had to skip a counseling session. I need {{tons}} tons this month to stay on track."
+            },
+            "2": {
+                "enter": "With treatment steady, you sleep through the night and start waking up before dawn, ready to fish.",
+                "exit": "You have to stretch your medication again, and the sleepless nights come back.",
+                "llm_enter": "{{user_name}} is sleeping well and fishing early mornings.",
+                "llm_exit": "{{user_name}} is stretching their medication again and isn't sleeping.",
+                "enter_request": "With my treatment steady, I'm sleeping through the night and out on the water before dawn. I need {{tons}} tons this month to keep this up.",
+                "exit_request": "I had to stretch my medication again, and the sleepless nights are back. I need {{tons}} tons this month to get back on full treatment."
+            },
+            "3": {
+                "enter": "Your counselor helps you find a pharmacy that sells your medication for half the price.",
+                "exit": "The cheaper pharmacy stops carrying your medication.",
+                "llm_enter": "{{user_name}} found a pharmacy selling their medication at half price.",
+                "llm_exit": "{{user_name}}'s cheaper pharmacy stopped carrying their medication.",
+                "enter_request": "My counselor helped me find a pharmacy that sells my medication for half the price. I need {{tons}} tons this month to keep building on that.",
+                "exit_request": "The cheaper pharmacy stopped carrying my medication. I need {{tons}} tons this month to cover the full price."
+            },
+            "4": {
+                "enter": "You're caught up on rent and treatment for the first time since the clinic closed. Your counselor says you're doing better than when you started.",
+                "exit": "You fall behind on rent again, and the worry comes back.",
+                "llm_enter": "{{user_name}} is caught up on rent and treatment, and their counselor says they are doing well.",
+                "llm_exit": "{{user_name}} fell behind on rent again.",
+                "enter_request": "I'm caught up on rent and treatment for the first time since the clinic closed. My counselor says I'm doing better than when I started. I need {{tons}} tons this month to stay caught up.",
+                "exit_request": "I fell behind on rent again, and the worry is back. I need {{tons}} tons this month to catch up."
+            },
+            "5": {
+                "enter": "You prepay three months of treatment, so you don't have to worry about it until spring.",
+                "exit": "You have to use your prepaid treatment money for rent.",
+                "llm_enter": "{{user_name}} prepaid three months of treatment.",
+                "llm_exit": "{{user_name}} had to use their prepaid treatment money for rent.",
+                "enter_request": "I prepaid three months of treatment, so I don't have to worry about it until spring. I need {{tons}} tons this month to keep up with everything else.",
+                "exit_request": "I had to use my prepaid treatment money for rent. I need {{tons}} tons this month to cover treatment again."
+            },
+            "6": {
+                "enter": "You feel well enough to take on a long-haul trip to the deep-water grounds, and the extra catch lets you start saving for winter.",
+                "exit": "You have to dip into your winter savings, and you cancel the next long trip.",
+                "llm_enter": "{{user_name}} made a profitable long trip and started saving for winter.",
+                "llm_exit": "{{user_name}} spent their winter savings and canceled their next long trip.",
+                "enter_request": "I felt well enough to make a long trip out to the deep-water grounds, and the extra catch let me start saving for winter. I need {{tons}} tons this month to keep saving.",
+                "exit_request": "I had to dip into my winter savings and cancel my next long trip. I need {{tons}} tons this month to rebuild them."
+            },
+            "7": {
+                "enter": "A new community clinic opens nearby with sliding-scale fees. Your treatment is affordable again for the long term.",
+                "exit": "The new clinic has a waitlist, and you can't afford to keep paying full price while you wait.",
+                "llm_enter": "A sliding-scale clinic opened near {{user_name}}, making their treatment affordable long term.",
+                "llm_exit": "{{user_name}} is on a clinic waitlist and can't afford full-price treatment meanwhile.",
+                "enter_request": "A new community clinic opened nearby with sliding-scale fees, so my treatment is affordable again. I need {{tons}} tons this month to get settled and keep everything on track.",
+                "exit_request": "The new clinic has a waitlist, and I can't afford full price while I wait. I need {{tons}} tons this month to cover it."
+            },
+            "8": {
+                "enter": "Your treatment is affordable, your rent is paid ahead, and you have savings for the winter. You feel steadier than you have in years.",
+                "llm_enter": "{{user_name}}'s treatment is affordable, their rent is paid ahead, and they have winter savings. They feel steadier than they have in years."
+            }
+        },
+        "2": {
+            "name": "The Physical Adversity Fisher",
+            "initial_request": "I've fished Lake Erie for six years. I've had type 1 diabetes since childhood, and with insulin and regular checkups it's been well managed. This fall my insurance plan changed and stopped covering my insulin and supplies, so now my treatment costs about $400 a month out of pocket. When I've had to stretch my insulin before, I got weak and dizzy and couldn't work full days on the water. I need {{tons}} tons this month to cover rent, food, and my treatment before winter.",
+            "-1": {
+                "enter": "You can't cover all your supplies this month. You skip your checkup and test your blood sugar less often to make your strips last.",
+                "exit": "You restock your test strips and reschedule your checkup.",
+                "llm_enter": "{{user_name}} couldn't afford all their supplies, so they skipped their checkup and are testing less often.",
+                "llm_exit": "{{user_name}} restocked their test strips and rescheduled their checkup.",
+                "enter_request": "I came up short last month, so I skipped my checkup and I'm testing my blood sugar less often to make my strips last. I need {{tons}} tons this month to get my supplies back before things slip.",
+                "exit_request": "Last month's catch let me restock my test strips and reschedule my checkup. I need {{tons}} tons this month to stay on treatment."
+            },
+            "-2": {
+                "enter": "Testing less often, your blood sugar drifts high some days. You're more tired than usual, you work a little slower, and your catch shrinks.",
+                "exit": "Back to regular testing, your energy returns and your days on the water get back to normal.",
+                "llm_enter": "{{user_name}}'s blood sugar is drifting high some days. They are more tired, working slower, and catching less.",
+                "llm_exit": "{{user_name}} is back to regular testing and working normal days.",
+                "enter_request": "Testing less often, my blood sugar's drifting high some days. I'm more tired than usual, I'm working slower, and I'm catching less. I need {{tons}} tons this month to get back on track.",
+                "exit_request": "I'm back to regular testing, and my energy is back. My days are normal again. I need {{tons}} tons this month to keep it that way."
+            },
+            "-3": {
+                "enter": "You can't afford new sensors for your glucose monitor, the device that has warned you about lows for years. You're back to guessing.",
+                "exit": "You buy new sensors, and your glucose monitor is working again.",
+                "llm_enter": "{{user_name}} can't afford sensors for their glucose monitor and is managing without it.",
+                "llm_exit": "{{user_name}} bought new sensors for their glucose monitor.",
+                "enter_request": "I can't afford new sensors for my glucose monitor, the thing that's warned me about lows for years. I'm back to guessing. I need {{tons}} tons this month to get it working again.",
+                "exit_request": "I bought new sensors, and my glucose monitor is working again. I need {{tons}} tons this month to keep my supplies stocked."
+            },
+            "-4": {
+                "enter": "A small cut on your foot from the boat deck is slow to heal. Your doctor tells you to stay off it, and the boat stays tied up most of the week.",
+                "exit": "You see a doctor about your foot, and it starts healing. You're back on the water, though it takes a few weeks to get your strength back.",
+                "llm_enter": "A cut on {{user_name}}'s foot is slow to heal, and they missed most of a week of fishing.",
+                "llm_exit": "{{user_name}} got their foot treated and is fishing again, though still regaining strength.",
+                "enter_request": "A small cut on my foot from the deck is slow to heal, and my doctor told me to stay off it. I couldn't fish most of last week, and the boat stayed tied up. I need {{tons}} tons this month to see a doctor and get back on insulin.",
+                "exit_request": "I saw a doctor about my foot, and it's healing. I'm back on the water. I need {{tons}} tons this month to stay on treatment."
+            },
+            "-5": {
+                "enter": "Your blood sugar drops low out on the water, and you have to stop and head in early. Your doctor orders extra visits and lab tests to get you back on track, and the bills come to $1,500.",
+                "exit": "You set up a payment plan for the medical bills and get back to fishing.",
+                "llm_enter": "{{user_name}}'s blood sugar dropped low on the water, and follow-up visits and tests cost them $1,500.",
+                "llm_exit": "{{user_name}} set up a payment plan for their medical bills and is fishing again.",
+                "enter_request": "My blood sugar dropped low on the water, and I had to head in early. My doctor ordered extra visits and tests, and now I owe $1,500. I need {{tons}} tons this month to cover the bills and get back on full insulin.",
+                "exit_request": "I set up a payment plan for the medical bills and I'm back on the water. I need {{tons}} tons this month to keep up with it and my insulin."
+            },
+            "-6": {
+                "enter": "Weeks of high blood sugar wear you down. You're always tired and thirsty, and you can only manage a few hours on the water. Your catch drops by half.",
+                "exit": "Back on full treatment, your energy returns and you work longer days.",
+                "llm_enter": "{{user_name}} has had weeks of high blood sugar. They are exhausted, and their catch has dropped by half.",
+                "llm_exit": "{{user_name}} is back on full treatment and working longer days.",
+                "enter_request": "I've had high blood sugar for weeks. I'm always tired and thirsty, and I can only manage a few hours on the water. I'm catching half what I used to. I need {{tons}} tons this month to get back on treatment.",
+                "exit_request": "I'm back on full treatment. My energy is back, and I'm working longer days. I need {{tons}} tons this month to keep going."
+            },
+            "-7": {
+                "enter": "You fall behind on the loan you took out to replace your boat's motor. The bank says it will repossess the boat at the end of the month.",
+                "exit": "You catch up on the boat loan, and the bank cancels the repossession.",
+                "llm_enter": "{{user_name}} is behind on their boat loan, and the bank will repossess their boat at the end of the month.",
+                "llm_exit": "{{user_name}} caught up on their boat loan, and the repossession was canceled.",
+                "enter_request": "I'm behind on the loan I took out for my boat's motor, and the bank says it will repossess the boat at the end of the month. I need {{tons}} tons this month to keep my boat.",
+                "exit_request": "I caught up on my boat loan, and the bank canceled the repossession. I need {{tons}} tons this month to stay caught up."
+            },
+            "-8": {
+                "enter": "The bank takes your boat. Without income, you can't keep your apartment or afford your treatment, and you move in with an old friend in a city far from the lake.",
+                "llm_enter": "{{user_name}}'s boat was repossessed. They lost their apartment and left Lake Erie to stay with a friend. They can't afford their treatment."
+            },
+            "1": {
+                "enter": "You cover a full month of insulin and supplies. You feel like yourself again on the water.",
+                "exit": "An unexpected bill eats into your insulin money, and you have to skip your checkup.",
+                "llm_enter": "{{user_name}} covered a full month of insulin and supplies.",
+                "llm_exit": "An unexpected bill forced {{user_name}} to skip their checkup.",
+                "enter_request": "Last month's catch covered a full month of insulin and supplies. I feel like myself again. I need {{tons}} tons this month to keep my treatment going.",
+                "exit_request": "An unexpected bill ate into my insulin money, and I had to skip my checkup. I need {{tons}} tons this month to stay on track."
+            },
+            "2": {
+                "enter": "With treatment steady, your blood sugar stays in range and you have the energy for long days on the water.",
+                "exit": "You have to cut back on your supplies again, and the tiredness comes back.",
+                "llm_enter": "{{user_name}}'s blood sugar is steady, and they have energy for long days.",
+                "llm_exit": "{{user_name}} is cutting back on supplies again and is tired.",
+                "enter_request": "With my treatment steady, my blood sugar's in range and I have energy for long days on the water. I need {{tons}} tons this month to keep this up.",
+                "exit_request": "I had to cut back on my supplies again, and the tiredness is back. I need {{tons}} tons this month to get back on track."
+            },
+            "3": {
+                "enter": "Your doctor switches you to a cheaper insulin that works just as well.",
+                "exit": "The cheaper insulin goes out of stock at your pharmacy.",
+                "llm_enter": "{{user_name}} switched to a cheaper insulin.",
+                "llm_exit": "{{user_name}}'s cheaper insulin went out of stock.",
+                "enter_request": "My doctor switched me to a cheaper insulin that works just as well. I need {{tons}} tons this month to keep building on that.",
+                "exit_request": "The cheaper insulin went out of stock at my pharmacy. I need {{tons}} tons this month to cover the full price."
+            },
+            "4": {
+                "enter": "You're caught up on rent and treatment for the first time since your insurance changed. Your doctor says your numbers are the best they've been in a year.",
+                "exit": "You fall behind on rent again, and you worry about affording your next refill.",
+                "llm_enter": "{{user_name}} is caught up on rent and treatment, and their doctor says their numbers look good.",
+                "llm_exit": "{{user_name}} fell behind on rent again.",
+                "enter_request": "I'm caught up on rent and treatment for the first time since my insurance changed. My doctor says my numbers are the best in a year. I need {{tons}} tons this month to stay caught up.",
+                "exit_request": "I fell behind on rent again, and I'm worried about my next refill. I need {{tons}} tons this month to catch up."
+            },
+            "5": {
+                "enter": "You stock three months of insulin and supplies, so you don't have to worry about it until spring.",
+                "exit": "You have to use your insulin money for rent.",
+                "llm_enter": "{{user_name}} stocked three months of insulin and supplies.",
+                "llm_exit": "{{user_name}} had to use their insulin money for rent.",
+                "enter_request": "I stocked three months of insulin and supplies, so I don't have to worry until spring. I need {{tons}} tons this month to keep up with everything else.",
+                "exit_request": "I had to use my insulin money for rent. I need {{tons}} tons this month to cover my insulin again."
+            },
+            "6": {
+                "enter": "You pay off your boat's motor loan early, which frees up money each month to start saving for winter.",
+                "exit": "You have to dip into your winter savings and go back to making minimum loan payments.",
+                "llm_enter": "{{user_name}} paid off their motor loan and started saving for winter.",
+                "llm_exit": "{{user_name}} spent their winter savings.",
+                "enter_request": "I paid off my boat's motor loan early, so I have money each month to start saving for winter. I need {{tons}} tons this month to keep saving.",
+                "exit_request": "I had to dip into my winter savings. I need {{tons}} tons this month to rebuild them."
+            },
+            "7": {
+                "enter": "You qualify for a drug company program that caps your insulin at $35 a month for the next year.",
+                "exit": "The insulin program loses your paperwork, and you're back to paying full price while you reapply.",
+                "llm_enter": "{{user_name}} qualified for a program capping their insulin cost at $35 a month.",
+                "llm_exit": "{{user_name}}'s insulin program lost their paperwork, and they are paying full price again.",
+                "enter_request": "I qualified for a program that caps my insulin at $35 a month for the next year. I need {{tons}} tons this month to cover the rest of my supplies and keep everything on track.",
+                "exit_request": "The insulin program lost my paperwork, and I'm paying full price while I reapply. I need {{tons}} tons this month to cover it."
+            },
+            "8": {
+                "enter": "Your insulin is affordable, your boat is paid off, and you have savings for the winter. You feel healthier than you have in years.",
+                "llm_enter": "{{user_name}}'s insulin is affordable, their boat is paid off, and they have winter savings. They feel healthier than they have in years."
+            }
+        },
+        "3": {
+            "name": "The Environmental Adversity Fisher",
+            "initial_request": "I've fished Lake Erie for six years. I rent an old house near the docks. The furnace is failing, the pipes leak, and my landlord has stopped answering my calls about repairs. My heating and water bills keep climbing, and keeping the utilities on and making basic repairs costs about $400 a month. The utility company says it will cut my service if I fall further behind. I need {{tons}} tons this month to cover rent, food, and my utility bills before winter.",
+            "-1": {
+                "enter": "You can only pay part of your utility bills. The utility company adds a late fee and sends a final notice.",
+                "exit": "You pay your utility bills in full, and the final notice is withdrawn.",
+                "llm_enter": "{{user_name}} could only pay part of their utility bills and got a final notice.",
+                "llm_exit": "{{user_name}} paid their utility bills, and the final notice was withdrawn.",
+                "enter_request": "I came up short last month and could only pay part of my utility bills. Now I have a late fee and a final notice. I need {{tons}} tons this month to pay before they cut my service.",
+                "exit_request": "Last month's catch let me pay my utility bills in full. I need {{tons}} tons this month to stay caught up."
+            },
+            "-2": {
+                "enter": "The utility company posts a notice: your water will be shut off in ten days unless you pay. You spend evenings on the phone trying to set up a payment plan, and the worry cuts into your days on the water.",
+                "exit": "You pay the bill, and the shutoff notice is canceled.",
+                "llm_enter": "{{user_name}} got a notice that their water will be shut off in ten days, and the stress is cutting into their fishing time.",
+                "llm_exit": "{{user_name}} paid the bill, and the shutoff notice was canceled.",
+                "enter_request": "I got a notice that my water will be shut off in ten days unless I pay. I've spent my evenings on the phone trying to work something out, and it's cutting into my time on the water. I need {{tons}} tons this month to keep my water on.",
+                "exit_request": "I paid the bill, and the shutoff notice was canceled. I need {{tons}} tons this month to keep the utilities on."
+            },
+            "-3": {
+                "enter": "You have a roof leak that spreads mold through your bedroom. You have to throw out your mattress and most of your winter clothes.",
+                "exit": "You clean out the mold and replace your mattress and winter clothes.",
+                "llm_enter": "Mold from a roof leak ruined {{user_name}}'s mattress and winter clothes.",
+                "llm_exit": "{{user_name}} cleaned out the mold and replaced their mattress and clothes.",
+                "enter_request": "The roof leak spread mold through my bedroom, and I had to throw out my mattress and most of my winter clothes. I need {{tons}} tons this month to replace them before it gets cold.",
+                "exit_request": "I cleaned out the mold and replaced my mattress and winter clothes. I need {{tons}} tons this month to keep the house livable."
+            },
+            "-4": {
+                "enter": "Your electricity is shut off. Your food spoils, and you spend most of the week dealing with it instead of fishing.",
+                "exit": "You pay the bill, and your power comes back on. It takes a few weeks to catch up.",
+                "llm_enter": "{{user_name}}'s electricity was shut off, and they missed most of a week of fishing.",
+                "llm_exit": "{{user_name}} paid the bill and their power is back on.",
+                "enter_request": "My electricity was shut off. My food spoiled, and I lost most of last week dealing with it instead of fishing. I need {{tons}} tons this month to get the power back on.",
+                "exit_request": "I paid the bill and my power is back on. It's taking a few weeks to catch up. I need {{tons}} tons this month to keep the utilities on."
+            },
+            "-5": {
+                "enter": "A pipe bursts overnight and floods the ground floor. The plumber's emergency bill is $1,500, and you lose a week bailing water and moving your things.",
+                "exit": "You set up a payment plan with the plumber, dry out the house, and get back to fishing.",
+                "llm_enter": "A burst pipe flooded {{user_name}}'s house. They owe a plumber $1,500 and lost a week of fishing.",
+                "llm_exit": "{{user_name}} set up a payment plan with the plumber and is fishing again.",
+                "enter_request": "A pipe burst and flooded my ground floor. The plumber's bill is $1,500, and I lost a week bailing water. I need {{tons}} tons this month to pay the plumber and keep the utilities on.",
+                "exit_request": "I set up a payment plan with the plumber, dried out the house, and I'm back on the water. I need {{tons}} tons this month to keep up with it."
+            },
+            "-6": {
+                "enter": "Your heat is shut off as the nights turn freezing. You sleep in your coat, catch a cold that won't go away, and can only manage a few hours on the water. You're catching half of what you used to.",
+                "exit": "You pay the bill, your heat comes back on, and you start working longer days.",
+                "llm_enter": "{{user_name}}'s heat was shut off. They are sick, and their catch has dropped by half.",
+                "llm_exit": "{{user_name}}'s heat is back on, and they are working longer days.",
+                "enter_request": "My heat's been shut off as the nights turn freezing. I'm sleeping in my coat, I'm sick, and I'm catching half what I used to. I need {{tons}} tons this month to get the heat back on.",
+                "exit_request": "I paid the bill and my heat is back on. I'm working longer days again. I need {{tons}} tons this month to keep going."
+            },
+            "-7": {
+                "enter": "A city inspector posts a notice on your door: the house is unsafe. You have until the end of the month to make repairs, or you'll have to move out.",
+                "exit": "You pay for the critical repairs yourself, and the inspector lifts the notice.",
+                "llm_enter": "A city inspector declared {{user_name}}'s house unsafe. They must make repairs by the end of the month or move out.",
+                "llm_exit": "{{user_name}} paid for critical repairs, and the inspector lifted the notice.",
+                "enter_request": "A city inspector posted a notice saying my house is unsafe. If the repairs aren't done by the end of the month, I have to move out. I need {{tons}} tons this month to keep my home.",
+                "exit_request": "I paid for the critical repairs myself, and the inspector lifted the notice. I need {{tons}} tons this month to keep the house standing."
+            },
+            "-8": {
+                "enter": "The house is condemned, and you have nowhere to go. You sell your boat to pay for a room in a city far from the lake.",
+                "llm_enter": "{{user_name}}'s house was condemned. They sold their boat and left Lake Erie for a rented room in a city."
+            },
+            "1": {
+                "enter": "You catch up on your utility bills, and the shutoff notice is withdrawn. The house feels livable again.",
+                "exit": "An unexpected bill eats into your utility money, and you get another late notice.",
+                "llm_enter": "{{user_name}} caught up on their utility bills.",
+                "llm_exit": "An unexpected bill gave {{user_name}} another late notice.",
+                "enter_request": "Last month's catch let me catch up on my utility bills. The house feels livable again. I need {{tons}} tons this month to keep the utilities on.",
+                "exit_request": "An unexpected bill ate into my utility money, and I got another late notice. I need {{tons}} tons this month to stay on track."
+            },
+            "2": {
+                "enter": "You fix the leaking pipes yourself, and your water bill drops. You wake up to a dry kitchen for the first time in months.",
+                "exit": "The pipes start leaking again, and your water bill climbs.",
+                "llm_enter": "{{user_name}} fixed their leaking pipes, and their water bill dropped.",
+                "llm_exit": "{{user_name}}'s pipes are leaking again.",
+                "enter_request": "I fixed the leaking pipes myself, and my water bill dropped. I need {{tons}} tons this month to keep this up.",
+                "exit_request": "The pipes are leaking again, and my water bill is climbing. I need {{tons}} tons this month to fix them."
+            },
+            "3": {
+                "enter": "You pay a repair person to get the furnace running properly. The house is warm for the first time this fall.",
+                "exit": "The furnace starts acting up again, and the house turns cold.",
+                "llm_enter": "{{user_name}} got their furnace repaired.",
+                "llm_exit": "{{user_name}}'s furnace is acting up again.",
+                "enter_request": "I paid a repair person to get the furnace running properly, and the house is warm for the first time this fall. I need {{tons}} tons this month to keep building on that.",
+                "exit_request": "The furnace is acting up again, and the house is cold. I need {{tons}} tons this month to keep the heat running."
+            },
+            "4": {
+                "enter": "You're caught up on rent and utilities for the first time since spring. The house is the most comfortable it's been since you moved in.",
+                "exit": "You fall behind on rent again, and you worry about the next utility bill.",
+                "llm_enter": "{{user_name}} is caught up on rent and utilities.",
+                "llm_exit": "{{user_name}} fell behind on rent again.",
+                "enter_request": "I'm caught up on rent and utilities for the first time since spring. The house is the most comfortable it's been since I moved in. I need {{tons}} tons this month to stay caught up.",
+                "exit_request": "I fell behind on rent again, and I'm worried about the next utility bill. I need {{tons}} tons this month to catch up."
+            },
+            "5": {
+                "enter": "You insulate the windows and seal the roof before the cold sets in. Your heating bill drops for the rest of the winter.",
+                "exit": "You can't finish the insulation, and your heating bill climbs again.",
+                "llm_enter": "{{user_name}} insulated their windows and sealed the roof, and their heating bill dropped.",
+                "llm_exit": "{{user_name}} couldn't finish insulating, and their heating bill is climbing.",
+                "enter_request": "I insulated the windows and sealed the roof before the cold set in, and my heating bill dropped. I need {{tons}} tons this month to keep up with everything else.",
+                "exit_request": "I couldn't finish the insulation, and my heating bill is climbing again. I need {{tons}} tons this month to cover it."
+            },
+            "6": {
+                "enter": "You document every repair and file a complaint with the city. Your landlord is ordered to reimburse you, and you put the money toward winter savings.",
+                "exit": "Your landlord appeals the order, and you have to dip into your winter savings while you wait.",
+                "llm_enter": "{{user_name}}'s landlord was ordered to reimburse their repairs, and they started saving for winter.",
+                "llm_exit": "{{user_name}}'s landlord appealed, and {{user_name}} spent their winter savings.",
+                "enter_request": "I documented every repair and filed a complaint with the city. My landlord was ordered to reimburse me, and I put it toward winter savings. I need {{tons}} tons this month to keep saving.",
+                "exit_request": "My landlord appealed the order, and I had to dip into my winter savings. I need {{tons}} tons this month to rebuild them."
+            },
+            "7": {
+                "enter": "You sign a lease on a well-kept rental near the docks with a landlord who answers the phone.",
+                "exit": "The new lease falls through because you can't afford the deposit.",
+                "llm_enter": "{{user_name}} signed a lease on a well-kept rental.",
+                "llm_exit": "{{user_name}}'s new lease fell through.",
+                "enter_request": "I signed a lease on a well-kept rental near the docks with a landlord who actually answers the phone. I need {{tons}} tons this month to pay the deposit and keep everything on track.",
+                "exit_request": "The new lease fell through because I couldn't afford the deposit. I need {{tons}} tons this month to get into a better place."
+            },
+            "8": {
+                "enter": "Your new home is warm and solid, your bills are paid, and you have savings for the winter. You feel more settled than you have in years.",
+                "llm_enter": "{{user_name}}'s new home is warm, their bills are paid, and they have winter savings. They feel more settled than they have in years."
+            }
+        },
+        "4": {
+            "name": "The Social Adversity Fisher",
+            "initial_request": "I've fished Lake Erie for six years. This spring another fisher spread a false rumor that I'd been raiding other people's nets, and it stuck. The local buyer and the dock co-op stopped buying my catch, and people I used to share coffee with at the dock look away now. Selling at a port farther down the shore costs me about $400 a month in fuel and fees, money that used to go to rent and groceries, and I've started falling short on both. If I can't make the trip, my catch spoils. I need {{tons}} tons this month to cover rent, food, and the cost of selling elsewhere before winter.",
+            "-1": {
+                "enter": "At the diner, the fishers you've eaten breakfast with for years go quiet when you sit down. On your way out, someone mutters \"thief\" loud enough for you to hear. You also miss a trip to the far port, a day's catch spoils, and you skip groceries that week to make rent.",
+                "exit": "You make every trip to the far port, and one of the fishers from the diner nods at you on the dock.",
+                "llm_enter": "At the diner, {{user_name}}'s old breakfast group went quiet and someone called them a thief. A day's catch spoiled, and they skipped groceries to make rent.",
+                "llm_exit": "{{user_name}} made every trip to the far port, and an old acquaintance acknowledged them.",
+                "enter_request": "The fishers I've eaten breakfast with for years went quiet when I sat down, and someone muttered \"thief\" as I left. I also missed a trip to the far port, a day's catch spoiled, and I skipped groceries to make rent. I need {{tons}} tons this month to cover food and my trips.",
+                "exit_request": "I made every trip to the far port last month, and one of the fishers from the diner nodded at me on the dock. I need {{tons}} tons this month to keep selling."
+            },
+            "-2": {
+                "enter": "The bait shop owner refuses to serve you and tells you to buy your bait somewhere else. Driving to the next town for bait and fuel costs you time on the water. You pay rent late for the first time, and by the end of the month your fridge is empty.",
+                "exit": "A bait shop in the next town gives you a fair price and starts setting aside bait for you.",
+                "llm_enter": "The local bait shop refused to serve {{user_name}}, and the longer trips for supplies made them late on rent. Their fridge is empty.",
+                "llm_exit": "A bait shop in the next town is serving {{user_name}} at a fair price.",
+                "enter_request": "The bait shop owner refused to serve me and told me to buy somewhere else. Driving to the next town for bait and fuel is eating into my time on the water, and I paid rent late for the first time. My fridge is empty. I need {{tons}} tons this month to catch up and eat.",
+                "exit_request": "A bait shop in the next town gives me a fair price now. I need {{tons}} tons this month to keep things steady."
+            },
+            "-3": {
+                "enter": "Your closest friend on the docks tells you they can't be seen with you anymore. They also take back the freezer space they'd been lending you, so part of every catch now spoils before you can sell it. You can't cover your grocery bill this month.",
+                "exit": "Your friend calls you late one night to say they're sorry and offers the freezer space again. You start talking again, quietly.",
+                "llm_enter": "{{user_name}}'s closest friend on the docks cut off contact and took back the freezer space {{user_name}} used, so part of each catch spoils.",
+                "llm_exit": "{{user_name}}'s friend apologized, and they are talking again.",
+                "enter_request": "My closest friend on the docks told me they can't be seen with me anymore, and they took back the freezer space they'd been lending me. Part of every catch spoils now, and I can't cover groceries. I need {{tons}} tons this month to rent cold storage and eat.",
+                "exit_request": "My friend called to say they were sorry, and we're talking again, quietly. I need {{tons}} tons this month to keep selling."
+            },
+            "-4": {
+                "enter": "The co-op suspends your membership, and the harbor association warns that your dock space may not be renewed. You find a note taped to your boat: \"Nobody wants you on this dock.\" Without help unloading, you lose most of the week.",
+                "exit": "You pay a deckhand from the far port to help you unload, and you're back to full days.",
+                "llm_enter": "The co-op suspended {{user_name}}'s membership, their dock slip is at risk, someone left a hostile note on their boat, and without help unloading they lost most of a week.",
+                "llm_exit": "{{user_name}} hired a deckhand to help unload and is back to full days.",
+                "enter_request": "The co-op suspended my membership, the harbor association says my slip may not be renewed, and someone taped a note to my boat saying nobody wants me on this dock. The dockhands won't help me unload, and it cost me most of last week. I need {{tons}} tons this month to pay someone to help.",
+                "exit_request": "I hired a deckhand from the far port to help me unload, and I'm back to full days. I need {{tons}} tons this month to keep paying them."
+            },
+            "-5": {
+                "enter": "At a town meeting, the fisher who started the rumor accuses you in front of everyone. People clap when someone says you should leave town. The story reaches the far port, and your buyer there drops you. Without sales, you fall a month behind on rent.",
+                "exit": "You find a new buyer who doesn't care about local gossip, and you're selling again.",
+                "llm_enter": "{{user_name}} was publicly accused at a town meeting, people applauded a call for them to leave town, and their buyer dropped them. They are a month behind on rent.",
+                "llm_exit": "{{user_name}} found a new buyer and is selling again.",
+                "enter_request": "The fisher who started the rumor accused me at a town meeting. When someone said I should leave town, people clapped. My buyer at the far port heard and dropped me, and now I'm a month behind on rent. I need {{tons}} tons this month to catch up and find a new buyer.",
+                "exit_request": "I found a new buyer who doesn't care about the gossip, and I'm selling again. I need {{tons}} tons this month to keep it going."
+            },
+            "-6": {
+                "enter": "Someone posts in the town's online group calling you a thief, and dozens of people pile on. Fishers jeer when you pull into the dock, and other boats stop sharing radio reports. Fishing blind, you catch half of what you used to, and you start skipping meals to keep up with rent.",
+                "exit": "A fisher from another harbor starts sharing radio reports with you, and your catch picks back up.",
+                "llm_enter": "{{user_name}} is being called a thief online and jeered at the dock. Boats won't share fishing reports, and their catch has dropped by half.",
+                "llm_exit": "A fisher from another harbor is sharing reports with {{user_name}}, and their catch is recovering.",
+                "enter_request": "Someone posted in the town's online group calling me a thief, and dozens of people piled on. People jeer when I pull into the dock, and nobody will share radio reports, so I'm fishing blind and catching half what I used to. I'm skipping meals to keep up with rent. I need {{tons}} tons this month to get by.",
+                "exit_request": "A fisher from another harbor started sharing radio reports with me, and my catch is picking back up. I need {{tons}} tons this month to keep going."
+            },
+            "-7": {
+                "enter": "Fishers circulate a petition to ban you from the harbor, and the harbor association votes not to renew your dock space. Your landlord, who signed the petition, says your lease won't be renewed at the end of the month.",
+                "exit": "You find a landlord across the bay who'll rent to you, and a marina that will give you a space.",
+                "llm_enter": "A petition led the harbor association to drop {{user_name}}'s dock slip, and their landlord won't renew their lease at the end of the month.",
+                "llm_exit": "{{user_name}} found a new landlord and a new dock slip.",
+                "enter_request": "Fishers passed around a petition to ban me from the harbor, and the association voted not to renew my slip. My landlord signed it and won't renew my lease at the end of the month. I need {{tons}} tons this month to find somewhere to live and keep my boat.",
+                "exit_request": "I found a landlord across the bay who'll rent to me and a marina that'll give me a slip. I need {{tons}} tons this month to keep both."
+            },
+            "-8": {
+                "enter": "No one in town will buy your catch, rent to you, or let you dock. You sell your boat and leave Lake Erie for good. No one says goodbye.",
+                "llm_enter": "Shut out by the town, {{user_name}} sold their boat and left Lake Erie for good. No one said goodbye."
+            },
+            "1": {
+                "enter": "You make every trip to the far port, and nothing spoils. A fisher there invites you for coffee.",
+                "exit": "An unexpected bill eats into your fuel money, and you have to skip a trip and turn down the coffee.",
+                "llm_enter": "{{user_name}} made every trip to the far port, and a fisher there invited them for coffee.",
+                "llm_exit": "An unexpected bill forced {{user_name}} to skip a trip.",
+                "enter_request": "Last month's catch let me make every trip, and a fisher at the far port invited me for coffee. I need {{tons}} tons this month to keep selling.",
+                "exit_request": "An unexpected bill ate into my fuel money, and I had to skip a trip. I need {{tons}} tons this month to stay on track."
+            },
+            "2": {
+                "enter": "A buyer at the far port offers you a regular deal at a fair price. For once, someone wants to work with you.",
+                "exit": "The buyer at the far port drops your regular deal.",
+                "llm_enter": "A buyer at the far port offered {{user_name}} a regular deal.",
+                "llm_exit": "{{user_name}}'s buyer dropped their regular deal.",
+                "enter_request": "A buyer at the far port offered me a regular deal at a fair price. I need {{tons}} tons this month to keep this up.",
+                "exit_request": "My buyer at the far port dropped our deal. I need {{tons}} tons this month to get steady again."
+            },
+            "3": {
+                "enter": "A fisher at the dock starts telling people the rumor about you isn't true.",
+                "exit": "The fisher who defended you goes quiet.",
+                "llm_enter": "A fisher at the dock is defending {{user_name}} against the rumor.",
+                "llm_exit": "The fisher who defended {{user_name}} has gone quiet.",
+                "enter_request": "A fisher at the dock has started telling people the rumor about me isn't true. I need {{tons}} tons this month to keep building on that.",
+                "exit_request": "The fisher who stood up for me has gone quiet. I need {{tons}} tons this month to keep selling."
+            },
+            "4": {
+                "enter": "You're caught up on rent and fuel for the first time since spring. A few fishers at the diner make room for you at their table.",
+                "exit": "You fall behind on rent again, and the diner table goes quiet when you walk in.",
+                "llm_enter": "{{user_name}} is caught up on rent and fuel, and some fishers are friendly again.",
+                "llm_exit": "{{user_name}} fell behind on rent, and the fishers are avoiding them again.",
+                "enter_request": "I'm caught up on rent and fuel for the first time since spring, and a few fishers at the diner made room for me at their table. I need {{tons}} tons this month to stay caught up.",
+                "exit_request": "I fell behind on rent again, and the diner table went quiet when I walked in. I need {{tons}} tons this month to catch up."
+            },
+            "5": {
+                "enter": "The local buyer agrees to buy your catch again, so you don't have to make the long trip.",
+                "exit": "The local buyer backs out, and you're back to making the long trip.",
+                "llm_enter": "The local buyer agreed to buy {{user_name}}'s catch again.",
+                "llm_exit": "The local buyer backed out on {{user_name}}.",
+                "enter_request": "The local buyer agreed to buy my catch again, so I don't have to make the long trip. I need {{tons}} tons this month to keep up with everything else.",
+                "exit_request": "The local buyer backed out, and I'm making the long trip again. I need {{tons}} tons this month to cover it."
+            },
+            "6": {
+                "enter": "Without the long trips, you're saving on fuel, and you start putting money aside for winter. The co-op reinstates your membership.",
+                "exit": "You have to dip into your winter savings, and the co-op puts your membership on hold.",
+                "llm_enter": "{{user_name}} is saving for winter, and the co-op reinstated their membership.",
+                "llm_exit": "{{user_name}} spent their winter savings, and the co-op paused their membership.",
+                "enter_request": "Without the long trips, I'm saving on fuel and putting money aside for winter, and the co-op reinstated my membership. I need {{tons}} tons this month to keep saving.",
+                "exit_request": "I had to dip into my winter savings, and the co-op put my membership on hold. I need {{tons}} tons this month to rebuild them."
+            },
+            "7": {
+                "enter": "The fisher who started the rumor admits at a town meeting that it was false. People come up afterward to apologize.",
+                "exit": "The fisher who started the rumor backs out of admitting it publicly.",
+                "llm_enter": "The fisher who started the rumor about {{user_name}} admitted it was false.",
+                "llm_exit": "The fisher who started the rumor about {{user_name}} backed out of admitting it.",
+                "enter_request": "The fisher who started the rumor admitted at a town meeting that it was false, and people came up to apologize. I need {{tons}} tons this month to keep everything on track.",
+                "exit_request": "The fisher who started the rumor backed out of admitting it. I need {{tons}} tons this month to keep going."
+            },
+            "8": {
+                "enter": "You're invited to the fishers' dinner and asked to give a toast. Your bills are paid, you have savings for the winter, and you feel more at home than you have in years.",
+                "llm_enter": "{{user_name}} was invited to the fishers' dinner, their bills are paid, and they have winter savings. They feel more at home than they have in years."
+            }
+        },
+        "5": {
+            "name": "The Emotional Adversity Fisher",
+            "initial_request": "I've fished Lake Erie for six years. This spring my parent, the person I was closest to, died suddenly. They had been helping me with rent, about $400 a month, and without that help I'm struggling to cover rent and groceries. They also co-signed the loan on my boat. Some mornings the grief makes it hard to focus on the water, but I keep going. I need {{tons}} tons this month to cover rent, food, and my bills before winter.",
+            "-1": {
+                "enter": "Without your parent's help, you come up short on rent for the first time. Your landlord adds a late fee, and you skip groceries that week to cover it.",
+                "exit": "You pay your rent in full and restock your groceries.",
+                "llm_enter": "{{user_name}} came up short on rent without their late parent's help, got a late fee, and skipped groceries.",
+                "llm_exit": "{{user_name}} paid their rent in full and restocked groceries.",
+                "enter_request": "Without my parent's help, I came up short on rent for the first time. I got a late fee and skipped groceries to cover it. I need {{tons}} tons this month to pay rent and eat.",
+                "exit_request": "Last month's catch let me pay rent in full and restock my groceries. I need {{tons}} tons this month to stay caught up."
+            },
+            "-2": {
+                "enter": "Your parent's birthday passes. You keep reaching for your phone to call them. Between the grief and the money worries, you can't focus on fishing. You're late on rent again, and you're down to rice and canned soup.",
+                "exit": "You catch up on rent, and your focus on fishing comes back.",
+                "llm_enter": "{{user_name}}'s late parent's birthday passed. Grieving and unable to focus, they are late on rent again and running out of food.",
+                "llm_exit": "{{user_name}} caught up on rent and is focused on the water again.",
+                "enter_request": "My parent's birthday came and went. I keep reaching for my phone to call them. I can't focus on the water. I'm late on rent again, and I'm down to rice and canned soup. I need {{tons}} tons this month to catch up and eat.",
+                "exit_request": "I caught up on rent, and my focus on the water is coming back. I need {{tons}} tons this month to stay on track."
+            },
+            "-3": {
+                "enter": "To cover rent, you sell your parent's watch, the one thing of theirs you wore every day. It still isn't enough, and your car insurance lapses, so you can't legally drive to the docks.",
+                "exit": "You buy back your parent's watch and get your car insurance reinstated.",
+                "llm_enter": "{{user_name}} sold their late parent's watch to cover rent, and their car insurance lapsed.",
+                "llm_exit": "{{user_name}} bought back their parent's watch and reinstated their car insurance.",
+                "enter_request": "I sold my parent's watch to cover rent, the one thing of theirs I wore every day. It still wasn't enough, and my car insurance lapsed, so I can't legally drive to the docks. I need {{tons}} tons this month to fix both.",
+                "exit_request": "I bought back my parent's watch and got my car insurance reinstated. I need {{tons}} tons this month to keep up with rent."
+            },
+            "-4": {
+                "enter": "Your account overdraws, and your rent payment bounces. Your landlord charges a fee and warns you not to let it happen again. You spend most of the week sorting it out instead of fishing.",
+                "exit": "You cover the bounced payment and the fees, and get back on the water. It takes a few weeks to catch up.",
+                "llm_enter": "{{user_name}}'s rent payment bounced, their landlord warned them, and they lost most of a week of fishing.",
+                "llm_exit": "{{user_name}} covered the bounced rent and is fishing again.",
+                "enter_request": "My account overdrew, and my rent payment bounced. My landlord warned me not to let it happen again, and I lost most of last week sorting it out. I need {{tons}} tons this month to cover the rent and fees.",
+                "exit_request": "I covered the bounced payment and the fees, and I'm back on the water. I need {{tons}} tons this month to keep up with rent."
+            },
+            "-5": {
+                "enter": "Your parent's house goes into foreclosure. You spend a week there sorting through their belongings, deciding what you can afford to keep. The storage unit and moving costs come to $1,500.",
+                "exit": "You set up a payment plan for the storage unit and get back to fishing.",
+                "llm_enter": "{{user_name}}'s late parent's house went into foreclosure. They lost a week of fishing and owe $1,500 for storage and moving.",
+                "llm_exit": "{{user_name}} set up a payment plan for the storage unit and is fishing again.",
+                "enter_request": "My parent's house went into foreclosure. I spent a week sorting through their things, deciding what I could keep, and the storage and moving costs came to $1,500. I need {{tons}} tons this month to cover it.",
+                "exit_request": "I set up a payment plan for the storage unit and I'm back on the water. I need {{tons}} tons this month to keep up with it."
+            },
+            "-6": {
+                "enter": "You're skipping meals to keep up with rent. Hungry and grieving, you can only manage a few hours on the water. Your catch is half what it was.",
+                "exit": "You're eating properly again, and you start working longer days.",
+                "llm_enter": "{{user_name}} is skipping meals to make rent. Grieving and hungry, their catch has dropped by half.",
+                "llm_exit": "{{user_name}} is eating properly again and working longer days.",
+                "enter_request": "I'm skipping meals to keep up with rent. Between the hunger and the grief, I can only manage a few hours on the water, and I'm catching half what I used to. I need {{tons}} tons this month to eat and pay rent.",
+                "exit_request": "I'm eating properly again, and I'm working longer days. I need {{tons}} tons this month to keep going."
+            },
+            "-7": {
+                "enter": "Your parent co-signed your boat loan, and with their estate closing, the lender wants you to refinance on your own. Unless you pay down the balance by the end of the month, they'll take the boat.",
+                "exit": "You pay down the boat loan, and the lender lets you keep it in your own name.",
+                "llm_enter": "{{user_name}}'s late parent co-signed their boat loan. The lender will take the boat at the end of the month unless {{user_name}} pays down the balance.",
+                "llm_exit": "{{user_name}} paid down their boat loan and kept the boat.",
+                "enter_request": "My parent co-signed my boat loan, and now that their estate is closing, the lender wants me to refinance alone. If I can't pay down the balance by the end of the month, they'll take my boat. I need {{tons}} tons this month to keep it.",
+                "exit_request": "I paid down the boat loan, and the lender let me keep it in my own name. I need {{tons}} tons this month to stay caught up."
+            },
+            "-8": {
+                "enter": "The lender takes your boat, and you lose your apartment. You leave Lake Erie, and you can't afford to visit your parent's grave.",
+                "llm_enter": "{{user_name}}'s boat was taken and they lost their apartment. They left Lake Erie and can't afford to visit their parent's grave."
+            },
+            "1": {
+                "enter": "You cover your full rent and groceries for the month. You feel a little lighter on the water.",
+                "exit": "An unexpected bill eats into your rent money, and you're short again.",
+                "llm_enter": "{{user_name}} covered their full rent and groceries.",
+                "llm_exit": "An unexpected bill left {{user_name}} short on rent again.",
+                "enter_request": "Last month's catch covered my full rent and groceries. I feel a little lighter. I need {{tons}} tons this month to keep it that way.",
+                "exit_request": "An unexpected bill ate into my rent money, and I'm short again. I need {{tons}} tons this month to stay on track."
+            },
+            "2": {
+                "enter": "You pay rent on time, and the money worries ease. You get your first full night's sleep since spring.",
+                "exit": "You fall behind on rent again, and the sleepless nights come back.",
+                "llm_enter": "{{user_name}} paid rent on time and is sleeping well.",
+                "llm_exit": "{{user_name}} fell behind on rent again.",
+                "enter_request": "I paid rent on time, and I got my first full night's sleep since spring. I need {{tons}} tons this month to keep this up.",
+                "exit_request": "I fell behind on rent again, and the sleepless nights are back. I need {{tons}} tons this month to catch up."
+            },
+            "3": {
+                "enter": "You travel to your parent's house and bring home the things that mattered most: photos, their old tackle box, and letters you'd never seen.",
+                "exit": "You have to cancel your next trip to your parent's house.",
+                "llm_enter": "{{user_name}} brought home their parent's most meaningful belongings.",
+                "llm_exit": "{{user_name}} had to cancel a trip to their parent's house.",
+                "enter_request": "I traveled to my parent's house and brought home the things that mattered most: photos, their old tackle box, and letters I'd never seen. I need {{tons}} tons this month to keep building on that.",
+                "exit_request": "I had to cancel my next trip to my parent's house. I need {{tons}} tons this month to keep up with rent."
+            },
+            "4": {
+                "enter": "You're caught up on rent and bills for the first time since spring. Some mornings, thinking about your parent brings more smiles than tears.",
+                "exit": "You fall behind on rent again, and the stress makes the grief feel heavier.",
+                "llm_enter": "{{user_name}} is caught up on rent and bills and is coping better with their grief.",
+                "llm_exit": "{{user_name}} fell behind on rent, and their grief feels heavier.",
+                "enter_request": "I'm caught up on rent and bills for the first time since spring. Some mornings, thinking about my parent brings more smiles than tears. I need {{tons}} tons this month to stay caught up.",
+                "exit_request": "I fell behind on rent again, and the stress makes the grief feel heavier. I need {{tons}} tons this month to catch up."
+            },
+            "5": {
+                "enter": "You order a headstone for your parent's grave, and you finally feel ready to visit.",
+                "exit": "You have to put the headstone order on hold to cover rent.",
+                "llm_enter": "{{user_name}} ordered a headstone for their parent's grave.",
+                "llm_exit": "{{user_name}} put their parent's headstone order on hold.",
+                "enter_request": "I ordered a headstone for my parent's grave, and I finally feel ready to visit. I need {{tons}} tons this month to keep up with everything else.",
+                "exit_request": "I had to put the headstone order on hold to cover rent. I need {{tons}} tons this month to pay for it."
+            },
+            "6": {
+                "enter": "You fix up your parent's old tackle box and start fishing with it. A good month on the water lets you start saving for winter.",
+                "exit": "You have to dip into your winter savings to cover the shortfall.",
+                "llm_enter": "{{user_name}} is fishing with their parent's old tackle and saving for winter.",
+                "llm_exit": "{{user_name}} spent their winter savings.",
+                "enter_request": "I fixed up my parent's old tackle box and started fishing with it, and a good month let me start saving for winter. I need {{tons}} tons this month to keep saving.",
+                "exit_request": "I had to dip into my winter savings. I need {{tons}} tons this month to rebuild them."
+            },
+            "7": {
+                "enter": "You refinance the boat loan in your own name. The boat your parent helped you buy is yours to keep.",
+                "exit": "The refinance falls through because you can't afford the closing costs.",
+                "llm_enter": "{{user_name}} refinanced their boat loan in their own name.",
+                "llm_exit": "{{user_name}}'s refinance fell through.",
+                "enter_request": "I refinanced the boat loan in my own name. The boat my parent helped me buy is mine to keep. I need {{tons}} tons this month to keep everything on track.",
+                "exit_request": "The refinance fell through because I couldn't afford the closing costs. I need {{tons}} tons this month to cover them."
+            },
+            "8": {
+                "enter": "Your rent is paid ahead, the boat is yours, and you have savings for the winter. On your parent's birthday, you take the boat to their favorite spot, and you feel more at peace than you have since spring.",
+                "llm_enter": "{{user_name}}'s rent is paid ahead, the boat is theirs, and they have winter savings. They took the boat to their parent's favorite spot and feel more at peace."
+            }
+        }
+    }
+}
