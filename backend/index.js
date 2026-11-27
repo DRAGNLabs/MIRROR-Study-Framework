@@ -10,6 +10,7 @@ import surveyRouter from "./routes/surveyRouter.js";
 import adminRouter from "./routes/adminRouter.js";
 import roomsRouter from "./routes/roomsRouter.js"
 import foldersRouter from "./routes/foldersRouter.js";
+import gamesRouter from "./routes/gamesRouter.js";
 import "./initDB.js";
 import { createServer } from 'http';
 import { initializeSocketServer } from "./socket/socketServer.js";
@@ -44,6 +45,7 @@ app.use("/api/users", userRouter);
 app.use("/api/survey", surveyRouter);
 app.use("/api/rooms", roomsRouter);
 app.use("/api/folders", foldersRouter);
+app.use("/api/games", gamesRouter);
 app.use("/api/admin", adminRouter);
 
 // [Railway] Serve the React frontend's built static files from the backend.
